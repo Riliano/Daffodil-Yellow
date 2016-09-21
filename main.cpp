@@ -1,13 +1,13 @@
 #include<iostream>
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
-#include<queue>
+#include<SDL2/SDL_ttf.h>
+//#include<queue>
 #include<vector>
 //#include<thread>
 #include<cmath>
 #include<algorithm>
 #include<fstream>
-#include<SDL2/SDL_ttf.h>
 
 #include"init.h"
 #include"input.h"
