@@ -36,7 +36,7 @@ SDL_Texture* fireballTexture;
 SDL_Rect dummy;
 const int NUM_SPELLS = 5;
 int spellWaitTime[NUM_SPELLS];
-float scale = 1;//(float)screen_width/480.0;
+float scale = 1;//(float)screenWidth/480.0;
 int nextAvalID;
 
 bool RectCollision( SDL_Rect first, SDL_Rect second )
@@ -339,6 +339,7 @@ void Attack(human_t &someone)
 		someone.spellWaitTime[attack.id] = attack.waitTime;
 	}
 	someone.drawDirection = someone.attDirection;
+	//someone.prevAttDir = someone.attDirection;
 	someone.attDirection = 0;
 
 }
@@ -349,7 +350,7 @@ void Draw( human_t &someone )
 		someone.frame.x = 1*someone.frame.w;
 		return;
 	}
-	if( someone.drawDirection==someone.prevDrawDirection )
+	if( someone.drawDirection == someone.prevDrawDirection or someone.prevDrawDirection == someone.attDirection )
 	{
 		someone.frame.x+=someone.frame.w*someone.frameDirection;
 		if( someone.frame.x >=someone.frame.w*2 or someone.frame.x == 0 )
@@ -496,79 +497,28 @@ void LoadLevel( char level[] )
 		std::cout<<"Error loading level "<<level[0]<<std::endl;
 
 }
-/*
-void chaser(human &someone, human target)
-{
-	int option[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-	option[0] = distance(someone.x, someone.y-someone.speed, target.x, target.y);
-	option[1] = distance(someone.x+someone.speed, someone.y-someone.speed, target.x, target.y);
-	option[2] = distance(someone.x+someone.speed, someone.y, target.x, target.y);
-	option[3] = distance(someone.x+someone.speed, someone.y+someone.speed, target.x, target.y);
-	option[4] = distance(someone.x, someone.y+someone.speed, target.x, target.y);
-	option[5] = distance(someone.x-someone.speed, someone.y+someone.speed, target.x, target.y);
-	option[6] = distance(someone.x-someone.speed, someone.y, target.x, target.y);
-	option[7] = distance(someone.x-someone.speed, someone.y-someone.speed, target.x, target.y);
 
-	int dontDoSeizure = 1;
-
-	for(int i=0;i>8;i++)
-		option[i]+=dontDoSeizure;
-
-	for(int i=0;i<roadblock.size();i++)
-	{
-		SDL_Rect second = {roadblock[i].x, roadblock[i].y, roadblock[i].w, roadblock[i].h};
-		SDL_Rect first[8];
-
-	}
-
-	switch (someone.prevDrawDirection)
-	{
-		case 'w' : option[6]-=dontDoSeizure;break;
-		case 'e' : option[2]-=dontDoSeizure;break;
-		case 'n' : option[0]-=dontDoSeizure;break;option[1]-=dontDoSeizure;option[7]-=dontDoSeizure;break;
-		case 's' : option[4]-=dontDoSeizure;break;option[3]-=dontDoSeizure;option[5]-=dontDoSeizure;break;
-	}
-
-	int bestOption=9600, bestOptionIndx=8;
-	for(int i=0;i<8;i++)
-	{
-		if(option[i]<bestOption)
-		{
-			bestOption = option[i];
-			bestOptionIndx = i;
-		}
-	}
-	std::string Movdirection;
-	switch (bestOptionIndx)
-	{
-		case 0 : Movdirection="n ";break;
-		case 1 : Movdirection="ne";break;
-		case 2 : Movdirection=" e";break;
-		case 3 : Movdirection="se";break;
-		case 4 : Movdirection="s ";break;
-		case 5 : Movdirection="sw";break;
-		case 6 : Movdirection=" w";break;
-		case 7 : Movdirection="nw";break;
-		case 8 : Movdirection="  ";break;
-	}
-	someone.Movdirection[0] = Movdirection[0];
-	someone.Movdirection[1] = Movdirection[1];
-	if(someone.Movdirection[0] == ' ')
-		someone.Movdirection[0]=0;
-	if(someone.Movdirection[1] == ' ')
-		someone.Movdirection[1]=0;
-}
-*/
 void Patrol( human_t &someone )
 {
 	someone.eqpSpell = -1;
+	SDL_Rect target = {player.x, player.y, player.w, player.h};
+	SDL_Rect vision = {0, 0, someone.visionW, someone.visionH};
 	switch(someone.prevDrawDirection)
 	{
-		case 'w' : someone.attDirection = 'n';break;
-		case 'n' : someone.attDirection = 'e';break;
-		case 'e' : someone.attDirection = 's';break;
-		case 's' : someone.attDirection = 'w';break;
+		case 'w' : someone.attDirection = 'n';vision.x=someone.x+someone.w/2-someone.visionW/2;vision.y=someone.y-someone.visionH;break;
+		case 'n' : someone.attDirection = 'e';vision.x=someone.x+someone.w;someone.y+someone.h/2-someone.visionW/2;std::swap( vision.w, vision.h );break;
+		case 'e' : someone.attDirection = 's';vision.x=someone.x+someone.w/2-someone.visionW/2;vision.y=someone.y+someone.w;break;
+		case 's' : someone.attDirection = 'w';vision.x=someone.x-someone.visionH;someone.y+someone.h/2-someone.visionW/2;std::swap( vision.w, vision.h );break;
 		case 0 : someone.attDirection = 'n';break;
+	}
+	
+	if( RectCollision( target, vision ) )
+	{
+		someone.targetX = target.x;
+		someone.targetY = target.y;
+		someone.state = 1;
+		someone.eqpSpell = someone.avalSpells[0];
+		someone.prevAttDir = someone.attDirection;
 	}
 }
 
@@ -576,10 +526,12 @@ int main()
 {
 	//std::thread worker[numThread];
 	Init( renderer );
+	TTF_Init();
 	if( ShouldITurnVSync() )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+
 	playerTexture = IMG_LoadTexture(renderer, "Textures/RedMage.png");
 	enemyTexture = IMG_LoadTexture(renderer, "Textures/knight.png");
 	backgroundTexture = IMG_LoadTexture(renderer, "Textures/background.png");
@@ -587,7 +539,7 @@ int main()
 	rockTexture = IMG_LoadTexture(renderer, "Textures/rock.png");
 	slashTexture = IMG_LoadTexture(renderer, "Textures/slash.png");
 	fireballTexture = IMG_LoadTexture(renderer, "Textures/fireball.png");
-	TTF_Init();
+	std::cout<<SDL_GetError()<<std::endl;
 	gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 
 	player.pos.x = 150;
@@ -613,13 +565,6 @@ int main()
 	player.curSpellNum = 0;
 	player.id = nextAvalID;
 	nextAvalID++;
-
-	/*enemy.push_back(player);
-	enemy[0].x = 400;
-	enemy[0].ID = nextAvalID;
-	enemy[0].normSpeed = 3;
-	enemy[0].eqpSpell = 0;
-	nextAvalID++;*/
 
 	backgroundPos.w = scale*screenWidth;
 	backgroundPos.h = scale*screenHeight;
@@ -653,11 +598,16 @@ int main()
 	long long fpsT = SDL_GetTicks();
 	long long attT = SDL_GetTicks();
 	long long spellT = SDL_GetTicks();
+	long long checkFlagsT = SDL_GetTicks();
 	long long drawSpellT = SDL_GetTicks();
-	long long patrolT = SDL_GetTicks();
+	long long BOTpatrolT = SDL_GetTicks();
+	long long BOTattackT = SDL_GetTicks();
 	int spellchngTimeout = 0;
 	int frames = 0;
 	char cframes[5];
+	
+	flag_t navMesh[10000];
+	
 	while(true)
 	{
 		if( !levelLoaded )
@@ -665,6 +615,58 @@ int main()
 			SDL_RenderCopy( renderer, loading, NULL, NULL );
 			SDL_RenderPresent( renderer );
 			LoadLevel( level );
+			
+			int tempX = enemy[0].x, tempY = enemy[0].y;
+			int numFlag = 0;
+			for( int i=0;i<100;i++ )
+			{
+				navMesh[numFlag].belongsToID = enemy[0].id;
+				navMesh[numFlag].x = tempX;
+				navMesh[numFlag].y = tempY;
+				navMesh[numFlag].w = enemy[0].w;
+				navMesh[numFlag].h = enemy[0].h;
+				navMesh[numFlag].type = 1;
+				navMesh[numFlag].goTo[1] = 'w';	
+				tempX-=enemy[0].speed;
+				numFlag++;
+			}
+			for( int i=0;i<100;i++ )
+			{
+				navMesh[numFlag].belongsToID = enemy[0].id;
+				navMesh[numFlag].x = tempX;
+				navMesh[numFlag].y = tempY;
+				navMesh[numFlag].w = enemy[0].w;
+				navMesh[numFlag].h = enemy[0].h;
+				navMesh[numFlag].type = 1;
+				navMesh[numFlag].goTo[0] = 's';	
+				tempY+=enemy[0].speed;
+				numFlag++;
+			}
+			for( int i=0;i<100;i++ )
+			{
+				navMesh[numFlag].belongsToID = enemy[0].id;
+				navMesh[numFlag].x = tempX;
+				navMesh[numFlag].y = tempY;
+				navMesh[numFlag].w = enemy[0].w;
+				navMesh[numFlag].h = enemy[0].h;
+				navMesh[numFlag].type = 1;
+				navMesh[numFlag].goTo[1] = 'e';	
+				tempX+=enemy[0].speed;
+				numFlag++;
+			}
+			for( int i=0;i<100;i++ )
+			{
+				navMesh[numFlag].belongsToID = enemy[0].id;
+				navMesh[numFlag].x = tempX;
+				navMesh[numFlag].y = tempY;
+				navMesh[numFlag].w = enemy[0].w;
+				navMesh[numFlag].h = enemy[0].h;
+				navMesh[numFlag].type = 1;
+				navMesh[numFlag].goTo[0] = 'n';	
+				tempY-=enemy[0].speed;
+				numFlag++;
+			}
+
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
 		}
@@ -718,13 +720,44 @@ int main()
 			ResetInput();
 			inputT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - patrolT >= 2000 )
+		if( SDL_GetTicks() - checkFlagsT >= 10 )
+		{
+			for( int i=0;i<400/*flagSize*/;i++ )
+			{
+				if( enemy[0].x == navMesh[i].x and enemy[0].y == navMesh[i].y )
+				{
+					enemy[0].state = 1;
+					enemy[0].movDirection[0] = navMesh[i].goTo[0];
+					enemy[0].movDirection[1] = navMesh[i].goTo[1];
+					break;
+				}
+			}
+			checkFlagsT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - BOTpatrolT >= 2000 )
 		{	
 			for( int i=0;i<enemy.size();i++ )
 				if( enemy[i].state == 0 )
 					Patrol( enemy[i] );
-			patrolT = SDL_GetTicks();
+			BOTpatrolT = SDL_GetTicks();
 		}
+		/*
+		if( SDL_GetTicks() - BOTattackT >= 1000 )
+		{
+			for( int i=0;i<enemy.size();i++ )
+			{
+				if( enemy[i].state == 1 )
+				{
+					enemy[i].attDirection = enemy[i].prevAttDir;
+					if( enemy[i].attDirection == 'n' or enemy[i].attDirection == 's' )
+						enemy[i].movDirection[0] = enemy[i].attDirection;
+					if( enemy[i].attDirection == 'w' or enemy[i].attDirection == 'e' )
+						enemy[i].movDirection[1] = enemy[i].attDirection;
+				}
+			}
+			BOTattackT = SDL_GetTicks();
+		}*/
+
 		if( SDL_GetTicks() - attT >= 1000/60 )
 		{
 			Attack( player );

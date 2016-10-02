@@ -22,12 +22,35 @@ struct human_t
 	int spellWaitTime[5];
 	
 	int state = 0;
+	int targetX;
+	int targetY;
+	int visionW = 150;
+	int visionH = 300;
+	char prevAttDir;
 	
 	human_t()
 	{
 		for(int i=0;i<5;i++)
 			spellWaitTime[i] = 0;
+		avalSpells.push_back(eqpSpell);
 	}
+};
+
+struct flag_t
+{
+	int x;
+	int y;
+	int w;
+	int h;
+
+	bool forAll = false;
+	bool fullCollision = true;
+	int belongsToID;
+	int type;
+
+	char goTo[2] = {0, 0};
+	
+	int getSpell = 0;
 };
 
 struct obsticle_t

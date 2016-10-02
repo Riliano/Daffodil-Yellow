@@ -32,9 +32,11 @@ void ReadConfig()
 	std::ifstream cfg (CFG_FILE);
 	if( cfg.is_open() )
 	{
-		int i;
-		while( std::getline(cfg, config[i]) )
+		int i = 0;
+		while( std::getline(cfg, config[i], '\n') )
+		{
 			i++;
+		}
 		cfg.close();
 	}else
 	{
@@ -46,7 +48,7 @@ void Init( SDL_Renderer* renderer )
 {
 
 	ReadConfig();
-
+	
 	for( int i = 0;i<CFG_LINE;i++ )
 	{
 		if( config[i][0] != 'R' )
