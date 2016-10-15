@@ -1,3 +1,19 @@
+struct flag_t
+{
+	int x;
+	int y;
+	int w;
+	int h;
+
+	bool forAll = false;
+	bool fullCollision = true;
+	int belongsToID;
+	int type;
+
+	char goTo[2] = {0, 0};
+	
+	int getSpell = 0;
+};
 struct human_t
 {
 	int id;
@@ -27,6 +43,8 @@ struct human_t
 	int visionW = 150;
 	int visionH = 300;
 	char prevAttDir;
+
+	std::vector<flag_t> navMesh;
 	
 	human_t()
 	{
@@ -34,23 +52,6 @@ struct human_t
 			spellWaitTime[i] = 0;
 		avalSpells.push_back(eqpSpell);
 	}
-};
-
-struct flag_t
-{
-	int x;
-	int y;
-	int w;
-	int h;
-
-	bool forAll = false;
-	bool fullCollision = true;
-	int belongsToID;
-	int type;
-
-	char goTo[2] = {0, 0};
-	
-	int getSpell = 0;
 };
 
 struct obsticle_t
