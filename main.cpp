@@ -534,7 +534,7 @@ struct node_t
 		return value > rhs.value;
 	}
 };
-void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, int h, std::queue<node_t> &path)
+void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, int h, std::vector<node_t> &path)
 {
 	
 	int value[1000][1000];
@@ -550,23 +550,12 @@ void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, in
 	{
 //		std::cout<<bucket.size()<<std::endl;
 		node_t current = bucket.top();
-		path.push( current );
+		path.push_back( current );
 		bucket.pop();
-		if( current.x == goalX and current.y == goalY )
+		if( Distance(current.x, current.y, goalX, goalY) <= 50 )
 			return;
 		
 		node_t newNodes[8];
-		std::cout<<current.x<<" "<<current.y<<" "<<current.value<<" "<<goalX<<" "<<goalY<<std::endl;
-		SDL_Rect frame, pos;
-		frame = {0, 0, 32, 32};
-		pos.w = 32;
-		pos.h = 32;
-		
-		pos.x = player.pos.x - player.x + current.x;
-		pos.y = player.pos.y - player.y + current.y;
-
-		SDL_RenderCopy( renderer, enemyTexture, &frame, &pos );
-		SDL_RenderPresent( renderer );
 		for( int i=0;i<8;i++ )
 		{
 			newNodes[i] = current;
@@ -583,38 +572,38 @@ void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, in
 				case 6 : newNodes[i].x-=movment;break;
 				case 7 : newNodes[i].y-=movment;newNodes[i].x-=movment;break;
 			}
-			bool ShouldIBreak = false;
+			bool ShouldISkip = false;
 			for( int i=0;i<roadblock.size();i++ )
 			{
 				SDL_Rect node = {newNodes[i].x, newNodes[i].y, h, w};
 				SDL_Rect obsticle = {roadblock[i].x, roadblock[i].y, roadblock[i].h, roadblock[i].w};
 				if( RectCollision( node, obsticle ) )
 				{
-					ShouldIBreak = true;
+					ShouldISkip = true;
 					break;
 				}
 			}
-			if( ShouldIBreak )
-				break;
 			
-			int tempPrice = Distance( newNodes[i].x, newNodes[i].y, goalX, goalY ) + current.value;
-			if( value[newNodes[i].x][newNodes[i].y] == -1 or value[newNodes[i].x][newNodes[i].y] > tempPrice)
+			if( !ShouldISkip )
 			{
-				value[newNodes[i].x][newNodes[i].y] = tempPrice;
-				newNodes[i].value = tempPrice; 
-				bucket.push( newNodes[i] );
+				int tempPrice = Distance( newNodes[i].x, newNodes[i].y, goalX, goalY );
+				if( value[newNodes[i].x][newNodes[i].y] == -1 or value[newNodes[i].x][newNodes[i].y] > tempPrice)
+				{
+					value[newNodes[i].x][newNodes[i].y] = tempPrice;
+					newNodes[i].value = tempPrice;
+					bucket.push( newNodes[i] );
+				}
 			}
 		}
 
 	}
 }
-void PathBuilder( human_t &someone, std::queue<node_t> path )
+void PathBuilder( human_t &someone, std::vector<node_t> path )
 {
 	while( !path.empty() )
 	{
-		node_t temp = path.front();
-		path.pop();
-		
+		node_t temp = path.back();
+		path.pop_back();
 		
 		flag_t newNavMesh;
 		newNavMesh.w = someone.w;
@@ -624,15 +613,15 @@ void PathBuilder( human_t &someone, std::queue<node_t> path )
 		char move[2];
 		if( temp.x == temp.cameFromX )
 			move[1] = 0;
-		if( temp.x > temp.cameFromX )
-			move[1] = 'w';
 		if( temp.x < temp.cameFromX )
+			move[1] = 'w';
+		if( temp.x > temp.cameFromX )
 			move[1] = 'e';
 		if( temp.y == temp.cameFromY )
 			move[0] = 0;
-		if( temp.y > temp.cameFromY )
-			move[0] = 'n';
 		if( temp.y < temp.cameFromY )
+			move[0] = 'n';
+		if( temp.y > temp.cameFromY )
 			move[0] = 's';
 
 		newNavMesh.goTo[0] = move[0];
@@ -642,104 +631,13 @@ void PathBuilder( human_t &someone, std::queue<node_t> path )
 }
 void PathFind( human_t &someone )
 {
-	std::queue<node_t> path;
+	someone.navMesh.clear();
+	std::vector<node_t> path;
 	AStar( someone.x, someone.y, someone.targetX, someone.targetY, someone.speed, someone.w, someone.h, path );
 	PathBuilder( someone, path );
-	someone.state = 2;
 }
 
-/*void AStar( human_t &someone )
-{
-	struct oneWay
-	{
-		int fromX, fromY;
-		int toX, toY;
-		int w;
-		int h;
-		char movDir[2] = {0, 0};
-		int value;
-		bool operator<(const oneWay& rhs) const
-		{
-			return value > rhs.value;
-		}
-	};
 
-	std::priority_queue <oneWay> aStar;
-	int curX, curY;
-	curX = someone.x;
-	curY = someone.y;
-	
-	SDL_Rect person = {someone.x, someone.y, someone.h, someone.w};
-	SDL_Rect node = {someone.x, someone.y, someone.h, someone.w};
-
-	for( int i=0;i<8;i++ )
-	{
-		switch (i)
-		{
-			case 0 : node.y-=someone.speed;break;
-			case 1 : node.y-=someone.speed;node.x+=someone.speed;break;
-			case 2 : node.x+=someone.speed;break;
-			case 3 : node.y+=someone.speed;node.x+=someone.speed;break;
-			case 4 : node.y+=someone.speed;break;
-			case 5 : node.y+=someone.speed;node.x-=someone.speed;break;
-			case 6 : node.x-=someone.speed;break;
-			case 7 : node.y-=someone.speed;node.x-=someone.speed;break;
-		}
-		bool possibleMove = true;
-		for(int i=0;i<roadblock.size() and possibleMove;i++)
-		{
-			SDL_Rect block = {roadblock[i].x, roadblock[i].y, roadblock[i].w, roadblock[i].h};
-			if( RectCollision( block, node ) )
-				possibleMove = false;
-		}
-
-		if( possibleMove )
-		{
-			oneWay temp;
-			temp.fromX = person.x;
-			temp.fromY = person.y;
-			temp.toX = node.x;
-			temp.toY = node.y;
-			temp.w = someone.w;
-			temp.h = someone.h;
-			temp.value = Distance( node.x, node.y, someone.targetX, someone.targetY );
-			switch (i)
-			{
-				case 0 : temp.movDir[0]='n';break;
-				case 1 : temp.movDir[0]='n';temp.movDir[1]='e';break;
-				case 2 : temp.movDir[1]='e';break;
-				case 3 : temp.movDir[0]='s';temp.movDir[1]='e';break;
-				case 4 : temp.movDir[0]='s';break;
-				case 5 : temp.movDir[0]='s';temp.movDir[1]='w';break;
-				case 6 : temp.movDir[1]='w';break;
-				case 7 : temp.movDir[0]='n';temp.movDir[1]='w';break;
-			}
-			aStar.push(temp);
-		}
-		node = {someone.x, someone.y, someone.h, someone.w};
-	}
-	while( !aStar.empty() )
-	{
-		oneWay temp = aStar.top();
-		aStar.pop();
-		flag_t newNav;
-		newNav.goTo[0] = temp.movDir[0];
-		newNav.goTo[1] = temp.movDir[1];
-		newNav.x = temp.fromX;
-		newNav.y = temp.fromY;
-		newNav.w = temp.w;
-		newNav.h = temp.h;
-	
-		someone.navMesh.push_back(newNav);
-
-		while( !aStar.empty() )
-			aStar.pop();
-
-		curX = temp.toX;
-		curY = temp.toY;
-	}
-}
-*/
 int main()
 {
 	//std::thread worker[numThread];
@@ -888,19 +786,24 @@ int main()
 		{
 			for( int i=0;i<enemy.size();i++ )
 			{
+				if( enemy[i].navMesh.empty() )
+					enemy[i].state = 0;
 				for( int j=0;j<enemy[i].navMesh.size();j++ )
 				{
 					if( enemy[i].x == enemy[i].navMesh[j].x and enemy[i].y ==  enemy[i].navMesh[j].y )
 					{
+						std::cout<<"Walking"<<std::endl;
 						enemy[i].movDirection[0] = enemy[i].navMesh[j].goTo[0];
 						enemy[i].movDirection[1] = enemy[i].navMesh[j].goTo[1];
+						std::swap(enemy[i].navMesh[j], enemy[i].navMesh[enemy[i].navMesh.size()]);
+						enemy[i].navMesh.pop_back();
 						break;
 					}
 				}
 			}
 			checkFlagsT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - BOTpatrolT >= 20 )
+		if( SDL_GetTicks() - BOTpatrolT >= 2000 )
 		{	
 			for( int i=0;i<enemy.size();i++ )
 			{
@@ -908,9 +811,11 @@ int main()
 					Patrol( enemy[i] );
 				if( enemy[i].state == 1 )
 				{
-					enemy[i].state = 2;
+					enemy[i].targetX = player.x;
+					enemy[i].targetY = player.y;
 					PathFind( enemy[i] );
 				}
+				
 			}
 			BOTpatrolT = SDL_GetTicks();
 		}
@@ -1059,6 +964,6 @@ int main()
 			frames++;
 		}
 		SDL_RenderPresent( renderer );
-		//SDL_RenderClear( renderer );
+		SDL_RenderClear( renderer );
 	}
 }
