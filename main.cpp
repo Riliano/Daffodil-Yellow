@@ -556,6 +556,20 @@ void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, in
 			return;
 		
 		node_t newNodes[8];
+
+		/*
+		SDL_Rect pos, frame;
+		frame = {0, 0, 32, 32};
+		pos.w = 50;
+		pos.h = 50;
+		
+		pos.x = player.pos.x - player.x + current.x;
+		pos.y = player.pos.y - player.y + current.y;
+
+		SDL_RenderCopy( renderer, enemyTexture, &frame, &pos );
+		SDL_RenderPresent( renderer );
+		*/
+		
 		for( int i=0;i<8;i++ )
 		{
 			newNodes[i] = current;
@@ -573,10 +587,10 @@ void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, in
 				case 7 : newNodes[i].y-=movment;newNodes[i].x-=movment;break;
 			}
 			bool ShouldISkip = false;
-			for( int i=0;i<roadblock.size();i++ )
+			for( int j=0;j<roadblock.size();j++ )
 			{
 				SDL_Rect node = {newNodes[i].x, newNodes[i].y, h, w};
-				SDL_Rect obsticle = {roadblock[i].x, roadblock[i].y, roadblock[i].h, roadblock[i].w};
+				SDL_Rect obsticle = {roadblock[j].x, roadblock[j].y, roadblock[j].h, roadblock[j].w};
 				if( RectCollision( node, obsticle ) )
 				{
 					ShouldISkip = true;
@@ -586,7 +600,7 @@ void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, in
 			
 			if( !ShouldISkip )
 			{
-				int tempPrice = Distance( newNodes[i].x, newNodes[i].y, goalX, goalY );
+				int tempPrice = /*current.value + */Distance( newNodes[i].x, newNodes[i].y, goalX, goalY );
 				if( value[newNodes[i].x][newNodes[i].y] == -1 or value[newNodes[i].x][newNodes[i].y] > tempPrice)
 				{
 					value[newNodes[i].x][newNodes[i].y] = tempPrice;
@@ -634,6 +648,8 @@ void PathFind( human_t &someone )
 	someone.navMesh.clear();
 	std::vector<node_t> path;
 	AStar( someone.x, someone.y, someone.targetX, someone.targetY, someone.speed, someone.w, someone.h, path );
+	//int temp;
+	//std::cin>>temp;
 	PathBuilder( someone, path );
 }
 
@@ -642,7 +658,7 @@ int main()
 {
 	//std::thread worker[numThread];
 	Init( renderer );
-	TTF_Init();
+	//TTF_Init();
 	if( ShouldITurnVSync() )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 	else
@@ -656,7 +672,7 @@ int main()
 	slashTexture = IMG_LoadTexture(renderer, "Textures/slash.png");
 	fireballTexture = IMG_LoadTexture(renderer, "Textures/fireball.png");
 	std::cout<<SDL_GetError()<<std::endl;
-	gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
+	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 
 	player.pos.x = 150;
 	player.pos.y = 150;
@@ -803,7 +819,7 @@ int main()
 			}
 			checkFlagsT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - BOTpatrolT >= 2000 )
+		if( SDL_GetTicks() - BOTpatrolT >= 200 )
 		{	
 			for( int i=0;i<enemy.size();i++ )
 			{
@@ -955,14 +971,14 @@ int main()
 
 		SDL_RenderCopy( renderer, curEquipSpell, &curEquipSpellFrame, &curEquipSpellPos );
 
-		if( ShouldIDisplayFPS() )
+/*		if( ShouldIDisplayFPS() )
 		{
 			SDL_Surface* fpsSurface = TTF_RenderText_Solid( gothic, cframes, {255, 0, 0} );
 			SDL_Texture* fpsTx = SDL_CreateTextureFromSurface( renderer ,fpsSurface );
 			SDL_Rect fpsPos = {0, 0, 60, 30};
 			SDL_RenderCopy( renderer, fpsTx, NULL, &fpsPos );
 			frames++;
-		}
+		}*/
 		SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
 	}
