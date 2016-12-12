@@ -1,5 +1,13 @@
-50 50 32 32 2 0 200 10 50 50 t
-50 50 32 32 2 0 200 60 50 50 t
-50 50 32 32 2 0 200 110 50 50 t
-50 50 32 32 2 0 200 160 50 50 t
-50 50 32 32 2 0 200 210 50 50 t
+# human
+# state x y w h maxHealth normSpeed pos frame avalSpells..
+# obsticle
+# x y w h curHealth destroyable pos frame
+# background
+# backgroundPos(x, y), backgroundFrame(x, y)
+h RedMage 0 50 50 50 50 20 4 50 50 50 50 0 0 32 32 0 1 2
+h knight 1 -50 150 50 50 20 3 50 50 50 50 0 0 32 32 2
+h knight 1 300 150 50 50 20 3 50 50 50 50 0 0 32 32 0 1
+b background 0 0 0 0
+o tree 50 300 40 40 20 1 50 50 50 50 0 0 32 32
+o knight 300 300 100 100 20 0 50 50 100 100 32 0 32 32
+o rock 350 50 40 40 20 1 50 50 50 50 0 0 32 32

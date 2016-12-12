@@ -1,7 +1,7 @@
 #include<iostream>
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
-#include<SDL2/SDL_ttf.h>
+//#include<SDL2/SDL_ttf.h>
 #include<queue>
 #include<vector>
 //#include<thread>
@@ -9,50 +9,37 @@
 #include<algorithm>
 #include<fstream>
 
+#include"simpleGeometry.h"
+#include"struct.cpp"
 #include"init.h"
 #include"input.h"
-#include"struct.cpp"
+#include"ai.cpp"
 
 SDL_Renderer* renderer;
 SDL_Event e;
+std::vector<SDL_Texture*> textures;
+
 //std::queue<int> tasks;
-int numThread = 2;
+//int numThread = 2;
 
-TTF_Font* gothic;
+//TTF_Font* gothic;
 
-human_t player;
-SDL_Texture* playerTexture;
-std::vector<human_t> enemy;
-SDL_Texture* enemyTexture;
-SDL_Rect backgroundPos;
-SDL_Rect backgroundFrame;
-SDL_Texture* backgroundTexture;
+std::vector<human_t> humans;
 std::vector <obsticle_t> roadblock;
-SDL_Texture* rockTexture;
-SDL_Texture* treeTexture;
+
+SDL_Rect backgroundPos;
+int backgroundTextureID;
+SDL_Rect dummy;
+
 std::vector<aoe_t> activeSpells;
 SDL_Texture* slashTexture;
 SDL_Texture* fireballTexture;
-SDL_Rect dummy;
 const int NUM_SPELLS = 5;
-int spellWaitTime[NUM_SPELLS];
-float scale = 1;//(float)screenWidth/480.0;
-int nextAvalID;
 
-bool RectCollision( SDL_Rect first, SDL_Rect second )
-{
-	if( ( first.x<=second.x+second.w and first.x+first.w >=second.x ) and ( first.y<=second.y+second.h and first.y+first.h >=second.y ) )
-		return true;
-	else
-		return false;
-}
-
-int Distance( int x1, int y1, int x2, int y2 )
-{
-	int ans = (y2-y1)*(y2-y1) + (x2-x1)*(x2-x1);
-	ans = sqrt( ans );
-	return ans;
-}
+float scale = (float)screenWidth/480.0;
+int playerID = 0;
+int nextAvalHumanID = -1;
+int nextAvalTextureID = -1;
 
 void Spell( aoe_t &magic )
 {
@@ -90,61 +77,41 @@ void Spell( aoe_t &magic )
 			magic.duration = 0;
 		}
 	}
-	if( player.id != magic.castByID )
+	for( int i = 0;i<humans.size();i++ )
 	{
-		possibleHit.x = player.x;
-		possibleHit.y = player.y;
-		possibleHit.w = player.w;
-		possibleHit.h = player.h;
-		if( RectCollision( spell, possibleHit ) )
+		if( humans[i].id != magic.castByID )
 		{
-			player.curHealth -= magic.dmg;
-			magic.duration = 0;
-		}
-	}else
-	{
-		if( magic.usrSlowDown > player.normSpeed )
-			magic.usrSlowDown = player.normSpeed;
-		if( magic.usrSlowDownDur > 0 )
-		{
-			magic.usrSlowDownDur --;
-			player.speed = player.normSpeed - magic.usrSlowDown;
-		}
-	}
-	for( int i = 0;i<enemy.size();i++ )
-	{
-		if( enemy[i].id != magic.castByID )
-		{
-			possibleHit.x = enemy[i].x;
-			possibleHit.y = enemy[i].y;
-			possibleHit.w = enemy[i].w;
-			possibleHit.h = enemy[i].h;
+			possibleHit.x = humans[i].x;
+			possibleHit.y = humans[i].y;
+			possibleHit.w = humans[i].w;
+			possibleHit.h = humans[i].h;
 			if( RectCollision( spell, possibleHit ) )
 			{
-				enemy[i].curHealth -= magic.dmg;
+				humans[i].curHealth -= magic.dmg;
 				magic.duration = 0;
-				if( enemy[i].curHealth <= 0 )
+				if( humans[i].curHealth <= 0 )
 				{
-					std::swap( enemy[i], enemy[enemy.size()-1] );
-					enemy.pop_back();
+					std::swap( humans[i], humans[humans.size()-1] );
+					humans.pop_back();
 				}
 			}
 		}else
 		{
-			if( magic.usrSlowDown > enemy[i].normSpeed )
-				magic.usrSlowDown = enemy[i].normSpeed;
+			if( magic.usrSlowDown > humans[i].normSpeed )
+				magic.usrSlowDown = humans[i].normSpeed;
 			if( magic.usrSlowDownDur > 0 )
 			{
 				magic.usrSlowDownDur--;
-				enemy[i].speed = enemy[i].normSpeed - magic.usrSlowDown;
+				humans[i].speed = humans[i].normSpeed - magic.usrSlowDown;
 			}
 		}
 	}
 }
-
 void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 {
 	SDL_Rect oldPos = {someone.x, someone.y, someone.w, someone.h};
+//	if( someone.movDirection[0] != 0 and someone.movDirection[1] != 0 )
+//		someone.speed -= someone.speed/3;
 	switch( someone.movDirection[0] )
 	{
 		case 'n' : someone.y-=someone.speed;break;
@@ -155,7 +122,6 @@ void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 		case 'w' : someone.x-=someone.speed;break;
 		case 'e' : someone.x+=someone.speed;break;
 	}
-
 	if( someone.prevDrawDirection == someone.movDirection[0] or someone.prevDrawDirection == someone.movDirection[1] )
 		someone.drawDirection = someone.prevDrawDirection;
 	else
@@ -165,7 +131,6 @@ void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 		if( someone.movDirection[1] != 0 )
 			someone.drawDirection = someone.movDirection[1];
 	}
-
 	SDL_Rect human, pathBlocker;
 	human.x = someone.x;
 	human.y = someone.y;
@@ -188,17 +153,14 @@ void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 			return;
 		}
 	}
-	std::vector<human_t> otherHumans;
-	otherHumans.push_back( player );
-	otherHumans.insert( otherHumans.end(), enemy.begin(), enemy.end() );
-	for( int i = 0;i<otherHumans.size();i++ )
+	for( int i = 0;i<humans.size();i++ )
 	{
-		if( otherHumans[i].id != someone.id )
+		if( humans[i].id != someone.id )
 		{
-			pathBlocker.x = otherHumans[i].x;
-			pathBlocker.y = otherHumans[i].y;
-			pathBlocker.w = otherHumans[i].w;
-			pathBlocker.h = otherHumans[i].h;
+			pathBlocker.x = humans[i].x;
+			pathBlocker.y = humans[i].y;
+			pathBlocker.w = humans[i].w;
+			pathBlocker.h = humans[i].h;
 			if( RectCollision( human, pathBlocker ) )
 			{
 				someone.x = oldPos.x;
@@ -221,23 +183,9 @@ void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 		case 'e' : if( someone.pos.x < (screenWidth-someone.pos.w*3) ){ someone.pos.x+=someone.speed; }else{ backgroundPos.x -= someone.speed; }break;
 		case 'w' : if( someone.pos.x > someone.pos.w*2 ){ someone.pos.x-=someone.speed; }else{ backgroundPos.x += someone.speed; }break;
 	}
-
 	someone.movDirection[0] = 0;
 	someone.movDirection[1] = 0;
 	someone.speed = someone.normSpeed;
-}
-void DrawDir( human_t &someone )
-{
-	switch(someone.drawDirection)
-	{
-		case 'n' : someone.frame.y=3*someone.frame.h;break;
-		case 's' : someone.frame.y=0*someone.frame.h;break;
-		case 'e' : someone.frame.y=2*someone.frame.h;break;
-		case 'w' : someone.frame.y=1*someone.frame.h;break;
-		case 0 : return;
-	}
-	someone.prevDrawDirection = someone.drawDirection;
-	someone.drawDirection = 0;
 }
 void Attack(human_t &someone)
 {
@@ -251,7 +199,6 @@ void Attack(human_t &someone)
 	aoe_t attack;
 	if(someone.eqpSpell == 0)
 	{
-
 		attack.id = 1;
 		attack.dir = 0;
 		attack.speed = 0;
@@ -270,11 +217,9 @@ void Attack(human_t &someone)
 		{
 			case 'n' : attack.h = 30;attack.w = 20;attack.x = someone.x+15;attack.y=someone.y-attack.h;attack.angle = 0;attack.flip = SDL_FLIP_NONE;break;
 			case 's' : attack.h = 30;attack.w = 20;attack.x = someone.x+15;attack.y=someone.y+someone.h;attack.angle = 180;attack.flip = SDL_FLIP_NONE;break;
-			case 'w' : attack.h = 20;attack.w = 30;attack.x = someone.x-attack.w;attack.y = someone.y+15;attack.angle = 90;attack.flip = SDL_FLIP_VERTICAL;break;
-			case 'e' : attack.h = 20;attack.w = 30;attack.x = someone.x+someone.w;attack.y = someone.y+15;attack.angle = 90;attack.flip = SDL_FLIP_NONE;break;
+			case 'w' : attack.h = 20;attack.w = 30;attack.x = someone.x-attack.w;attack.y=someone.y+15;attack.angle = 90;attack.flip = SDL_FLIP_VERTICAL;break;
+			case 'e' : attack.h = 20;attack.w = 30;attack.x = someone.x+someone.w;attack.y=someone.y+15;attack.angle = 90;attack.flip = SDL_FLIP_NONE;break;
 		}
-		
-
 	}
 	if(someone.eqpSpell == 1)
 	{
@@ -332,328 +277,132 @@ void Attack(human_t &someone)
 			case 'e' : attack.angle = 0;attack.flip = SDL_FLIP_NONE;break;
 		}
 	}
-	if( someone.spellWaitTime[attack.id]<=0 )
+	if( someone.spellWaitTime[attack.id] <= 0 )
 	{
 		attack.castByID = someone.id;
 		activeSpells.push_back( attack );
 		someone.spellWaitTime[attack.id] = attack.waitTime;
 	}
 	someone.drawDirection = someone.attDirection;
-	//someone.prevAttDir = someone.attDirection;
 	someone.attDirection = 0;
-
 }
-void Draw( human_t &someone )
+void LoadLevel( char levelToLoad[] )
 {
-	if( someone.drawDirection == 0 )
+	std::ifstream level( levelToLoad );
+	std::vector< std::pair<int, int> > loadedTextures;
+	if( level.is_open() )
 	{
-		someone.frame.x = 1*someone.frame.w;
-		return;
-	}
-	if( someone.drawDirection == someone.prevDrawDirection or someone.prevDrawDirection == someone.attDirection )
-	{
-		someone.frame.x+=someone.frame.w*someone.frameDirection;
-		if( someone.frame.x >=someone.frame.w*2 or someone.frame.x == 0 )
-			someone.frameDirection = someone.frameDirection*(-1);
-	}else
-	{
-		someone.frame.x = 0;
-		someone.frameDirection = 1;
-	}
-	someone.prevDrawDirection = someone.drawDirection;
-	someone.drawDirection = 0;
-}
-
-void DrawSpell( aoe_t &magic )
-{
-	if(magic.duration<=-1)
-	{
-		magic.duration--;
-		return;
-	}
-	magic.frame.x += magic.frame.w;
-	int temp;
-	switch ( magic.id )
-	{
-		case 1 : temp = 3;break;
-		case 2 : temp = 4;break;
-	}
-	if( magic.frame.x == temp*magic.frame.w )
-	{
-		magic.frame.x = 0;
-		if( magic.duration == 0 )
+		while( !level.eof() )
 		{
-			magic.frame.x = temp*magic.frame.w;
-			magic.duration = -1;
-		}
-	}
-}
-
-void LoadLevel( char level[] )
-{
-	std::ifstream levelLayout ( level );
-	std::string temp;
-	if(levelLayout.is_open())
-	{
-		int push[10] = {0, 0, 0, 0, 0, 0,  0, 0, 0, 0};
-		int thisIs = 0;
-		while( levelLayout >> temp )
-		{
-			if((temp[0] < '0' and temp[0] > '9') or thisIs >9)
+			std::string line;
+			do
+				std::getline( level, line );
+			while( ( line[0] == '#' or line.length() < 2 ) and !level.eof() );
+			if( level.eof() )
+				break;
+			int i=0;
+			char type, fileName[20];
+			while( line[i] == ' ' )
+				i++;
+			type = line[i];
+			i++;
+			while( line[i] == ' ' )
+				i++;
+			int f = 0;
+			int pseudoHash = 0;
+			while( line[i] != ' ' )
 			{
-				obsticle_t toPush;
-				toPush.frame.x = 0;
-				toPush.frame.y = 0;
-				toPush.pos.w = push[0]*scale;
-				toPush.pos.h = push[1]*scale;
-				toPush.frame.w = push[2];
-				toPush.frame.h = push[3];
-				toPush.curHealth = push[4];
-				toPush.destroyable = push[5];
-				toPush.x = push[6];
-				toPush.y = push[7];
-				toPush.w = push[8];
-				toPush.h = push[9];
-				switch ( temp[0] )
-				{
-					case 'r' : toPush.type = 'r';break;
-					case 't' : toPush.type = 't';break;
-				}
-				roadblock.push_back( toPush );
-				thisIs = 0;
-				for( int i = 0;i<10;i++ )
-					push[i] = 0;
-			}else
-			{
-				int times = 1;
-				int reverse = 1;
-				for(int i = temp.size() - 1;i>=0;i--)
-				{
-					if( temp[i]=='-' )
-						reverse = -1;
-					else
-						push[thisIs] = push[thisIs] + (temp[i]-'0')*times;
-					times=times*10;
-				}
-				push[thisIs] *= reverse;
-				thisIs++;
+				fileName[f] = line[i];
+				pseudoHash+=fileName[f]*(f+1);
+				f++;
+				i++;
 			}
-		}
-
-	}else
-		std::cout<<"Error loading level "<<level[0]<<std::endl;
-	char enemyPos[] = "Levels/1.lvlenemy";
-	std::ifstream enemyLayout (enemyPos);
-	if(enemyLayout.is_open())
-	{
-		int push[12] = {0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0};
-		int thisIs = 0;
-		while( !enemyLayout.eof() )
-		{
-			if(thisIs > 10)
+			fileName[f] = '\0';
+			while( line[i] == ' ' )
+				i++;
+			std::vector<int> info;
+			int num = 0;
+			std::vector<int> bucket;
+			int negativ = 1;
+			for( ;i<=line.length();i++ )
 			{
-				human_t toPush;
-				toPush.frame.x = 0;
-				toPush.frame.y = 0;
-				toPush.pos.w = push[0]*scale;
-				toPush.pos.h = push[1]*scale;
-				toPush.frame.w = push[2];
-				toPush.frame.h = push[3];
-				toPush.maxHealth = push[4];
-				toPush.curHealth = toPush.maxHealth;
-				toPush.normSpeed = push[5];
-				toPush.speed = toPush.normSpeed;
-				toPush.x = push[6];
-				toPush.y = push[7];
-				toPush.w = push[8];
-				toPush.h = push[9];
-				toPush.eqpSpell = push[10];
-				toPush.id = nextAvalID;
-				nextAvalID++;
-				enemy.push_back( toPush );
-				thisIs = 0;
-				for(int i = 0;i<=10;i++)
-					push[i] = 0;
-			}else
-			{
-				enemyLayout >> temp;
-				int times = 1;
-				int reverse = 1;
-				for(int i = temp.size() - 1;i>=0;i--)
+				if( line[i] == ' ' or i == line.length() )
 				{
-					if(temp[i] == '-')
-						reverse = -1;
-					else
-						push[thisIs] = push[thisIs] + (temp[i]-'0')*times;
-					times=times*10;
+					for( int b=0;b<bucket.size();b++ )
+						num += bucket[b] * pow(10, (bucket.size()-1-b) );
+					num*=negativ;
+					info.push_back(num);
+					num = 0;
+					negativ = 1;
+					bucket.clear();
+					while( line[i] == ' ' and i<line.length() )
+						i++;
 				}
-				push[thisIs]*=reverse;
-				thisIs++;
+				if( line[i] == '-' )
+					negativ = -1;
+				else
+					bucket.push_back( line[i]-'0' );
 			}
-		}
-
-
-	}else
-		std::cout<<"Error loading level "<<level[0]<<std::endl;
-
-}
-
-void Patrol( human_t &someone )
-{
-	someone.eqpSpell = -1;
-	SDL_Rect target = {player.x, player.y, player.w, player.h};
-	SDL_Rect vision = {0, 0, someone.visionW, someone.visionH};
-	switch(someone.prevDrawDirection)
-	{
-		case 'w' : someone.attDirection = 'n';vision.x=someone.x+someone.w/2-someone.visionW/2;vision.y=someone.y-someone.visionH;break;
-		case 'n' : someone.attDirection = 'e';vision.x=someone.x+someone.w;someone.y+someone.h/2-someone.visionW/2;std::swap( vision.w, vision.h );break;
-		case 'e' : someone.attDirection = 's';vision.x=someone.x+someone.w/2-someone.visionW/2;vision.y=someone.y+someone.w;break;
-		case 's' : someone.attDirection = 'w';vision.x=someone.x-someone.visionH;someone.y+someone.h/2-someone.visionW/2;std::swap( vision.w, vision.h );break;
-		case 0 : someone.attDirection = 'n';break;
-	}
-	
-	if( RectCollision( target, vision ) )
-	{
-		someone.targetX = target.x;
-		someone.targetY = target.y;
-		someone.state = 1;
-		someone.eqpSpell = someone.avalSpells[0];
-		someone.prevAttDir = someone.attDirection;
-	}
-}
-
-struct node_t
-{
-	int x;
-	int y;
-	int cameFromX;
-	int cameFromY;
-	int value;
-	bool operator<(const node_t& rhs) const
-	{
-		return value > rhs.value;
-	}
-};
-void AStar( int startX, int startY, int goalX, int goalY, int movment, int w, int h, std::vector<node_t> &path)
-{
-	
-	int value[1000][1000];
-	for( int i=0;i<1000;i++ )
-		for( int j=0;j<1000;j++ )
-			value[i][j] = -1;
-	value[startX][startY] = 0;	
-	std::priority_queue <node_t> bucket;
-//	std::queue<node_t> path;
-	bucket.push({startX, startY, startX, startY, 0});
-
-	while( !bucket.empty() )
-	{
-//		std::cout<<bucket.size()<<std::endl;
-		node_t current = bucket.top();
-		path.push_back( current );
-		bucket.pop();
-		if( Distance(current.x, current.y, goalX, goalY) <= 50 )
-			return;
-		
-		node_t newNodes[8];
-
-		/*
-		SDL_Rect pos, frame;
-		frame = {0, 0, 32, 32};
-		pos.w = 50;
-		pos.h = 50;
-		
-		pos.x = player.pos.x - player.x + current.x;
-		pos.y = player.pos.y - player.y + current.y;
-
-		SDL_RenderCopy( renderer, enemyTexture, &frame, &pos );
-		SDL_RenderPresent( renderer );
-		*/
-		
-		for( int i=0;i<8;i++ )
-		{
-			newNodes[i] = current;
-			newNodes[i].cameFromX = current.x;
-			newNodes[i].cameFromY = current.y;
-			switch (i)
+			bucket.clear();
+			bool newTexture = true;
+			int textureIDToGive;
+			for( int t=0;t<loadedTextures.size();t++ )
 			{
-				case 0 : newNodes[i].y-=movment;break;
-				case 1 : newNodes[i].y-=movment;newNodes[i].x+=movment;break;
-				case 2 : newNodes[i].x+=movment;break;
-				case 3 : newNodes[i].y+=movment;newNodes[i].x+=movment;break;
-				case 4 : newNodes[i].y+=movment;break;
-				case 5 : newNodes[i].y+=movment;newNodes[i].x-=movment;break;
-				case 6 : newNodes[i].x-=movment;break;
-				case 7 : newNodes[i].y-=movment;newNodes[i].x-=movment;break;
-			}
-			bool ShouldISkip = false;
-			for( int j=0;j<roadblock.size();j++ )
-			{
-				SDL_Rect node = {newNodes[i].x, newNodes[i].y, h, w};
-				SDL_Rect obsticle = {roadblock[j].x, roadblock[j].y, roadblock[j].h, roadblock[j].w};
-				if( RectCollision( node, obsticle ) )
+				if( pseudoHash == loadedTextures[t].first )
 				{
-					ShouldISkip = true;
+					textureIDToGive = loadedTextures[t].second;
+					newTexture = false;
 					break;
 				}
 			}
-			
-			if( !ShouldISkip )
+			if( newTexture )
 			{
-				int tempPrice = /*current.value + */Distance( newNodes[i].x, newNodes[i].y, goalX, goalY );
-				if( value[newNodes[i].x][newNodes[i].y] == -1 or value[newNodes[i].x][newNodes[i].y] > tempPrice)
+				textureIDToGive = ++nextAvalTextureID;
+				char fullFileName[30] = "Textures/";
+				char format[] = ".png\0";
+				std::copy( format, format+5, fileName+f );
+				std::copy( std::begin(fileName), std::end(fileName), fullFileName+9 );
+				textures.push_back( IMG_LoadTexture( renderer, fullFileName ) );
+				loadedTextures.push_back( {pseudoHash, textureIDToGive} );
+			}
+			if( type == 'o' )
+			{
+				obsticle_t toPush( info, textureIDToGive, scale );
+				roadblock.push_back(toPush);
+			}
+			if( type == 'h' )
+			{
+				human_t toPush( info, ++nextAvalHumanID, textureIDToGive, scale );
+				humans.push_back( toPush );
+				if( toPush.state == 0 )
 				{
-					value[newNodes[i].x][newNodes[i].y] = tempPrice;
-					newNodes[i].value = tempPrice;
-					bucket.push( newNodes[i] );
+					playerID = 0;
+					std::swap( humans[ humans.size()-1 ], humans[0] );
 				}
 			}
+			if( type == 'b' )
+			{
+				backgroundTextureID = textureIDToGive;
+				backgroundPos.x = info[0];
+				backgroundPos.y = info[1];
+			}
+			info.clear();
 		}
-
-	}
-}
-void PathBuilder( human_t &someone, std::vector<node_t> path )
-{
-	while( !path.empty() )
+	}else
+		std::cout<<"Error loading level!"<<std::endl;
+#ifdef TEXTURE_TEST
+	std::cout<<"Begin"<<std::endl;
+	for( int i=0;i<textures.size();i++ )
 	{
-		node_t temp = path.back();
-		path.pop_back();
-		
-		flag_t newNavMesh;
-		newNavMesh.w = someone.w;
-		newNavMesh.h = someone.h;
-		newNavMesh.x = temp.cameFromX;
-		newNavMesh.y = temp.cameFromY;
-		char move[2];
-		if( temp.x == temp.cameFromX )
-			move[1] = 0;
-		if( temp.x < temp.cameFromX )
-			move[1] = 'w';
-		if( temp.x > temp.cameFromX )
-			move[1] = 'e';
-		if( temp.y == temp.cameFromY )
-			move[0] = 0;
-		if( temp.y < temp.cameFromY )
-			move[0] = 'n';
-		if( temp.y > temp.cameFromY )
-			move[0] = 's';
-
-		newNavMesh.goTo[0] = move[0];
-		newNavMesh.goTo[1] = move[1];
-		someone.navMesh.push_back( newNavMesh );
+		std::cout<<i<<std::endl;
+		SDL_RenderCopy( renderer, textures[i], NULL, NULL );
+		SDL_RenderPresent(renderer);
+		SDL_Delay(1000);
+		SDL_RenderClear(renderer);
 	}
+	std::cout<<"End"<<std::endl;
+#endif
 }
-void PathFind( human_t &someone )
-{
-	someone.navMesh.clear();
-	std::vector<node_t> path;
-	AStar( someone.x, someone.y, someone.targetX, someone.targetY, someone.speed, someone.w, someone.h, path );
-	//int temp;
-	//std::cin>>temp;
-	PathBuilder( someone, path );
-}
-
-
 int main()
 {
 	//std::thread worker[numThread];
@@ -664,81 +413,36 @@ int main()
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
-	playerTexture = IMG_LoadTexture(renderer, "Textures/RedMage.png");
-	enemyTexture = IMG_LoadTexture(renderer, "Textures/knight.png");
-	backgroundTexture = IMG_LoadTexture(renderer, "Textures/background.png");
-	treeTexture = IMG_LoadTexture(renderer, "Textures/tree.png");
-	rockTexture = IMG_LoadTexture(renderer, "Textures/rock.png");
 	slashTexture = IMG_LoadTexture(renderer, "Textures/slash.png");
 	fireballTexture = IMG_LoadTexture(renderer, "Textures/fireball.png");
-	std::cout<<SDL_GetError()<<std::endl;
-	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
-
-	player.pos.x = 150;
-	player.pos.y = 150;
-	player.pos.w = scale*50;
-	player.pos.h = scale*50;
-	player.frame.x = 0;
-	player.frame.y = 0;
-	player.frame.w = 32;
-	player.frame.h = 32;
-	player.maxHealth = 20;
-	player.curHealth = 20;
-	player.speed = 3;
-	player.normSpeed = 3;
-	player.x = 145;
-	player.y = 55;
-	player.w = 40;
-	player.h = 40;
-	player.avalSpells.push_back(0);
-	player.avalSpells.push_back(1);
-	player.avalSpells.push_back(2);
-	player.eqpSpell = player.avalSpells[0];
-	player.curSpellNum = 0;
-	player.id = nextAvalID;
-	nextAvalID++;
-
-	backgroundPos.w = scale*screenWidth;
-	backgroundPos.h = scale*screenHeight;
-	backgroundPos.x = 0;
-	backgroundPos.y = 0;
-	backgroundFrame.h = screenHeight;
-	backgroundFrame.w = screenWidth;
-	backgroundFrame.x = 0;
-	backgroundFrame.y = 0;
-
-	SDL_Rect curEquipSpellPos;
-	curEquipSpellPos.w = 32;
-	curEquipSpellPos.h = 32;
-	curEquipSpellPos.x = 0;
-	curEquipSpellPos.y = screenHeight - curEquipSpellPos.h;
-	SDL_Rect curEquipSpellFrame;
-	curEquipSpellFrame.x = 32;
-	curEquipSpellFrame.y = 0;
-	curEquipSpellFrame.w = 32;
-	curEquipSpellFrame.h = 32;
-	SDL_Texture* curEquipSpell;
 	
+	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
+	int numbersTextureID = ++nextAvalTextureID;
+	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
+	backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
+	SDL_Rect curEquipSpellPos = {0, screenHeight-32, 32, 32};
+	SDL_Rect curEquipSpellFrame = {32, 0, 32, 32};
+	SDL_Texture* curEquipSpell;
 	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
 	char level[] = "Levels/1.lvl";
 	bool levelLoaded = false;
 
 	long long movT = SDL_GetTicks();
 	long long inputT = SDL_GetTicks();
-	long long drawT = SDL_GetTicks();
+//	long long drawT = SDL_GetTicks();
 	long long infoT = SDL_GetTicks();
 	long long fpsT = SDL_GetTicks();
 	long long attT = SDL_GetTicks();
 	long long spellT = SDL_GetTicks();
 	long long checkFlagsT = SDL_GetTicks();
 	long long drawSpellT = SDL_GetTicks();
-	long long BOTpatrolT = SDL_GetTicks();
+	long long BOTpathFindT = SDL_GetTicks();
 	long long BOTattackT = SDL_GetTicks();
 	int spellchngTimeout = 0;
 	int frames = 0;
-	char cframes[5];
-	
-	while(true)
+	std::vector<int> sframes;
+	sframes.push_back(0);
+	while( true )
 	{
 		if( !levelLoaded )
 		{
@@ -761,92 +465,90 @@ int main()
 		{
 			ScanKeyboard();			
 			if( input.movUp )
-				player.movDirection[0] = 'n';
+				humans[playerID].movDirection[0] = 'n';
 			if( input.movDown )
-				player.movDirection[0] = 's';
+				humans[playerID].movDirection[0] = 's';
 			if( input.movRight )
-				player.movDirection[1] = 'e';
+				humans[playerID].movDirection[1] = 'e';
 			if( input.movLeft )
-				player.movDirection[1] = 'w';
+				humans[playerID].movDirection[1] = 'w';
 			if( input.attUp )
-				player.attDirection = 'n';
+				humans[playerID].attDirection = 'n';
 			if( input.attDown )
-				player.attDirection = 's';
+				humans[playerID].attDirection = 's';
 			if( input.attRight )
-				player.attDirection = 'e';
+				humans[playerID].attDirection = 'e';
 			if( input.attLeft )
-				player.attDirection = 'w';
+				humans[playerID].attDirection = 'w';
 			if( input.sprint )
-				player.speed = player.normSpeed*1.8;
+				humans[playerID].speed = humans[playerID].normSpeed*1.8;
 			if( input.rightSpell and spellchngTimeout == 0 )
 			{
-				player.curSpellNum++;
+				humans[playerID].curSpellNum++;
 				spellchngTimeout = 13;
-				if( player.curSpellNum == player.avalSpells.size() )
-					player.curSpellNum = 0;
+				if( humans[playerID].curSpellNum == humans[playerID].avalSpells.size() )
+					humans[playerID].curSpellNum = 0;
 			}
 			if( input.leftSpell and spellchngTimeout == 0 )
 			{
-				player.curSpellNum--;
+				humans[playerID].curSpellNum--;
 				spellchngTimeout = 18;
-				if( player.curSpellNum == -1 )
-					player.curSpellNum = player.avalSpells.size()-1;
+				if( humans[playerID].curSpellNum == -1 )
+					humans[playerID].curSpellNum = humans[playerID].avalSpells.size()-1;
 			}
 			if( spellchngTimeout > 0 )
 				spellchngTimeout--;
-			player.eqpSpell = player.avalSpells[player.curSpellNum];
+			humans[playerID].eqpSpell = humans[playerID].avalSpells[humans[playerID].curSpellNum];
 			ResetInput();
 			inputT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - checkFlagsT >= 10 )
 		{
-			for( int i=0;i<enemy.size();i++ )
+			for( int i=0;i<humans.size();i++ )
 			{
-				if( enemy[i].navMesh.empty() )
-					enemy[i].state = 0;
-				for( int j=0;j<enemy[i].navMesh.size();j++ )
+				if( humans[i].id != humans[playerID].id )
 				{
-					if( enemy[i].x == enemy[i].navMesh[j].x and enemy[i].y ==  enemy[i].navMesh[j].y )
+					for( int j=0;j<humans[i].navMesh.size();j++ )
 					{
-						std::cout<<"Walking"<<std::endl;
-						enemy[i].movDirection[0] = enemy[i].navMesh[j].goTo[0];
-						enemy[i].movDirection[1] = enemy[i].navMesh[j].goTo[1];
-						std::swap(enemy[i].navMesh[j], enemy[i].navMesh[enemy[i].navMesh.size()]);
-						enemy[i].navMesh.pop_back();
-						break;
+						if( humans[i].x == humans[i].navMesh[j].x and humans[i].y == humans[i].navMesh[j].y )
+						{
+							humans[i].movDirection[0] = humans[i].navMesh[j].goTo[0];
+							humans[i].movDirection[1] = humans[i].navMesh[j].goTo[1];
+							break;
+						}
 					}
 				}
 			}
 			checkFlagsT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - BOTpatrolT >= 200 )
+		if( SDL_GetTicks() - BOTpathFindT >= 600 )
 		{	
-			for( int i=0;i<enemy.size();i++ )
+			for( int i=0;i<humans.size();i++ )
 			{
-				if( enemy[i].state == 0 )
-					Patrol( enemy[i] );
-				if( enemy[i].state == 1 )
+				if( humans[i].state == 1 and humans[i].id != humans[playerID].id )
 				{
-					enemy[i].targetX = player.x;
-					enemy[i].targetY = player.y;
-					PathFind( enemy[i] );
+					humans[i].targetX = humans[playerID].x;
+					humans[i].targetY = humans[playerID].y;
+					humans[i].targetID = humans[playerID].id;
+					humans[i].navMesh.clear();
+					PathBuilder( humans[i], humans, roadblock );
 				}
 				
 			}
-			BOTpatrolT = SDL_GetTicks();
+			BOTpathFindT = SDL_GetTicks();
 		}
-		/*
-		if( SDL_GetTicks() - BOTattackT >= 1000 )
+		
+		/*if( SDL_GetTicks() - BOTattackT >= 1000 )
 		{
-			for( int i=0;i<enemy.size();i++ )
+			for( int i=0;i<humans.size();i++ )
 			{
-				if( enemy[i].state == 1 )
+				if( humans[i].state == 1 and i!=playerID )
 				{
-					enemy[i].attDirection = enemy[i].prevAttDir;
-					if( enemy[i].attDirection == 'n' or enemy[i].attDirection == 's' )
-						enemy[i].movDirection[0] = enemy[i].attDirection;
-					if( enemy[i].attDirection == 'w' or enemy[i].attDirection == 'e' )
-						enemy[i].movDirection[1] = enemy[i].attDirection;
+					humans[i].attDirection = humans[i].prevAttDir;
+					if( humans[i].attDirection == 'n' or humans[i].attDirection == 's' )
+						humans[i].movDirection[0] = humans[i].attDirection;
+					if( humans[i].attDirection == 'w' or humans[i].attDirection == 'e' )
+						humans[i].movDirection[1] = humans[i].attDirection;
 				}
 			}
 			BOTattackT = SDL_GetTicks();
@@ -854,48 +556,45 @@ int main()
 
 		if( SDL_GetTicks() - attT >= 1000/60 )
 		{
-			Attack( player );
-			for( int i = 0;i<enemy.size();i++ )
-				Attack( enemy[i] );
+			for( int i = 0;i<humans.size();i++ )
+				Attack( humans[i] );
 			attT = SDL_GetTicks();
 		}
-		
 		if( SDL_GetTicks() - movT >= 1000/60 )
 		{
-			DrawDir( player );
-			Move( player, backgroundPos );
-			for( int i = 0;i<enemy.size();i++ )
+			for( int i=0;i<humans.size();i++ )
 			{
-				DrawDir(enemy[i]);
-				Move(enemy[i]);
+				humans[i].DrawDir();
+				SDL_Rect *dummyptr = &dummy;
+				if( i == playerID )
+					dummyptr = &backgroundPos;
+				Move( humans[i], *dummyptr );
 			}
 			movT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - drawT >= 1000/4 )
+		for( int i=0;i<humans.size();i++ )
 		{
-			Draw( player );
-			for(int i = 0;i<enemy.size();i++)
-				Draw( enemy[i] );
-			drawT = SDL_GetTicks();
+			if( SDL_GetTicks() - humans[i].drawT >= 1000/(humans[i].speed+1) )
+			{
+				humans[i].Draw();
+				humans[i].drawT = SDL_GetTicks();
+			}
 		}
 		if( SDL_GetTicks() - spellT >= 10 )
 		{
 			for( int i = 0;i<activeSpells.size();i++ )
 				if( activeSpells[i].duration > 0 )
 					Spell( activeSpells[i] );
-			for( int j = 0;j < enemy.size(); j++ )
+			for( int j = 0;j < humans.size(); j++ )
 				for( int i = 0;i<NUM_SPELLS;i++ )
-					if( enemy[j].spellWaitTime[i] >0 )
-						enemy[j].spellWaitTime[i]--;
-			for( int i = 0;i < NUM_SPELLS;i++ )
-				if( player.spellWaitTime[i] > 0 )
-					player.spellWaitTime[i]--;
+					if( humans[j].spellWaitTime[i] > 0 )
+						humans[j].spellWaitTime[i]--;
 			spellT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - drawSpellT >= 1000/15 )
 		{
 			for( int i = 0;i<activeSpells.size();i++ )
-				DrawSpell(activeSpells[i]);
+				activeSpells[i].Draw();
 			drawSpellT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
@@ -905,80 +604,76 @@ int main()
 		}
 		if( SDL_GetTicks() - fpsT >= 1000 and ShouldIDisplayFPS() )
 		{
-//			std::cout<<"FPS: "<<frames<<std::endl;
-			int nextDigit;
-			int temp = frames;
-			for(nextDigit = 10;temp > 0;temp/=nextDigit)
-				nextDigit*=10;
-			for(int i = 0;i<5;i++)
+			//std::cout<<"FPS: "<<frames<<std::endl;
+			std::vector<int> bucket;
+			sframes.clear();
+			while( frames > 0 )
 			{
-				temp = frames;
-				if(nextDigit==0)
-				{
-					cframes[i] = '\0';
-					break;
-				}
-				cframes[i] = ((temp/nextDigit)%10)+'0';
-				nextDigit/=10;
+				bucket.push_back( frames%10 );
+				frames/=10;
+			}
+			for( int i=0;bucket.size()!=0;i++ )
+			{
+				sframes.push_back(bucket.back());
+				bucket.pop_back();
 			}
 			frames = 0;
 			fpsT = SDL_GetTicks();
 		}
-		SDL_RenderCopy( renderer, backgroundTexture, &backgroundFrame, &backgroundPos );
+		SDL_RenderCopy( renderer, textures[backgroundTextureID], NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
 		{
-			roadblock[i].pos.x = player.pos.x - player.x + roadblock[i].x;
-			roadblock[i].pos.y = player.pos.y - player.y + roadblock[i].y;
-			SDL_Texture* temp;
-			switch(roadblock[i].type)
-			{
-				case 't' : temp = treeTexture;break;
-				case 'r' : temp = rockTexture;break;
-			}
-			SDL_RenderCopy( renderer, temp, &roadblock[i].frame, &roadblock[i].pos );
+			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x;
+			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y;
+			SDL_RenderCopy( renderer, textures[roadblock[i].textureID], &roadblock[i].frame, &roadblock[i].pos );
 		}
 		for( int i = 0;i<activeSpells.size();i++ )
 		{
-			activeSpells[i].pos.x = player.pos.x - player.x + activeSpells[i].x;
-			activeSpells[i].pos.y = player.pos.y - player.y + activeSpells[i].y;
-			SDL_Texture* temp;
+			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x;
+			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y;
+			SDL_Texture* attTx;
 			switch(activeSpells[i].id)
 			{
-				case 1 : temp = slashTexture;break;
-				case 2 : temp = fireballTexture;break;
-				case 3 : temp = fireballTexture;break;
+				case 1 : attTx = slashTexture;break;
+				case 2 : attTx = fireballTexture;break;
+				case 3 : attTx = fireballTexture;break;
 			}
-			SDL_RenderCopyEx( renderer, temp, &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
+			activeSpells[i].point->x = activeSpells[i].pos.w/2;
+			activeSpells[i].point->y = activeSpells[i].pos.h/2;
+			SDL_RenderCopyEx( renderer, attTx, &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
 			if( activeSpells[i].duration <= -5 )
 			{
 				std::swap( activeSpells[i], activeSpells[activeSpells.size()-1] );
 				activeSpells.pop_back();	
 			}
 		}
-		for( int i = 0;i<enemy.size();i++ )
+		for( int i = 0;i<humans.size();i++ )
 		{
-			enemy[i].pos.x = player.pos.x - player.x + enemy[i].x;
-			enemy[i].pos.y = player.pos.y - player.y + enemy[i].y;
-			SDL_RenderCopy( renderer, enemyTexture, &enemy[i].frame, &enemy[i].pos );
+			if( i!=playerID )
+			{
+				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x;
+				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y;
+			}
+			SDL_RenderCopy( renderer, textures[humans[i].textureID], &humans[i].frame, &humans[i].pos );
 		}
-		switch (player.eqpSpell)
+		switch (humans[playerID].eqpSpell)
 		{
 			case 0 : curEquipSpell = slashTexture;break;
 			case 1 : curEquipSpell = fireballTexture;break;
 			case 2 : curEquipSpell = fireballTexture;break;
+			default : curEquipSpell = fireballTexture;
 		}
-		SDL_RenderCopy( renderer, playerTexture, &player.frame, &player.pos );
-
 		SDL_RenderCopy( renderer, curEquipSpell, &curEquipSpellFrame, &curEquipSpellPos );
-
-/*		if( ShouldIDisplayFPS() )
-		{
-			SDL_Surface* fpsSurface = TTF_RenderText_Solid( gothic, cframes, {255, 0, 0} );
-			SDL_Texture* fpsTx = SDL_CreateTextureFromSurface( renderer ,fpsSurface );
-			SDL_Rect fpsPos = {0, 0, 60, 30};
-			SDL_RenderCopy( renderer, fpsTx, NULL, &fpsPos );
+		if( ShouldIDisplayFPS() )
+		{	
+			for( int i=0;i<sframes.size();i++ )
+			{
+				SDL_Rect nextNumber = {sframes[i]*10, 0, 10, 18};
+				SDL_Rect nextNumberPos = {i*13 + 2, 5, 12, 20};
+				SDL_RenderCopy( renderer, textures[numbersTextureID], &nextNumber, &nextNumberPos );
+			}
 			frames++;
-		}*/
+		}
 		SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
 	}
