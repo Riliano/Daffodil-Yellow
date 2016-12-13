@@ -110,8 +110,8 @@ void Spell( aoe_t &magic )
 void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 {
 	SDL_Rect oldPos = {someone.x, someone.y, someone.w, someone.h};
-//	if( someone.movDirection[0] != 0 and someone.movDirection[1] != 0 )
-//		someone.speed -= someone.speed/3;
+	if( someone.movDirection[0] != 0 and someone.movDirection[1] != 0 )
+		someone.speed -= someone.speed/3;
 	switch( someone.movDirection[0] )
 	{
 		case 'n' : someone.y-=someone.speed;break;
