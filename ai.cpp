@@ -28,32 +28,33 @@ void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &h
 			newNode[i] = cur;
 			newNode[i].cameFromX = cur.x;
 			newNode[i].cameFromY = cur.y;
+			int nodeOffset;
                         switch (i)
                         {
-                                case 0 : newNode[i].y-=someone.speed;break;
-                                case 1 : newNode[i].y-=someone.speed;newNode[i].x+=someone.speed;break;
-                                case 2 : newNode[i].x+=someone.speed;break;
-                                case 3 : newNode[i].y+=someone.speed;newNode[i].x+=someone.speed;break;
-                                case 4 : newNode[i].y+=someone.speed;break;
-                                case 5 : newNode[i].y+=someone.speed;newNode[i].x-=someone.speed;break;
-                                case 6 : newNode[i].x-=someone.speed;break;
-                                case 7 : newNode[i].y-=someone.speed;newNode[i].x-=someone.speed;break;
+                                case 0 : nodeOffset=someone.speed;newNode[i].y-=nodeOffset;break;
+                                case 1 : nodeOffset=someone.speed-someone.speed/3;newNode[i].y-=nodeOffset;newNode[i].x+=nodeOffset;break;
+                                case 2 : nodeOffset=someone.speed;newNode[i].x+=nodeOffset;break;
+                                case 3 : nodeOffset=someone.speed-someone.speed/3;newNode[i].y+=nodeOffset;newNode[i].x+=nodeOffset;break;
+                                case 4 : nodeOffset=someone.speed;newNode[i].y+=nodeOffset;break;
+                                case 5 : nodeOffset=someone.speed-someone.speed/3;newNode[i].y+=nodeOffset;newNode[i].x-=nodeOffset;break;
+                                case 6 : nodeOffset=someone.speed;newNode[i].x-=nodeOffset;break;
+                                case 7 : nodeOffset=someone.speed-someone.speed/3;newNode[i].y-=nodeOffset;newNode[i].x-=nodeOffset;break;
                         };
                         bool collision = false;
                         for( int j=0;j<roadblock.size();j++ )
 			{
                                 if( RectCollision( {roadblock[j].x, roadblock[j].y, roadblock[j].w, roadblock[j].h},  {newNode[i].x, newNode[i].y, someone.w, someone.h} ) )
 				{
-                                                collision = true;
-						break;
+				       	collision = true;
+					break;
 				}
 			}
                         for( int j=0;j<humans.size();j++ )
 			{
                                 if( RectCollision( {humans[j].x, humans[j].y, humans[j].w, humans[j].h}, {newNode[i].x, newNode[i].y, someone.w, someone.h} ) and humans[j].id != someone.id and humans[j].id != someone.targetID )
 				{
-                                                collision = true;
-						break;
+				       	collision = true;
+					break;
 				}
 			}
                         if( !collision )
