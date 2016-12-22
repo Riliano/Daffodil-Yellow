@@ -1,4 +1,4 @@
-void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock )
+void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock, node_t &start )
 {
 	std::vector<node_t> field;
 	std::priority_queue<node_t> bucket;
@@ -19,7 +19,10 @@ void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &h
                 bucket.pop();
                 node_t newNode[8];
 		if( Distance( cur.x, cur.y, someone.targetX, someone.targetY ) <= 50 )
+		{
+			start = cur;
                         break;
+		}
                 for( int i=0;i<8;i++ )
                 {
 			newNode[i] = cur;
@@ -83,25 +86,25 @@ void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &h
 void PathBuilder( human_t &someone, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock )
 {
 	std::vector<node_t> path;
-	AStar( someone, path, humans, roadblock );
-	if( !path.empty() )
+	node_t start;
+	AStar( someone, path, humans, roadblock, start );
+	node_t cur = start;
+	node_t end = {someone.x, someone.y, someone.x, someone.y, 0};
+
+	while(  !( cur.x == end.x and cur.y == end.y ) and !path.empty() )
 	{
-		node_t cur = path[path.size()-1];
-		while( cur.x != someone.x and cur.y != someone.y )
-		{			flag_t toPush(cur);
-			someone.navMesh.push_back( toPush );
-			for( int i=0;i<path.size();i++ )
+		for( int i=0;i<path.size();i++ )
+		{
+			if( path[i].x == cur.cameFromX and path[i].y == cur.cameFromY )
 			{
-				if( cur.cameFromX == path[i].x and cur.cameFromY == path[i].y )
-				{
-					cur = path[i];
-					break;
-				}
+				cur = path[i];
+				flag_t toPush(cur);
+				someone.navMesh.push_back( toPush );
+				std::swap( path[i], path[path.size()-1] );
+				path.pop_back();
+				break;
 			}
 		}
-		flag_t toPush(cur);
-		someone.navMesh.push_back( toPush );
-
 	}
 	path.clear();
 }
