@@ -4,10 +4,11 @@
 //#include<SDL2/SDL_ttf.h>
 #include<queue>
 #include<vector>
-//#include<thread>
+#include<thread>
 #include<cmath>
 #include<algorithm>
 #include<fstream>
+#include<time.h>
 
 #include"simpleGeometry.h"
 #include"struct.cpp"
@@ -21,6 +22,7 @@ std::vector<SDL_Texture*> textures;
 
 //std::queue<int> tasks;
 //int numThread = 2;
+const int MAX_THREAD = 200;
 
 //TTF_Font* gothic;
 
@@ -40,6 +42,7 @@ float scale = (float)screenWidth/480.0;
 int playerID = 0;
 int nextAvalHumanID = -1;
 int nextAvalTextureID = -1;
+int nextAvalThreadID = -1;
 
 void Spell( aoe_t &magic )
 {
@@ -372,7 +375,7 @@ void LoadLevel( char levelToLoad[] )
 			}
 			if( type == 'h' )
 			{
-				human_t toPush( info, ++nextAvalHumanID, textureIDToGive, scale );
+				human_t toPush( info, ++nextAvalHumanID, textureIDToGive, ++nextAvalThreadID, scale );
 				humans.push_back( toPush );
 				if( toPush.state == 0 )
 				{
@@ -406,6 +409,7 @@ void LoadLevel( char levelToLoad[] )
 int main()
 {
 	//std::thread worker[numThread];
+	worker_t threads[MAX_THREAD];
 	Init( renderer );
 	//TTF_Init();
 	if( ShouldITurnVSync() )
@@ -457,6 +461,14 @@ int main()
 			if( e.type == SDL_QUIT )
 			{
 				SDL_Quit();
+				for( int i=0;i<MAX_THREAD;i++ )
+				{
+					if( threads[i].trd.joinable() )
+					{
+						threads[i].quit = true;
+						threads[i].trd.join();
+					}
+				}
 				return 0;
 			}
 			
@@ -506,7 +518,7 @@ int main()
 		{
 			for( int i=0;i<humans.size();i++ )
 			{
-				if( humans[i].id != humans[playerID].id )
+				if( humans[i].id != humans[playerID].id and threads[humans[i].threadID].done )
 				{
 					for( int j=0;j<humans[i].navMesh.size();j++ )
 					{
@@ -531,7 +543,15 @@ int main()
 					humans[i].targetY = humans[playerID].y;
 					humans[i].targetID = humans[playerID].id;
 					humans[i].navMesh.clear();
-					PathBuilder( humans[i], humans, roadblock );
+					if( threads[humans[i].threadID].done )
+					{
+						threads[humans[i].threadID].done = false;
+						if( threads[humans[i].threadID].trd.joinable() )
+							threads[humans[i].threadID].trd.join();
+						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
+					}
+
+//					PathBuilder( humans[i], humans, roadblock );
 				}
 				
 			}

@@ -41,6 +41,14 @@ struct flag_t
 			this->goTo[1] = 0;
 	}
 };
+
+struct worker_t
+{
+	std::thread trd;
+	bool done = true;
+	bool quit = false;
+};
+
 struct human_t
 {
 	int id;
@@ -67,6 +75,7 @@ struct human_t
 	long long drawT = 0;
 	
 	int state;
+	int threadID;
 	int targetX;
 	int targetY;
 	int targetID;
@@ -76,12 +85,13 @@ struct human_t
 
 	std::vector<flag_t> navMesh;
 
-	human_t( std::vector<int> info, int giveMeID, int giveMeTextureID, float scale )
+	human_t( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
 	{
 		for( int i=0;i<5;i++ )
 			spellWaitTime[i]=0;
 		id = giveMeID;
 		textureID = giveMeTextureID;
+		threadID = giveMeThreadID;
 		state = info[0];
 		x = info[1];
 		y = info[2];

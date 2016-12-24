@@ -1,5 +1,6 @@
-void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock, node_t &start )
+void AStar( human_t someone, std::vector<node_t> &path, std::vector<human_t> humans, std::vector<obsticle_t> roadblock, node_t &start, bool *quit )
 {
+	long long begin = clock();
 	std::vector<node_t> field;
 	std::priority_queue<node_t> bucket;
 	node_t temp;
@@ -21,10 +22,20 @@ void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &h
 		if( Distance( cur.x, cur.y, someone.targetX, someone.targetY ) <= 50 )
 		{
 			start = cur;
-                        break;
+                        return;
+		}
+		if( clock() - begin > 0.3 * CLOCKS_PER_SEC )
+		{
+			path.clear();
+			return;
 		}
                 for( int i=0;i<8;i++ )
                 {
+			if( *quit )
+			{
+				path.clear();
+				return;
+			}
 			newNode[i] = cur;
 			newNode[i].cameFromX = cur.x;
 			newNode[i].cameFromY = cur.y;
@@ -84,28 +95,44 @@ void AStar( human_t &someone, std::vector<node_t> &path, std::vector<human_t> &h
         }
 }
 
-void PathBuilder( human_t &someone, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock )
+void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obsticle_t> roadblock, bool *done, bool *quit)
 {
 	std::vector<node_t> path;
 	node_t start;
-	AStar( someone, path, humans, roadblock, start );
+	AStar( *someone, path, humans, roadblock, start, quit );
 	node_t cur = start;
-	node_t end = {someone.x, someone.y, someone.x, someone.y, 0};
+	node_t end = {someone->x, someone->y, someone->x, someone->y, 0};
+	clock_t begin = clock();
 
 	while(  !( cur.x == end.x and cur.y == end.y ) and !path.empty() )
 	{
+		if( clock() - begin > 0.7 * CLOCKS_PER_SEC )
+		{
+			path.clear();
+			*done = true;
+			return;
+		}
 		for( int i=0;i<path.size();i++ )
 		{
 			if( path[i].x == cur.cameFromX and path[i].y == cur.cameFromY )
 			{
 				cur = path[i];
 				flag_t toPush(cur);
-				someone.navMesh.push_back( toPush );
+				someone->navMesh.push_back( toPush );
 				std::swap( path[i], path[path.size()-1] );
 				path.pop_back();
 				break;
 			}
+			
+			if( *quit )
+			{
+				path.clear();
+				someone->navMesh.clear();
+				*done = true;
+				return;
+			}
 		}
 	}
 	path.clear();
+	*done = true;
 }
