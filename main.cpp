@@ -32,6 +32,7 @@ std::vector<obsticle_t> roadblock;
 
 SDL_Rect backgroundPos;
 int backgroundTextureID;
+SDL_Rect dummy = {0, 0, 0, 0};
 
 std::vector<aoe_t> activeSpells;
 SDL_Texture* slashTexture;
@@ -505,7 +506,6 @@ int main()
 			for( int i=0;i<humans.size();i++ )
 			{
 				humans[i].DrawDir();
-				SDL_Rect dummy = {0, 0, 0, 0};
 				SDL_Rect *dummyptr = &dummy;
 				if( i == playerID )
 					dummyptr = &backgroundPos;
