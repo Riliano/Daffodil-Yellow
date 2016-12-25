@@ -314,7 +314,7 @@ void LoadLevel( char levelToLoad[] )
 				i++;
 			int f = 0;
 			int pseudoHash = 0;
-			while( line[i] != ' ' )
+			while( line[i] != ' ' and type != 'p' )
 			{
 				fileName[f] = line[i];
 				pseudoHash+=fileName[f]*(f+1);
@@ -390,10 +390,23 @@ void LoadLevel( char levelToLoad[] )
 				backgroundPos.x = info[0];
 				backgroundPos.y = info[1];
 			}
+			if( type == 'p' )
+			{
+				humans[humans.size()-1].cycle = info[0];
+				for( int j=1;j<info.size();j+=2 )
+				{
+					flag_t newPoint;
+					newPoint.x = info[j];
+					newPoint.y = info[j+1];
+					humans[humans.size()-1].patrolPoint.push_back( newPoint );
+				}
+			}
 			info.clear();
 		}
 	}else
+	{
 		std::cout<<"Error loading level!"<<std::endl;
+	}
 #ifdef TEXTURE_TEST
 	std::cout<<"Begin"<<std::endl;
 	for( int i=0;i<textures.size();i++ )
@@ -530,6 +543,20 @@ int main()
 							break;
 						}
 					}
+					if( Distance( humans[i].x, humans[i].y, humans[i].patrolPoint[humans[i].patrolCycle].x, humans[i].patrolPoint[humans[i].patrolCycle].y ) <= 40 )
+						humans[i].patrolCycle+=humans[i].switchToNextPoint;
+					if( humans[i].cycle )
+					{
+						if( humans[i].patrolCycle >= humans[i].patrolPoint.size() )
+							humans[i].patrolCycle = 0;
+					}else
+					{
+						if( humans[i].patrolCycle >= humans[i].patrolPoint.size()-1 )
+							humans[i].switchToNextPoint = -1;
+						if( humans[i].patrolCycle <= 0 )
+							humans[i].switchToNextPoint = 1;
+					}
+				
 				}
 			}
 			checkFlagsT = SDL_GetTicks();
@@ -540,12 +567,18 @@ int main()
 			{
 				if( humans[i].state == 1 and humans[i].id != humans[playerID].id )
 				{
-					humans[i].targetX = rand()%600;//humans[playerID].x;
-					humans[i].targetY = rand()%600;//humans[playerID].y;
-					humans[i].targetID = humans[playerID].id;
-					humans[i].navMesh.clear();
 					if( threads[humans[i].threadID].done )
 					{
+	//					humans[i].targetX = rand()%600;//humans[playerID].x;
+	//					humans[i].targetY = rand()%600;//humans[playerID].y;
+						humans[i].targetX = humans[i].patrolPoint[ humans[i].patrolCycle ].x;
+						humans[i].targetY = humans[i].patrolPoint[ humans[i].patrolCycle ].y;
+//						humans[i].patrolCycle++;
+//						if( humans[i].patrolCycle > humans[i].patrolPoint.size() )
+//							humans[i].patrolCycle = 0;
+						humans[i].targetID = humans[playerID].id;
+						humans[i].navMesh.clear();
+					
 						threads[humans[i].threadID].done = false;
 						if( threads[humans[i].threadID].trd.joinable() )
 							threads[humans[i].threadID].trd.join();

@@ -23,7 +23,7 @@ struct flag_t
 	int type;
 
 	char goTo[2] = {0, 0};
-	flag_t( const node_t &node ) 
+	void ConstructFromNode_t( const node_t &node ) 
 	{
 		this->x = node.cameFromX;
 		this->y = node.cameFromY;
@@ -84,6 +84,10 @@ struct human_t
 	char prevAttDir;
 
 	std::vector<flag_t> navMesh;
+	std::vector<flag_t> patrolPoint;
+	int patrolCycle = 0;
+	int switchToNextPoint = 1;
+	bool cycle = false;
 
 	human_t( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
 	{
@@ -109,6 +113,11 @@ struct human_t
 			curSpellNum = 0;
 			eqpSpell = avalSpells[0];
 		}
+		flag_t start;
+		start.x = x;
+		start.y = y;
+		patrolPoint.push_back(start);
+
 	}
 	void DrawDir()
 	{

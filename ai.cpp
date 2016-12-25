@@ -19,7 +19,7 @@ void AStar( human_t someone, std::vector<node_t> &path, std::vector<human_t> hum
 		path.push_back( cur );
                 bucket.pop();
                 node_t newNode[8];
-		if( Distance( cur.x, cur.y, someone.targetX, someone.targetY ) <= 50 )
+		if( Distance( cur.x, cur.y, someone.targetX, someone.targetY ) <= 30 )
 		{
 			start = cur;
                         return;
@@ -117,7 +117,8 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 			if( path[i].x == cur.cameFromX and path[i].y == cur.cameFromY )
 			{
 				cur = path[i];
-				flag_t toPush(cur);
+				flag_t toPush;
+				toPush.ConstructFromNode_t(cur);
 				someone->navMesh.push_back( toPush );
 				std::swap( path[i], path[path.size()-1] );
 				path.pop_back();
