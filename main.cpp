@@ -1,3 +1,4 @@
+
 #include<iostream>
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
@@ -14,7 +15,6 @@
 #include"struct.cpp"
 #include"init.h"
 #include"input.h"
-#include"move.cpp"
 #include"ai.cpp"
 
 SDL_Renderer* renderer;
@@ -28,11 +28,11 @@ const int MAX_THREAD = 200;
 //TTF_Font* gothic;
 
 std::vector<human_t> humans;
-std::vector<obsticle_t> roadblock;
+std::vector <obsticle_t> roadblock;
 
 SDL_Rect backgroundPos;
 int backgroundTextureID;
-SDL_Rect dummy = {0, 0, 0, 0};
+SDL_Rect dummy;
 
 std::vector<aoe_t> activeSpells;
 SDL_Texture* slashTexture;
@@ -110,6 +110,86 @@ void Spell( aoe_t &magic )
 			}
 		}
 	}
+}
+void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
+{
+	SDL_Rect oldPos = {someone.x, someone.y, someone.w, someone.h};
+	if( someone.movDirection[0] != 0 and someone.movDirection[1] != 0 )
+		someone.speed -= someone.speed/3;
+	switch( someone.movDirection[0] )
+	{
+		case 'n' : someone.y-=someone.speed;break;
+		case 's' : someone.y+=someone.speed;break;
+	}
+	switch( someone.movDirection[1] )
+	{
+		case 'w' : someone.x-=someone.speed;break;
+		case 'e' : someone.x+=someone.speed;break;
+	}
+	if( someone.prevDrawDirection == someone.movDirection[0] or someone.prevDrawDirection == someone.movDirection[1] )
+		someone.drawDirection = someone.prevDrawDirection;
+	else
+	{
+		if( someone.movDirection[0] != 0 )
+			someone.drawDirection = someone.movDirection[0];
+		if( someone.movDirection[1] != 0 )
+			someone.drawDirection = someone.movDirection[1];
+	}
+	SDL_Rect human, pathBlocker;
+	human.x = someone.x;
+	human.y = someone.y;
+	human.w = someone.w;
+	human.h = someone.h;
+	for( int i = 0;i<roadblock.size();i++ )
+	{
+		pathBlocker.x = roadblock[i].x;
+		pathBlocker.y = roadblock[i].y;
+		pathBlocker.w = roadblock[i].w;
+		pathBlocker.h = roadblock[i].h;	
+		if( RectCollision( human, pathBlocker ) )
+		{
+			someone.x = oldPos.x;
+			someone.y = oldPos.y;
+			someone.w = oldPos.w;
+			someone.h = oldPos.h;	
+			someone.movDirection[0] = 0;
+			someone.movDirection[1] = 0;
+			return;
+		}
+	}
+	for( int i = 0;i<humans.size();i++ )
+	{
+		if( humans[i].id != someone.id )
+		{
+			pathBlocker.x = humans[i].x;
+			pathBlocker.y = humans[i].y;
+			pathBlocker.w = humans[i].w;
+			pathBlocker.h = humans[i].h;
+			if( RectCollision( human, pathBlocker ) )
+			{
+				someone.x = oldPos.x;
+				someone.y = oldPos.y;
+				someone.w = oldPos.w;
+				someone.h = oldPos.h;	
+				someone.movDirection[0] = 0;
+				someone.movDirection[1] = 0;
+				return;			
+			}
+		}
+	}
+	switch(someone.movDirection[0])
+	{
+		case 'n' : if( someone.pos.y > someone.pos.h*2 ){ someone.pos.y -= someone.speed; }else{ backgroundPos.y += someone.speed; }break;
+		case 's' : if( someone.pos.y < (screenHeight-someone.pos.h*3) ){ someone.pos.y+=someone.speed; }else{ backgroundPos.y -= someone.speed; }break;
+	}
+	switch(someone.movDirection[1])
+	{
+		case 'e' : if( someone.pos.x < (screenWidth-someone.pos.w*3) ){ someone.pos.x+=someone.speed; }else{ backgroundPos.x -= someone.speed; }break;
+		case 'w' : if( someone.pos.x > someone.pos.w*2 ){ someone.pos.x-=someone.speed; }else{ backgroundPos.x += someone.speed; }break;
+	}
+	someone.movDirection[0] = 0;
+	someone.movDirection[1] = 0;
+	someone.speed = someone.normSpeed;
 }
 void Attack(human_t &someone)
 {
@@ -460,8 +540,8 @@ int main()
 			{
 				if( humans[i].state == 1 and humans[i].id != humans[playerID].id )
 				{
-					humans[i].targetX = humans[playerID].x;
-					humans[i].targetY = humans[playerID].y;
+					humans[i].targetX = rand()%600;//humans[playerID].x;
+					humans[i].targetY = rand()%600;//humans[playerID].y;
 					humans[i].targetID = humans[playerID].id;
 					humans[i].navMesh.clear();
 					if( threads[humans[i].threadID].done )
@@ -509,7 +589,7 @@ int main()
 				SDL_Rect *dummyptr = &dummy;
 				if( i == playerID )
 					dummyptr = &backgroundPos;
-				Move( humans[i], humans, roadblock, *dummyptr );
+				Move( humans[i], *dummyptr );
 			}
 			movT = SDL_GetTicks();
 		}
