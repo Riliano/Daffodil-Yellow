@@ -1,4 +1,3 @@
-
 #include<iostream>
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
@@ -39,7 +38,7 @@ SDL_Texture* slashTexture;
 SDL_Texture* fireballTexture;
 const int NUM_SPELLS = 5;
 
-float scale = (float)screenWidth/480.0;
+float scale = 1;//(float)screenWidth/480.0;
 int playerID = 0;
 int nextAvalHumanID = -1;
 int nextAvalTextureID = -1;
@@ -677,14 +676,14 @@ int main()
 		SDL_RenderCopy( renderer, textures[backgroundTextureID], NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
 		{
-			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x;
-			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y;
+			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x - (roadblock[i].pos.w - roadblock[i].w)/2;
+			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y - (roadblock[i].pos.h - roadblock[i].h)/2;
 			SDL_RenderCopy( renderer, textures[roadblock[i].textureID], &roadblock[i].frame, &roadblock[i].pos );
 		}
 		for( int i = 0;i<activeSpells.size();i++ )
 		{
-			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x;
-			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y;
+			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x - (activeSpells[i].pos.w - activeSpells[i].w)/2;
+			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y - (activeSpells[i].pos.h - activeSpells[i].h)/2;
 			SDL_Texture* attTx;
 			switch(activeSpells[i].id)
 			{
@@ -705,8 +704,8 @@ int main()
 		{
 			if( i!=playerID )
 			{
-				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x;
-				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y;
+				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x - (humans[i].pos.w - humans[i].w)/2;
+				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y - (humans[i].pos.h - humans[i].h)/2;
 			}
 			SDL_RenderCopy( renderer, textures[humans[i].textureID], &humans[i].frame, &humans[i].pos );
 		}
