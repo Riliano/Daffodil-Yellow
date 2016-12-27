@@ -424,6 +424,7 @@ int main()
 	//std::thread worker[numThread];
 	worker_t threads[MAX_THREAD];
 	Init( renderer );
+	InitInput();
 	//TTF_Init();
 	if( ShouldITurnVSync() )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
@@ -488,43 +489,9 @@ int main()
 		}
 		if( SDL_GetTicks() - inputT >= 10 )
 		{
-			ScanKeyboard();			
-			if( input.movUp )
-				humans[playerID].movDirection[0] = 'n';
-			if( input.movDown )
-				humans[playerID].movDirection[0] = 's';
-			if( input.movRight )
-				humans[playerID].movDirection[1] = 'e';
-			if( input.movLeft )
-				humans[playerID].movDirection[1] = 'w';
-			if( input.attUp )
-				humans[playerID].attDirection = 'n';
-			if( input.attDown )
-				humans[playerID].attDirection = 's';
-			if( input.attRight )
-				humans[playerID].attDirection = 'e';
-			if( input.attLeft )
-				humans[playerID].attDirection = 'w';
-			if( input.sprint )
-				humans[playerID].speed = humans[playerID].normSpeed*1.8;
-			if( input.rightSpell and spellchngTimeout == 0 )
-			{
-				humans[playerID].curSpellNum++;
-				spellchngTimeout = 13;
-				if( humans[playerID].curSpellNum == humans[playerID].avalSpells.size() )
-					humans[playerID].curSpellNum = 0;
-			}
-			if( input.leftSpell and spellchngTimeout == 0 )
-			{
-				humans[playerID].curSpellNum--;
-				spellchngTimeout = 18;
-				if( humans[playerID].curSpellNum == -1 )
-					humans[playerID].curSpellNum = humans[playerID].avalSpells.size()-1;
-			}
-			if( spellchngTimeout > 0 )
-				spellchngTimeout--;
-			humans[playerID].eqpSpell = humans[playerID].avalSpells[humans[playerID].curSpellNum];
-			ResetInput();
+			ScanKeyboard();
+			AnalyzeInput( humans[playerID] );
+			ResetKeyboard();
 			inputT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - checkFlagsT >= 10 )

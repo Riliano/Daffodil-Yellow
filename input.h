@@ -1,88 +1,82 @@
-#include<SDL2/SDL.h>
-
-struct keyTable_t
-{
-	bool movUp = false;
-	int keyMovUp = SDL_SCANCODE_W;
-	bool movDown = false;
-	int keyMovDown = SDL_SCANCODE_S;
-	bool movLeft = false;
-	int keyMovLeft = SDL_SCANCODE_A;
-	bool movRight = false;
-	int keyMovRight = SDL_SCANCODE_D;
-	bool attUp = false;
-	int keyAttUp = SDL_SCANCODE_UP;
-	bool attDown = false;
-	int keyAttDown = SDL_SCANCODE_DOWN;
-	bool attLeft = false;
-	int keyAttLeft = SDL_SCANCODE_LEFT;
-	bool attRight = false;
-	int keyAttRight = SDL_SCANCODE_RIGHT;
-	bool leftSpell = false;
-	int keyLeftSpell = SDL_SCANCODE_Q;
-	bool rightSpell = false;
-	int keyRightSpell = SDL_SCANCODE_E;
-	bool quickSpell = false;
-	int keyQuickSpell = SDL_SCANCODE_SPACE;
-	bool sprint = false;
-	int keySprint = SDL_SCANCODE_LSHIFT;
-
-	bool pause = false;
-	int keyPause = SDL_SCANCODE_ESCAPE;
-};
-
-keyTable_t input;
+#include<fstream>
 const Uint8 *keyboardState = SDL_GetKeyboardState( NULL );
-
+struct input_t
+{
+	bool active = false;
+	int scanCode;
+	void reset()
+	{
+		active = false;
+	}
+	void check()
+	{
+		active = keyboardState[scanCode];
+	}
+	input_t( int code )
+	{
+		scanCode = code;
+	}
+};
+std::vector<input_t> input;
+void InitInput()
+{
+	std::fstream keyLayout;
+	keyLayout.open( "Configs/keyboard.conf" );
+	while( !keyLayout.eof() )
+	{
+		int temp;
+		keyLayout>>temp;
+		input_t toPush(temp);
+		input.push_back( toPush );
+	}
+}
 void ScanKeyboard()
 {
-	if( keyboardState[input.keyMovUp] )
-		input.movUp = true;
-	if( keyboardState[input.keyMovDown] )
-		input.movDown = true;
-	if( keyboardState[input.keyMovLeft] )
-		input.movLeft = true;
-	if( keyboardState[input.keyMovRight] )
-		input.movRight = true;
-	if( keyboardState[input.keyAttUp] )
-		input.attUp = true;
-	if( keyboardState[input.keyAttDown] )
-		input.attDown = true;
-	if( keyboardState[input.keyAttLeft] )
-		input.attLeft = true;
-	if( keyboardState[input.keyAttRight] )
-		input.attRight = true;
-	if( keyboardState[input.keyLeftSpell] )
-		input.leftSpell = true;
-	if( keyboardState[input.keyRightSpell] )
-		input.rightSpell = true;
-	if( keyboardState[input.keyQuickSpell] )
-		input.quickSpell = true;
-	if( keyboardState[input.keySprint] )
-		input.sprint = true;
-	if( keyboardState[input.keyPause] )
-		input.pause = true;
+	for( int i=0;i<input.size();i++ )
+		input[i].check();
 }
-/*void scanMouse(SDL_Event e)
+int spellchngTimeout = 0;
+void AnalyzeInput( human_t &someone )
 {
-	if(e.button.button == SDL_BUTTON_LEFT)
-		input.attack = true;
-	if(e.button.button == SDL_BUTTON_RIGHT)
-		input.heal = true;
-}*/
-void ResetInput()
-{	
-	input.movUp = false;
-	input.movDown = false;
-	input.movLeft = false;
-	input.movRight = false;
-	input.attUp = false;
-	input.attDown = false;
-	input.attLeft = false;
-	input.attRight = false;
-	input.leftSpell = false;
-	input.rightSpell = false;
-	input.quickSpell = false;
-	input.sprint = false;
-	input.pause = false;
+	if( input[0].active )
+		someone.movDirection[0] = 'n';
+	if( input[1].active )
+		someone.movDirection[0] = 's';
+	if( input[2].active )
+		someone.movDirection[1] = 'w';
+	if( input[3].active )
+		someone.movDirection[1] = 'e';
+	if( input[4].active )
+		someone.attDirection = 'n';
+	if( input[5].active )
+		someone.attDirection = 's';
+	if( input[6].active )
+		someone.attDirection = 'w';
+	if( input[7].active )
+		someone.attDirection = 'e';
+	if( input[8].active)
+		someone.speed = someone.normSpeed*1.8;
+	if( input[9].active and spellchngTimeout == 0 )
+	{
+		someone.curSpellNum++;
+		spellchngTimeout = 18;
+		if( someone.curSpellNum == someone.avalSpells.size() )
+			someone.curSpellNum = 0;
+	}
+	if( input[10].active and spellchngTimeout == 0 )
+	{
+		someone.curSpellNum--;
+		spellchngTimeout = 18;
+		if( someone.curSpellNum == -1 )
+			someone.curSpellNum = someone.avalSpells.size()-1;
+	}
+	if( spellchngTimeout > 0 )
+		spellchngTimeout--;
+	someone.eqpSpell = someone.avalSpells[someone.curSpellNum];
+
+}
+void ResetKeyboard()
+{
+	for( int i=0;i<input.size();i++ )
+		input[i].reset();
 }
