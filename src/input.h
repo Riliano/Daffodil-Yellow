@@ -29,7 +29,6 @@ void InitInput()
 		input_t toPush(temp);
 		input.push_back( toPush );
 	}
-	std::cout<<"Found "<<input.size()<<" in Configs/keyboard.conf"<<std::endl;
 }
 void ScanKeyboard()
 {

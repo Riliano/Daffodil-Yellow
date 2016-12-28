@@ -485,12 +485,13 @@ int main()
 				}
 				return 0;
 			}
+			
 		}
 		if( SDL_GetTicks() - inputT >= 10 )
 		{
 			ScanKeyboard();
 			AnalyzeInput( humans[playerID] );
-		//	ResetKeyboard();
+			ResetKeyboard();
 			inputT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - checkFlagsT >= 10 )

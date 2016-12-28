@@ -25,17 +25,18 @@ bool ShouldIDisplayFPS()
 	return fps;
 }
 
-//std::string config[CFG_LINE];
-std::vector<std::string> config;
+std::string config[CFG_LINE];
 
 void ReadConfig()
 {
 	std::ifstream cfg (CFG_FILE);
 	if( cfg.is_open() )
 	{
-		std::string temp;
-		while( std::getline(cfg, temp, '\n') )
-			config.push_back(temp);
+		int i = 0;
+		while( std::getline(cfg, config[i], '\n') )
+		{
+			i++;
+		}
 		cfg.close();
 	}else
 	{
@@ -48,7 +49,7 @@ void Init( SDL_Renderer* renderer )
 
 	ReadConfig();
 	
-	for( int i = 0;i<config.size();i++ )
+	for( int i = 0;i<CFG_LINE;i++ )
 	{
 		if( config[i][0] != 'R' )
 		{
