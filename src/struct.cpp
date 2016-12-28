@@ -87,7 +87,7 @@ struct human_t
 	std::vector<flag_t> patrolPoint;
 	int patrolCycle = 0;
 	int switchToNextPoint = 1;
-	bool cycle = false;
+	bool cycle = true;
 
 	human_t( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
 	{
@@ -186,9 +186,11 @@ struct aoe_t
 	int id;
 	SDL_Rect pos;
 	SDL_Rect frame;
+	int frames;
+	int textureID;
 	double angle;
-	SDL_Point* point;
-	SDL_RendererFlip flip;
+	SDL_Point* point = NULL;
+	SDL_RendererFlip flip = SDL_FLIP_NONE;
 	char dir;
 	int castByID;
 	int dmg;
@@ -209,20 +211,31 @@ struct aoe_t
                 	return;
 		}
 		frame.x += frame.w;
-		int temp;
-		switch ( id )
-		{
-			case 1 : temp = 3;break;
-			case 2 : temp = 4;break;
-		}
-		if( frame.x == temp*frame.w )
+		
+		if( frame.x >= frames*frame.w )
 		{
 			frame.x = 0;
 			if( duration == 0 )
 			{
-				frame.x = temp*frame.w;
+				frame.x = frames*frame.w;
 				duration = -1;
 			}
 		}
+	}
+	void CreateFromInfo( std::vector<int> info, int getTextureID, float scale )
+	{
+		textureID = getTextureID;
+		dmg = info[0];
+		speed = info[1];
+		w = info[2];
+		h = info[3];
+		duration = info[4];
+		usrSlowDown = info[5];
+		usrSlowDownDur = info[6];
+		waitTime = info[7];
+		pos.w = (float) info[8]*scale;
+		pos.h = (float) info[9]*scale;
+		frame = { info[10], info[11], info[12], info[13] };
+		frames = info[14];
 	}
 };

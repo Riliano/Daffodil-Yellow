@@ -34,6 +34,7 @@ int backgroundTextureID;
 SDL_Rect dummy;
 
 std::vector<aoe_t> activeSpells;
+std::vector<aoe_t> avalSpells;
 SDL_Texture* slashTexture;
 SDL_Texture* fireballTexture;
 const int NUM_SPELLS = 5;
@@ -199,90 +200,28 @@ void Attack(human_t &someone)
 		someone.drawDirection = someone.attDirection;
 		return;
 	}
-	aoe_t attack;
-	if(someone.eqpSpell == 0)
+	aoe_t attack = avalSpells[someone.eqpSpell];
+	attack.castByID = someone.id;
+	attack.x = someone.x;
+	attack.y = someone.y;
+	attack.dir = someone.attDirection;
+	switch( someone.attDirection )
 	{
-		attack.id = 1;
-		attack.dir = 0;
-		attack.speed = 0;
-		attack.duration = 30;
-		attack.dmg = 2;
-		attack.usrSlowDown = 3;
-		attack.usrSlowDownDur = 30;
-		attack.frame.x = -16;
-		attack.frame.y = 0;
-		attack.frame.w = 16;
-		attack.frame.h = 20;
-		attack.pos.w = scale*25;
-		attack.pos.h = scale*40;
-		attack.waitTime = 30;
-		switch (someone.attDirection)
-		{
-			case 'n' : attack.h = 30;attack.w = 20;attack.x = someone.x+15;attack.y=someone.y-attack.h;attack.angle = 0;attack.flip = SDL_FLIP_NONE;break;
-			case 's' : attack.h = 30;attack.w = 20;attack.x = someone.x+15;attack.y=someone.y+someone.h;attack.angle = 180;attack.flip = SDL_FLIP_NONE;break;
-			case 'w' : attack.h = 20;attack.w = 30;attack.x = someone.x-attack.w;attack.y=someone.y+15;attack.angle = 90;attack.flip = SDL_FLIP_VERTICAL;break;
-			case 'e' : attack.h = 20;attack.w = 30;attack.x = someone.x+someone.w;attack.y=someone.y+15;attack.angle = 90;attack.flip = SDL_FLIP_NONE;break;
-		}
+		case 'n' : attack.y-=attack.h;attack.angle=270;break;
+		case 's' : attack.y+=someone.h;attack.angle=90;break;
+		case 'e' : attack.x+=someone.w;attack.angle=0;break;
+		case 'w' : attack.x-=attack.w;attack.angle=180;break;
 	}
-	if(someone.eqpSpell == 1)
+	attack.x += (someone.w-attack.w)/2;
+	attack.y += (someone.h-attack.h)/2;
+	if( someone.attDirection == 'n' or someone.attDirection == 's' )
 	{
-		attack.id = 2;
-		attack.dir = someone.attDirection;
-		attack.speed = 15;
-		attack.duration = 1000;
-		attack.dmg = 5;
-		attack.usrSlowDown = 1;
-		attack.usrSlowDownDur = 5;
-		attack.frame.x = -32;
-		attack.frame.y = 0;
-		attack.frame.w = 32;
-		attack.frame.h = 32;
-		attack.pos.w = scale*32;
-		attack.pos.h = scale*32;
-		attack.waitTime = 80;
-		attack.h = 30;
-		attack.w = 30;
-		attack.x = someone.x;
-		attack.y = someone.y;
-		switch(someone.attDirection)
-		{
-			case 's' : attack.angle = 90;attack.flip = SDL_FLIP_NONE;break;
-			case 'n' : attack.angle = 90;attack.flip = SDL_FLIP_HORIZONTAL;break;
-			case 'w' : attack.angle = 0;attack.flip = SDL_FLIP_HORIZONTAL;break;
-			case 'e' : attack.angle = 0;attack.flip = SDL_FLIP_NONE;break;
-		}
+		std::swap( attack.w, attack.h );
+//		std::swap( attack.pos.w, attack.pos.h );
 	}
-	if(someone.eqpSpell == 2)
-	{
-		attack.id = 3;
-		attack.dir = someone.attDirection;
-		attack.speed = 5;
-		attack.duration = 20;
-		attack.dmg = 1;
-		attack.usrSlowDown = 2;
-		attack.usrSlowDownDur = 10;
-		attack.frame.x = -32;
-		attack.frame.y = 0;
-		attack.frame.w = 32;
-		attack.frame.h = 32;
-		attack.pos.w = scale*32;
-		attack.pos.h = scale*32;
-		attack.waitTime = 5;
-		attack.h = 30;
-		attack.w = 30;
-		attack.x = someone.x;
-		attack.y = someone.y;
-		switch(someone.attDirection)
-		{
-			case 's' : attack.angle = 90;attack.flip = SDL_FLIP_NONE;break;
-			case 'n' : attack.angle = 90;attack.flip = SDL_FLIP_HORIZONTAL;break;
-			case 'w' : attack.angle = 0;attack.flip = SDL_FLIP_HORIZONTAL;break;
-			case 'e' : attack.angle = 0;attack.flip = SDL_FLIP_NONE;break;
-		}
-	}
+//	attack.flip = SDL_FLIP_NONE;
 	if( someone.spellWaitTime[attack.id] <= 0 )
 	{
-		attack.castByID = someone.id;
 		activeSpells.push_back( attack );
 		someone.spellWaitTime[attack.id] = attack.waitTime;
 	}
@@ -358,7 +297,7 @@ void LoadLevel( char levelToLoad[] )
 					break;
 				}
 			}
-			if( newTexture )
+			if( newTexture and type != 'p' )
 			{
 				textureIDToGive = ++nextAvalTextureID;
 				char fullFileName[30] = "Textures/";
@@ -372,6 +311,12 @@ void LoadLevel( char levelToLoad[] )
 			{
 				obsticle_t toPush( info, textureIDToGive, scale );
 				roadblock.push_back(toPush);
+			}
+			if( type == 'a' )
+			{
+				aoe_t toPush;
+				toPush.CreateFromInfo( info, textureIDToGive, scale );
+				avalSpells.push_back( toPush );
 			}
 			if( type == 'h' )
 			{
@@ -535,23 +480,15 @@ int main()
 				{
 					if( threads[humans[i].threadID].done )
 					{
-	//					humans[i].targetX = rand()%600;//humans[playerID].x;
-	//					humans[i].targetY = rand()%600;//humans[playerID].y;
 						humans[i].targetX = humans[i].patrolPoint[ humans[i].patrolCycle ].x;
 						humans[i].targetY = humans[i].patrolPoint[ humans[i].patrolCycle ].y;
-//						humans[i].patrolCycle++;
-//						if( humans[i].patrolCycle > humans[i].patrolPoint.size() )
-//							humans[i].patrolCycle = 0;
 						humans[i].targetID = humans[playerID].id;
 						humans[i].navMesh.clear();
-					
 						threads[humans[i].threadID].done = false;
 						if( threads[humans[i].threadID].trd.joinable() )
 							threads[humans[i].threadID].trd.join();
 						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
 					}
-
-//					PathBuilder( humans[i], humans, roadblock );
 				}
 				
 			}
@@ -651,16 +588,16 @@ int main()
 		{
 			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x - (activeSpells[i].pos.w - activeSpells[i].w)/2;
 			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y - (activeSpells[i].pos.h - activeSpells[i].h)/2;
-			SDL_Texture* attTx;
+			/*SDL_Texture* attTx;
 			switch(activeSpells[i].id)
 			{
 				case 1 : attTx = slashTexture;break;
 				case 2 : attTx = fireballTexture;break;
 				case 3 : attTx = fireballTexture;break;
-			}
-			activeSpells[i].point->x = activeSpells[i].pos.w/2;
-			activeSpells[i].point->y = activeSpells[i].pos.h/2;
-			SDL_RenderCopyEx( renderer, attTx, &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
+			}*/
+//			activeSpells[i].point->x = activeSpells[i].pos.w/2;
+//			activeSpells[i].point->y = activeSpells[i].pos.h/2;
+			SDL_RenderCopyEx( renderer, textures[ activeSpells[i].textureID ], &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
 			if( activeSpells[i].duration <= -5 )
 			{
 				std::swap( activeSpells[i], activeSpells[activeSpells.size()-1] );
