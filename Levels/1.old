@@ -1,0 +1,25 @@
+# human
+# state x y w h maxHealth normSpeed pos frame avalSpells..
+# obsticle
+# x y w h curHealth destroyable pos frame
+# background
+# backgroundPos(x, y), backgroundFrame(x, y)
+a slash 5 0 20 30 30 3 30 30 25 40 0 0 16 20 3
+a fireball 5 5 30 30 300 1 10 80 40 40 0 0 32 32 4
+a fireball 5 5 100 100 300 1 10 80 70 70 0 0 32 32 4
+h RedMage 2 50 40 40 50 20 4 50 50 50 50 0 0 32 32 0 0 1 2
+#h knight 1 -50 150 50 50 20 3 50 50 50 50 0 0 32 32 2
+#p knight 1 -50 200
+h knight 1 150 140 50 50 2 2 50 50 50 50 0 0 32 32 0 1
+p 1 300 300 450 300 450 150
+#b background 0 0 0 0
+b stolen 0 0 0 0
+o tree 300 250 30 30 20 1 50 50 50 50 0 0 32 32
+o tree 350 250 30 30 20 1 50 50 50 50 0 0 32 32
+o tree 400 250 30 30 20 1 50 50 50 50 0 0 32 32
+o tree 350 300 30 30 20 1 50 50 50 50 0 0 32 32
+o stolentree 540 500 18 50 10 1 50 50 100 100 0 192 192 192
+o stolentree 500 500 18 50 10 1 50 50 100 100 0 0 192 192
+h stolentree 0 600 600 30 80 10 5 300 300 100 100 0 0 192 192 2
+#o knight 300 300 100 100 20 0 50 50 100 100 32 0 32 32
+#o rock 350 50 40 40 20 1 50 50 50 50 0 0 32 32

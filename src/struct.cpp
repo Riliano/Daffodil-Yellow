@@ -79,8 +79,8 @@ struct human_t
 	int targetX;
 	int targetY;
 	int targetID;
-	int visionW = 150;
-	int visionH = 300;
+	int visionW = 500;
+	int visionH = 800;
 	char prevAttDir;
 
 	std::vector<flag_t> navMesh;
@@ -103,9 +103,20 @@ struct human_t
 		h = info[4]*scale;
 
 		maxHealth = info[5];
+		curHealth = maxHealth;
 		normSpeed = info[6];
 		pos = {info[7], info[8], (int) (info[9]*scale), (int) (info[10]*scale)};
 		frame = {info[11], info[12], info[13], info[14]};
+		
+		if( frame.y == frame.h*0 )
+			prevDrawDirection = 's';
+		if( frame.y == frame.h*1 )
+			prevDrawDirection = 'w';
+		if( frame.y == frame.h*2 )
+			prevDrawDirection = 'e';
+		if( frame.y == frame.h*3 )
+			prevDrawDirection = 'n';
+
 		for( int i=15;i<info.size();i++ )
 			avalSpells.push_back( info[i] );
 		if( !avalSpells.empty() )
@@ -113,6 +124,7 @@ struct human_t
 			curSpellNum = 0;
 			eqpSpell = avalSpells[0];
 		}
+
 		flag_t start;
 		start.x = x;
 		start.y = y;

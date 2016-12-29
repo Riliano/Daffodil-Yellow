@@ -137,3 +137,34 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 	path.clear();
 	*done = true;
 }
+void CheckVision( human_t &someone, std::vector<human_t> humans )
+{
+//	if( someone.state == 2 )
+//		return;
+	SDL_Rect vision = { (someone.x - (someone.visionW - someone.w)/2), (someone.y - (someone.visionH - someone.h)/2), someone.visionW, someone.visionH }; 
+	if( someone.prevDrawDirection == 'e' or someone.prevDrawDirection == 'w' )
+		std::swap( vision.w, vision.h );
+	for( int i=0;i<humans.size();i++ )
+	{
+		SDL_Rect possibleTarget = { humans[i].x, humans[i].y, humans[i].w, humans[i].h };
+		if( RectCollision( vision, possibleTarget )  and humans[i].id != someone.id  and humans[i].state * someone.state < 0 )
+		{
+			someone.targetID = humans[i].id;
+			someone.targetX = humans[i].x;
+			someone.targetY = humans[i].y;
+			someone.state = 2;
+			for( int j=0;j<humans.size();j++ )
+			{
+				if( Distance(humans[j].x, humans[j].y, someone.x, someone.y) < 200 and humans[j].state == 1 )
+				{
+					humans[j].targetID = humans[i].id;
+					humans[j].targetX = humans[i].x;
+					humans[j].targetY = humans[i].y;
+					humans[j].state = 2;
+				}
+			}
+			return;
+		}
+	}
+	//someone.state = 1;
+}

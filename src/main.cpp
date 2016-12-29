@@ -322,7 +322,7 @@ void LoadLevel( char levelToLoad[] )
 			{
 				human_t toPush( info, ++nextAvalHumanID, textureIDToGive, ++nextAvalThreadID, scale );
 				humans.push_back( toPush );
-				if( toPush.state == 0 )
+				if( toPush.state == -1 )
 				{
 					playerID = 0;
 					std::swap( humans[ humans.size()-1 ], humans[0] );
@@ -331,8 +331,7 @@ void LoadLevel( char levelToLoad[] )
 			if( type == 'b' )
 			{
 				backgroundTextureID = textureIDToGive;
-				backgroundPos.x = info[0];
-				backgroundPos.y = info[1];
+				backgroundPos = {info[0], info[1], info[2], info[3]};
 			}
 			if( type == 'p' )
 			{
@@ -382,7 +381,7 @@ int main()
 	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
 	int numbersTextureID = ++nextAvalTextureID;
 	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
-	backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
+	//backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
 	SDL_Rect curEquipSpellPos = {0, screenHeight-32, 32, 32};
 	SDL_Rect curEquipSpellFrame = {32, 0, 32, 32};
 	SDL_Texture* curEquipSpell;
@@ -401,6 +400,7 @@ int main()
 	long long drawSpellT = SDL_GetTicks();
 	long long BOTpathFindT = SDL_GetTicks();
 	long long BOTattackT = SDL_GetTicks();
+	long long BOTvisionT = SDL_GetTicks();
 	int spellchngTimeout = 0;
 	int frames = 0;
 	std::vector<int> sframes;
@@ -472,17 +472,31 @@ int main()
 			}
 			checkFlagsT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - BOTpathFindT >= 600 )
+		if( SDL_GetTicks() - BOTpathFindT >= 400 )
 		{	
 			for( int i=0;i<humans.size();i++ )
 			{
-				if( humans[i].state == 1 and humans[i].id != humans[playerID].id )
+				if( humans[i].state >= 1 and humans[i].id != humans[playerID].id )
 				{
 					if( threads[humans[i].threadID].done )
 					{
-						humans[i].targetX = humans[i].patrolPoint[ humans[i].patrolCycle ].x;
-						humans[i].targetY = humans[i].patrolPoint[ humans[i].patrolCycle ].y;
-						humans[i].targetID = humans[playerID].id;
+						if( humans[i].state == 1 )
+						{
+							humans[i].targetX = humans[i].patrolPoint[ humans[i].patrolCycle ].x;
+							humans[i].targetY = humans[i].patrolPoint[ humans[i].patrolCycle ].y;
+						}
+						if( humans[i].state == 2 )
+						{
+							for( int j=0;j<humans.size();j++ )
+							{
+								if( humans[i].targetID == humans[j].id )
+								{
+									humans[i].targetX = humans[j].x;
+									humans[i].targetY = humans[j].y;
+									break;
+								}
+							}
+						}
 						humans[i].navMesh.clear();
 						threads[humans[i].threadID].done = false;
 						if( threads[humans[i].threadID].trd.joinable() )
@@ -494,22 +508,26 @@ int main()
 			}
 			BOTpathFindT = SDL_GetTicks();
 		}
+		if( SDL_GetTicks() - BOTvisionT >= 10 )
+		{
+			for( int i=0;i<humans.size();i++ )
+				if( i != playerID )
+					CheckVision( humans[i], humans );
+			BOTvisionT = SDL_GetTicks();
+		}
 		
-		/*if( SDL_GetTicks() - BOTattackT >= 1000 )
+		if( SDL_GetTicks() - BOTattackT >= 10 )
 		{
 			for( int i=0;i<humans.size();i++ )
 			{
-				if( humans[i].state == 1 and i!=playerID )
+				if( i!=playerID and humans[i].state == 2 )
 				{
-					humans[i].attDirection = humans[i].prevAttDir;
-					if( humans[i].attDirection == 'n' or humans[i].attDirection == 's' )
-						humans[i].movDirection[0] = humans[i].attDirection;
-					if( humans[i].attDirection == 'w' or humans[i].attDirection == 'e' )
-						humans[i].movDirection[1] = humans[i].attDirection;
+						if( (avalSpells[humans[i].eqpSpell].speed == 0 and Distance( humans[i].x, humans[i].y, humans[i].targetX, humans[i].targetY ) < 50 )or avalSpells[humans[i].eqpSpell].speed != 0 )
+							humans[i].attDirection = humans[i].prevDrawDirection;
 				}
 			}
 			BOTattackT = SDL_GetTicks();
-		}*/
+		}
 
 		if( SDL_GetTicks() - attT >= 1000/60 )
 		{
@@ -556,7 +574,7 @@ int main()
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
 		{
-//			std::cout<<SDL_GetError()<<std::endl;
+			//std::cout<<SDL_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - fpsT >= 1000 and ShouldIDisplayFPS() )
