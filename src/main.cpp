@@ -179,13 +179,13 @@ void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 	}
 	switch(someone.movDirection[0])
 	{
-		case 'n' : if( someone.pos.y > someone.pos.h*2 ){ someone.pos.y -= someone.speed; }else{ backgroundPos.y += someone.speed; }break;
-		case 's' : if( someone.pos.y < (screenHeight-someone.pos.h*3) ){ someone.pos.y+=someone.speed; }else{ backgroundPos.y -= someone.speed; }break;
+		case 'n' : if( someone.pos.y > someone.pos.h*5 ){ someone.pos.y -= someone.speed; }else{ backgroundPos.y += someone.speed; }break;
+		case 's' : if( someone.pos.y < (screenHeight-someone.pos.h*6) ){ someone.pos.y+=someone.speed; }else{ backgroundPos.y -= someone.speed; }break;
 	}
 	switch(someone.movDirection[1])
 	{
-		case 'e' : if( someone.pos.x < (screenWidth-someone.pos.w*3) ){ someone.pos.x+=someone.speed; }else{ backgroundPos.x -= someone.speed; }break;
-		case 'w' : if( someone.pos.x > someone.pos.w*2 ){ someone.pos.x-=someone.speed; }else{ backgroundPos.x += someone.speed; }break;
+		case 'e' : if( someone.pos.x < (screenWidth-someone.pos.w*8) ){ someone.pos.x+=someone.speed; }else{ backgroundPos.x -= someone.speed; }break;
+		case 'w' : if( someone.pos.x > someone.pos.w*7 ){ someone.pos.x-=someone.speed; }else{ backgroundPos.x += someone.speed; }break;
 	}
 	someone.movDirection[0] = 0;
 	someone.movDirection[1] = 0;
