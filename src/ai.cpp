@@ -112,6 +112,7 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 			*done = true;
 			return;
 		}
+		bool foundNext = false;
 		for( int i=0;i<path.size();i++ )
 		{
 			if( path[i].x == cur.cameFromX and path[i].y == cur.cameFromY )
@@ -122,9 +123,9 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 				someone->navMesh.push_back( toPush );
 				std::swap( path[i], path[path.size()-1] );
 				path.pop_back();
+				foundNext = true;
 				break;
 			}
-			
 			if( *quit )
 			{
 				path.clear();
@@ -132,6 +133,11 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 				*done = true;
 				return;
 			}
+		}
+		if( !foundNext )
+		{
+			*done = true;
+			return;
 		}
 	}
 	path.clear();

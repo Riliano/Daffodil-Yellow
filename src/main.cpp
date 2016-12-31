@@ -503,7 +503,7 @@ int main()
 						threads[humans[i].threadID].done = false;
 						if( threads[humans[i].threadID].trd.joinable() )
 							threads[humans[i].threadID].trd.join();
-//						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
+						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
 					}
 				}
 				
