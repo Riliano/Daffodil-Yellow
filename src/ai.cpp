@@ -15,15 +15,12 @@ void AStar( human_t someone, std::vector<node_t> &path, std::vector<human_t> hum
 	while( !bucket.empty() )
 	{
        		node_t cur = bucket.top();
-
+		start = cur;
 		path.push_back( cur );
                 bucket.pop();
                 node_t newNode[8];
 		if( Distance( cur.x, cur.y, someone.targetX, someone.targetY ) <= 30 )
-		{
-			start = cur;
                         return;
-		}
 		if( clock() - begin > 0.3 * CLOCKS_PER_SEC )
 		{
 			path.clear();
