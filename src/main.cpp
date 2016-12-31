@@ -222,10 +222,10 @@ void Attack(human_t &someone)
 //		std::swap( attack.pos.w, attack.pos.h );
 	}
 //	attack.flip = SDL_FLIP_NONE;
-	if( someone.spellWaitTime[attack.id] <= 0 )
+	if( someone.spellWaitTime[someone.eqpSpell] <= 0 )
 	{
 		activeSpells.push_back( attack );
-		someone.spellWaitTime[attack.id] = attack.waitTime;
+		someone.spellWaitTime[someone.eqpSpell] = attack.waitTime;
 	}
 	someone.drawDirection = someone.attDirection;
 	someone.attDirection = 0;
@@ -503,7 +503,7 @@ int main()
 						threads[humans[i].threadID].done = false;
 						if( threads[humans[i].threadID].trd.joinable() )
 							threads[humans[i].threadID].trd.join();
-						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
+//						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
 					}
 				}
 				
