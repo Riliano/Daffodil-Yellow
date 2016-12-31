@@ -31,7 +31,6 @@ std::vector <obsticle_t> roadblock;
 
 SDL_Rect backgroundPos;
 int backgroundTextureID;
-SDL_Rect dummy;
 
 std::vector<aoe_t> activeSpells;
 std::vector<aoe_t> avalSpells;
@@ -111,7 +110,7 @@ void Spell( aoe_t &magic )
 		}
 	}
 }
-void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
+void Move( human_t &someone, bool moveBackground )
 {
 	SDL_Rect oldPos = {someone.x, someone.y, someone.w, someone.h};
 	if( someone.movDirection[0] != 0 and someone.movDirection[1] != 0 )
@@ -177,15 +176,18 @@ void Move(human_t &someone, SDL_Rect &backgroundPos = dummy)
 			}
 		}
 	}
-	switch(someone.movDirection[0])
+	if( moveBackground )
 	{
-		case 'n' : if( someone.pos.y > someone.pos.h*5 ){ someone.pos.y -= someone.speed; }else{ backgroundPos.y += someone.speed; }break;
-		case 's' : if( someone.pos.y < (screenHeight-someone.pos.h*6) ){ someone.pos.y+=someone.speed; }else{ backgroundPos.y -= someone.speed; }break;
-	}
-	switch(someone.movDirection[1])
-	{
-		case 'e' : if( someone.pos.x < (screenWidth-someone.pos.w*8) ){ someone.pos.x+=someone.speed; }else{ backgroundPos.x -= someone.speed; }break;
-		case 'w' : if( someone.pos.x > someone.pos.w*7 ){ someone.pos.x-=someone.speed; }else{ backgroundPos.x += someone.speed; }break;
+		switch(someone.movDirection[0])
+		{
+			case 'n' : if( someone.pos.y > someone.pos.h*5 ){ someone.pos.y -= someone.speed; }else{ backgroundPos.y += someone.speed; }break;
+			case 's' : if( someone.pos.y < (screenHeight-someone.pos.h*6) ){ someone.pos.y+=someone.speed; }else{ backgroundPos.y -= someone.speed; }break;
+		}
+		switch(someone.movDirection[1])
+		{
+			case 'e' : if( someone.pos.x < (screenWidth-someone.pos.w*8) ){ someone.pos.x+=someone.speed; }else{ backgroundPos.x -= someone.speed; }break;
+			case 'w' : if( someone.pos.x > someone.pos.w*7 ){ someone.pos.x-=someone.speed; }else{ backgroundPos.x += someone.speed; }break;
+		}
 	}
 	someone.movDirection[0] = 0;
 	someone.movDirection[1] = 0;
@@ -540,10 +542,10 @@ int main()
 			for( int i=0;i<humans.size();i++ )
 			{
 				humans[i].DrawDir();
-				SDL_Rect *dummyptr = &dummy;
+				bool followHuman = false;
 				if( i == playerID )
-					dummyptr = &backgroundPos;
-				Move( humans[i], *dummyptr );
+					followHuman = true;
+				Move( humans[i], followHuman );
 			}
 			movT = SDL_GetTicks();
 		}
