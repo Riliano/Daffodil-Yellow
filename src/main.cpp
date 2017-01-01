@@ -32,6 +32,7 @@ std::vector <obsticle_t> roadblock;
 
 SDL_Rect backgroundPos;
 int backgroundTextureID;
+int maxX, maxY, minX, minY;
 
 std::vector<aoe_t> activeSpells;
 std::vector<aoe_t> avalSpells;
@@ -134,6 +135,16 @@ void Move( human_t &someone, bool moveBackground )
 			someone.drawDirection = someone.movDirection[0];
 		if( someone.movDirection[1] != 0 )
 			someone.drawDirection = someone.movDirection[1];
+	}
+	if( ( someone.x > maxX or someone.x < minX ) or ( someone.y > maxY or someone.y < minY ) )
+	{
+		someone.x = oldPos.x;
+		someone.y = oldPos.y;
+		someone.w = oldPos.w;
+		someone.h = oldPos.h;	
+		someone.movDirection[0] = 0;
+		someone.movDirection[1] = 0;
+		return;
 	}
 	SDL_Rect human, pathBlocker;
 	human.x = someone.x;
@@ -335,6 +346,10 @@ void LoadLevel( char levelToLoad[] )
 			{
 				backgroundTextureID = textureIDToGive;
 				backgroundPos = {info[0], info[1], info[2], info[3]};
+				minY = info[4];
+				minX = info[5];
+				maxY = info[6];
+				maxX = info[7];
 			}
 			if( type == 'p' )
 			{
