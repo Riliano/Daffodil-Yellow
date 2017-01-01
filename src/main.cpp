@@ -67,7 +67,7 @@ void Spell( aoe_t &magic )
 		possibleHit.y = roadblock[i].y;
 		possibleHit.w = roadblock[i].w;
 		possibleHit.h = roadblock[i].h;
-		if( RectCollision(spell, possibleHit) )
+		if( RectCollision(spell, possibleHit) and roadblock[i].stopsSpells )
 		{
 			if( roadblock[i].destroyable )
 			{
@@ -146,7 +146,7 @@ void Move( human_t &someone, bool moveBackground )
 		pathBlocker.y = roadblock[i].y;
 		pathBlocker.w = roadblock[i].w;
 		pathBlocker.h = roadblock[i].h;	
-		if( RectCollision( human, pathBlocker ) )
+		if( RectCollision( human, pathBlocker ) and roadblock[i].stopsHumans )
 		{
 			someone.x = oldPos.x;
 			someone.y = oldPos.y;

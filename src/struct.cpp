@@ -173,6 +173,8 @@ struct obsticle_t
 	SDL_Rect frame;
 	int curHealth;
 	bool destroyable;
+	bool stopsSpells;
+	bool stopsHumans;
 	int x;
 	int y;
 	int w;
@@ -188,9 +190,11 @@ struct obsticle_t
 
 		curHealth = info[4];
 		destroyable = info[5];
+		stopsSpells = info[6];
+		stopsHumans = info[7];
 		
-		pos = {info[6], info[7], (int) (info[8]*scale), (int) (info[9]*scale)};
-		frame = {info[10], info[11], info[12], info[13]};
+		pos = {info[8], info[9], (int) (info[10]*scale), (int) (info[11]*scale)};
+		frame = {info[12], info[13], info[14], info[15]};
 	}
 };
 struct aoe_t
