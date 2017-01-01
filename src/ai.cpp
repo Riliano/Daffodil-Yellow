@@ -10,8 +10,7 @@ void AStar( human_t someone, std::vector<node_t> &path, std::vector<human_t> hum
 	temp.cameFromY = someone.y;
 	temp.value = Distance( someone.x, someone.y, someone.targetX, someone.targetY );
 	field.push_back( temp );
-	bucket.push( temp ); 
-
+	bucket.push( temp );
 	while( !bucket.empty() )
 	{
        		node_t cur = bucket.top();
@@ -92,7 +91,7 @@ void AStar( human_t someone, std::vector<node_t> &path, std::vector<human_t> hum
         }
 }
 
-void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obsticle_t> roadblock, bool *done, bool *quit)
+void PathBuilder( human_t *someone, std::vector<flag_t> *navMesh, std::vector<human_t> humans, std::vector<obsticle_t> roadblock, bool *done, bool *quit)
 {
 	std::vector<node_t> path;
 	node_t start;
@@ -117,7 +116,7 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 				cur = path[i];
 				flag_t toPush;
 				toPush.ConstructFromNode_t(cur);
-				someone->navMesh.push_back( toPush );
+				navMesh->push_back( toPush );
 				std::swap( path[i], path[path.size()-1] );
 				path.pop_back();
 				foundNext = true;
@@ -133,6 +132,7 @@ void PathBuilder( human_t *someone, std::vector<human_t> humans, std::vector<obs
 		}
 		if( !foundNext )
 		{
+			path.clear();
 			*done = true;
 			return;
 		}

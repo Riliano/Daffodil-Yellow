@@ -23,6 +23,7 @@ std::vector<SDL_Texture*> textures;
 //std::queue<int> tasks;
 //int numThread = 2;
 const int MAX_THREAD = 200;
+std::vector<flag_t> tempMesh[MAX_THREAD];
 
 //TTF_Font* gothic;
 
@@ -447,6 +448,9 @@ int main()
 			{
 				if( humans[i].id != humans[playerID].id and threads[humans[i].threadID].done )
 				{
+					for( int j=0;j<tempMesh[humans[i].threadID].size();j++ )
+						humans[i].navMesh.push_back( tempMesh[humans[i].threadID][j] );
+
 					for( int j=0;j<humans[i].navMesh.size();j++ )
 					{
 						if( humans[i].x == humans[i].navMesh[j].x and humans[i].y == humans[i].navMesh[j].y )
@@ -500,10 +504,11 @@ int main()
 							}
 						}
 						humans[i].navMesh.clear();
+						tempMesh[humans[i].threadID].clear();
 						threads[humans[i].threadID].done = false;
 						if( threads[humans[i].threadID].trd.joinable() )
 							threads[humans[i].threadID].trd.join();
-						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
+						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], &tempMesh[humans[i].threadID], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
 					}
 				}
 				
