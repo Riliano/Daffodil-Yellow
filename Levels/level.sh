@@ -10,7 +10,7 @@ do
 	y=$RANDOM
 	let "x %= 2000"
 	let "y %= 800"
-	echo "o tree $x $y 40 40 5 1 0 0 50 50 0 0 32 32"
+	echo "o tree $x $y 40 40 5 1 1 1 0 0 50 50 0 0 32 32"
 	i=$[$i+1]
 done
 
