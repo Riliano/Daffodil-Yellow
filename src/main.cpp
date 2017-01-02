@@ -35,8 +35,6 @@ int backgroundTextureID;
 
 std::vector<aoe_t> activeSpells;
 std::vector<aoe_t> avalSpells;
-SDL_Texture* slashTexture;
-SDL_Texture* fireballTexture;
 const int NUM_SPELLS = 5;
 
 float scale = 1;//(float)screenWidth/480.0;
@@ -378,16 +376,10 @@ int main()
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
-	slashTexture = IMG_LoadTexture(renderer, "Textures/slash.png");
-	fireballTexture = IMG_LoadTexture(renderer, "Textures/fireball.png");
-	
 	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
 	int numbersTextureID = ++nextAvalTextureID;
 	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 	//backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
-	SDL_Rect curEquipSpellPos = {0, screenHeight-32, 32, 32};
-	SDL_Rect curEquipSpellFrame = {32, 0, 32, 32};
-	SDL_Texture* curEquipSpell;
 	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
 	char level[] = "Levels/1.lvl";
 	bool levelLoaded = false;
@@ -638,14 +630,6 @@ int main()
 			}
 			SDL_RenderCopy( renderer, textures[humans[i].textureID], &humans[i].frame, &humans[i].pos );
 		}
-		switch (humans[playerID].eqpSpell)
-		{
-			case 0 : curEquipSpell = slashTexture;break;
-			case 1 : curEquipSpell = fireballTexture;break;
-			case 2 : curEquipSpell = fireballTexture;break;
-			default : curEquipSpell = fireballTexture;
-		}
-		SDL_RenderCopy( renderer, curEquipSpell, &curEquipSpellFrame, &curEquipSpellPos );
 		if( ShouldIDisplayFPS() )
 		{	
 			for( int i=0;i<sframes.size();i++ )
