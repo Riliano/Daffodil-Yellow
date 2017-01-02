@@ -8,7 +8,7 @@
 # dmg speed w h duration slowdown slowdowndur cooldown pos(w h) frame frames
 a slash 5 0 20 30 30 3 30 30 25 40 0 0 16 20 3
 a fireball 5 5 30 30 300 1 10 80 40 40 0 0 32 32 4
-h RedMage -1 50 30 30 30 80 7 50 50 50 50 0 0 32 32 1 0
+h RedMage -1 50 30 30 30 80 4 50 50 50 50 0 0 32 32 1 0
 
 b background -400 -40 2800 1100
 #borders
