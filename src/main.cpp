@@ -91,7 +91,7 @@ void Spell( aoe_t &magic )
 			{
 				humans[i].curHealth -= magic.dmg;
 				magic.duration = 0;
-				if( humans[i].curHealth <= 0 )
+				if( humans[i].curHealth <= 0 and i != playerID )
 				{
 					std::swap( humans[i], humans[humans.size()-1] );
 					humans.pop_back();
@@ -231,6 +231,10 @@ void Attack(human_t &someone)
 }
 void LoadLevel( char levelToLoad[] )
 {
+	humans.clear();
+	roadblock.clear();
+	avalSpells.clear();
+	activeSpells.clear();
 	std::ifstream level( levelToLoad );
 	std::vector< std::pair<int, int> > loadedTextures;
 	if( level.is_open() )
@@ -377,7 +381,9 @@ int main()
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
 	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
+	textures.push_back( IMG_LoadTexture( renderer, "Textures/select.png" ) );
 	int numbersTextureID = ++nextAvalTextureID;
+	int selectTextureID = ++nextAvalTextureID;
 	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 	//backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
 	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
@@ -605,15 +611,6 @@ int main()
 		{
 			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x + (activeSpells[i].pos.w - activeSpells[i].w)/2;
 			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y + (activeSpells[i].pos.h - activeSpells[i].h)/2;
-			/*SDL_Texture* attTx;
-			switch(activeSpells[i].id)
-			{
-				case 1 : attTx = slashTexture;break;
-				case 2 : attTx = fireballTexture;break;
-				case 3 : attTx = fireballTexture;break;
-			}*/
-//			activeSpells[i].point->x = activeSpells[i].pos.w/2;
-//			activeSpells[i].point->y = activeSpells[i].pos.h/2;
 			SDL_RenderCopyEx( renderer, textures[ activeSpells[i].textureID ], &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
 			if( activeSpells[i].duration <= -5 )
 			{
@@ -639,6 +636,23 @@ int main()
 				SDL_RenderCopy( renderer, textures[numbersTextureID], &nextNumber, &nextNumberPos );
 			}
 			frames++;
+		}
+		for( int i=0;i<humans[playerID].avalSpells.size();i++ )
+		{
+			SDL_Rect frame = avalSpells[ humans[playerID].avalSpells[i] ].frame;
+			int start = (screenWidth - 60*humans[playerID].avalSpells.size())/2;
+			SDL_Rect pos = {start + i*60, screenHeight-70, 40, 40};
+			if( humans[playerID].avalSpells[i] == humans[playerID].eqpSpell )
+			{
+				SDL_RenderCopy( renderer, textures[ selectTextureID ], NULL, &pos );
+			}
+			SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ], &frame, &pos );
+		}
+		if( humans[playerID].curHealth <= 0 )
+		{
+			std::cout<<"Game Over"<<std::endl;
+			SDL_Delay( 1000 );
+			levelLoaded = false;			
 		}
 		SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
