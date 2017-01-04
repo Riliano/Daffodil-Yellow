@@ -21,7 +21,7 @@ std::vector<input_t> input;
 void InitInput()
 {
 	std::fstream keyLayout;
-	keyLayout.open( "Configs/keyboard.conf" );
+	keyLayout.open( "Configs/keyboard.cfg" );
 	while( !keyLayout.eof() )
 	{
 		int temp;
