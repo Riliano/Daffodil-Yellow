@@ -1,6 +1,7 @@
 #include<iostream>
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
+#include<SDL2/SDL_net.h>
 //#include<SDL2/SDL_ttf.h>
 #include<queue>
 #include<vector>
@@ -372,8 +373,32 @@ int main()
 {
 	//std::thread worker[numThread];
 	worker_t threads[MAX_THREAD];
-	Init( renderer );
 	InitInput();
+
+	SDLNet_Init();
+	TCPsocket sock;
+	SDLNet_SocketSet chkNet = SDLNet_AllocSocketSet( 1 );
+	IPaddress ip;
+	char address[40];
+	Uint16 port = 1234;
+	std::cout<<"Enter address: ";
+	std::cin>>address;
+	bool ignoreNet = false;
+	if( address[0] == 'n' and address[1] == 'o' and address[2] == '\0' )
+		ignoreNet = true;
+	if( !ignoreNet )
+	{
+		SDLNet_ResolveHost( &ip, address, port );
+		sock = SDLNet_TCP_Open( &ip );
+		if( !sock )
+		{
+			ignoreNet = true;
+			std::cout<<"Failed to connect"<<std::endl;
+		}
+		else
+			SDLNet_TCP_AddSocket( chkNet, sock );
+	}
+	Init( renderer );
 	//TTF_Init();
 	if( ShouldITurnVSync() )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
@@ -402,6 +427,7 @@ int main()
 	long long BOTpathFindT = SDL_GetTicks();
 	long long BOTattackT = SDL_GetTicks();
 	long long BOTvisionT = SDL_GetTicks();
+	long long checkNetT = SDL_GetTicks();
 	int spellchngTimeout = 0;
 	int frames = 0;
 	std::vector<int> sframes;
@@ -438,7 +464,40 @@ int main()
 			ScanKeyboard();
 			AnalyzeInput( humans[playerID] );
 			ResetKeyboard();
+			if( !ignoreNet )
+			{
+				char send[20];
+				send[0] = humans[playerID].movDirection[0];
+				send[1] = humans[playerID].movDirection[1];
+				send[2] = humans[playerID].attDirection;
+				send[3] = humans[playerID].curSpellNum;
+				SDLNet_TCP_Send( sock, send, 4 );
+			}
 			inputT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
+		{
+			int active = SDLNet_CheckSockets( chkNet, 0 );
+			if( active > 0 )
+			{
+				char rcv[5];
+				SDLNet_TCP_Recv( sock, rcv, 4 );
+				for( int i=0;i<humans.size();i++ )
+				{
+					if( humans[i].state == 0 )
+					{
+						humans[i].movDirection[0] = rcv[0];
+						humans[i].movDirection[1] = rcv[1];
+						humans[i].attDirection = rcv[2];
+						humans[i].curSpellNum = rcv[3];
+						//for( int i=0;i<4;i++ )
+						//	std::cout<<rcv[i]<<" ";
+						//std::cout<<std::endl;
+						break;
+					}
+				}
+			}
+			checkNetT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - checkFlagsT >= 10 )
 		{
