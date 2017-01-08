@@ -439,6 +439,33 @@ int main()
 			SDL_RenderCopy( renderer, loading, NULL, NULL );
 			SDL_RenderPresent( renderer );
 			LoadLevel( level );
+
+			if( !ignoreNet )
+			{
+				int active = SDLNet_CheckSockets( chkNet, -1 );
+				int recv[1000];
+				if( active > 0 )
+				{
+					int recvLen = SDLNet_TCP_Recv( sock, recv, 1000 );
+					recvLen/=4;
+					humans[playerID].netID = recv[0];
+					for( int i=1;i<recvLen;i+=3 )
+					{
+						if( recv[i] == -1 )
+							break;
+						human_t newGuy = humans[playerID];
+						newGuy.netID = recv[i];
+						newGuy.state = -9;
+						newGuy.id = ++nextAvalHumanID;
+						newGuy.x = recv[i+1];
+						newGuy.y = recv[i+2];
+						humans.push_back( newGuy );
+					}
+					int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+					SDLNet_TCP_Send( sock, info, 16 );
+				}
+			}
+
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
 		}
@@ -464,35 +491,34 @@ int main()
 			ScanKeyboard();
 			AnalyzeInput( humans[playerID] );
 			ResetKeyboard();
-			if( !ignoreNet )
-			{
-				char send[20];
-				send[0] = humans[playerID].movDirection[0];
-				send[1] = humans[playerID].movDirection[1];
-				send[2] = humans[playerID].attDirection;
-				send[3] = humans[playerID].curSpellNum;
-				SDLNet_TCP_Send( sock, send, 4 );
-			}
+
 			inputT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
 		{
+			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+			SDLNet_TCP_Send( sock, info, 16 );
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
 			{
-				char rcv[5];
-				SDLNet_TCP_Recv( sock, rcv, 4 );
+				int rcv[5];
+				SDLNet_TCP_Recv( sock, rcv, 20 );
+				if( rcv[0] == -1 )
+				{
+					human_t newGuy = humans[playerID];
+					newGuy.id = ++nextAvalHumanID;
+					newGuy.state = -9;
+					newGuy.netID = rcv[1];
+					newGuy.x = rcv[2];
+					newGuy.y = rcv[3];
+					humans.push_back( newGuy );
+				}
 				for( int i=0;i<humans.size();i++ )
 				{
-					if( humans[i].state == 0 )
+					if( humans[i].netID == rcv[0] and i!=playerID )
 					{
-						humans[i].movDirection[0] = rcv[0];
-						humans[i].movDirection[1] = rcv[1];
-						humans[i].attDirection = rcv[2];
-						humans[i].curSpellNum = rcv[3];
-						//for( int i=0;i<4;i++ )
-						//	std::cout<<rcv[i]<<" ";
-						//std::cout<<std::endl;
+						humans[i].x = rcv[1];
+						humans[i].y = rcv[2];
 						break;
 					}
 				}
@@ -687,7 +713,7 @@ int main()
 			SDL_RenderCopy( renderer, textures[humans[i].textureID], &humans[i].frame, &humans[i].pos );
 		}
 		if( ShouldIDisplayFPS() )
-		{	
+		{
 			for( int i=0;i<sframes.size();i++ )
 			{
 				SDL_Rect nextNumber = {sframes[i]*10, 0, 10, 18};
