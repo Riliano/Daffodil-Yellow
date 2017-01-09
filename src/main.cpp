@@ -369,6 +369,9 @@ void LoadLevel( char levelToLoad[] )
 	std::cout<<"End"<<std::endl;
 #endif
 }
+
+int netIDTable[2000];
+
 int main()
 {
 	//std::thread worker[numThread];
@@ -463,12 +466,16 @@ int main()
 						newGuy.id = ++nextAvalHumanID;
 						newGuy.x = recv[i+1];
 						newGuy.y = recv[i+2];
+						netIDTable[newGuy.netID] = humans.size();
 						humans.push_back( newGuy );
 					}
 					int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
 					SDLNet_TCP_Send( sock, info, 16 );
 				}
 			}
+
+			for( int i=0;i<humans.size();i++ )
+				netIDTable[humans[i].netID] = i;
 
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
@@ -524,32 +531,32 @@ int main()
 					newGuy.netID = rcv[1];
 					newGuy.x = rcv[2];
 					newGuy.y = rcv[3];
+					netIDTable[newGuy.netID] = humans.size();
 					humans.push_back( newGuy );
+
 				}else
 				{
+
 					for( int j=0;rcv[j]!=-1;j+=3 )
 					{
-						for( int i=0;i<humans.size();i++ )
+						int i = netIDTable[rcv[j]];
+						if( i!=playerID )
 						{
-							if( humans[i].netID == rcv[j] and i!=playerID )
-							{
-								humans[i].speed = 0;
-								if( rcv[j+1] > humans[i].x )
-									humans[i].movDirection[1] = 'e';
-								if( rcv[j+1] < humans[i].x )
-									humans[i].movDirection[1] = 'w';
-								if( rcv[j+1] == humans[i].x )
-									humans[i].movDirection[1] = 0;
-								if( rcv[j+2] > humans[i].y )
-									humans[i].movDirection[0] = 's';
-								if( rcv[j+2] < humans[i].y )
-									humans[i].movDirection[0] = 'n';
-								if( rcv[j+2] == humans[i].y )
-									humans[i].movDirection[0] = 0;
-								humans[i].x = rcv[j+1];
-								humans[i].y = rcv[j+2];
-								break;
-							}
+							humans[i].speed = 0;
+							if( rcv[j+1] > humans[i].x )
+								humans[i].movDirection[1] = 'e';
+							if( rcv[j+1] < humans[i].x )
+								humans[i].movDirection[1] = 'w';
+							if( rcv[j+1] == humans[i].x )
+								humans[i].movDirection[1] = 0;
+							if( rcv[j+2] > humans[i].y )
+								humans[i].movDirection[0] = 's';
+							if( rcv[j+2] < humans[i].y )
+								humans[i].movDirection[0] = 'n';
+							if( rcv[j+2] == humans[i].y )
+								humans[i].movDirection[0] = 0;
+							humans[i].x = rcv[j+1];
+							humans[i].y = rcv[j+2];
 						}
 					}
 				}
