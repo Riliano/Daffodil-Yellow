@@ -428,7 +428,11 @@ int main()
 	long long BOTattackT = SDL_GetTicks();
 	long long BOTvisionT = SDL_GetTicks();
 	long long checkNetT = SDL_GetTicks();
+	long long sendNetT = SDL_GetTicks();
 	int spellchngTimeout = 0;
+
+	long long send=0, recievd = 0;
+
 	int frames = 0;
 	std::vector<int> sframes;
 	sframes.push_back(0);
@@ -442,7 +446,7 @@ int main()
 
 			if( !ignoreNet )
 			{
-				int active = SDLNet_CheckSockets( chkNet, -1 );
+				int active = SDLNet_CheckSockets( chkNet, 0 );
 				int recv[1000];
 				if( active > 0 )
 				{
@@ -494,15 +498,24 @@ int main()
 
 			inputT = SDL_GetTicks();
 		}
+		if( SDL_GetTicks() - sendNetT >= 15 and !ignoreNet )
+		{
+			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 )
+			{
+				int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+				SDLNet_TCP_Send( sock, info, 20 );
+				send++;
+			}
+			sendNetT = SDL_GetTicks();
+		}
 		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
 		{
-			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-			SDLNet_TCP_Send( sock, info, 16 );
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
 			{
-				int rcv[5];
-				SDLNet_TCP_Recv( sock, rcv, 20 );
+				int rcv[300];
+				SDLNet_TCP_Recv( sock, rcv, 1200 );
+				recievd++;
 				if( rcv[0] == -1 )
 				{
 					human_t newGuy = humans[playerID];
@@ -512,14 +525,32 @@ int main()
 					newGuy.x = rcv[2];
 					newGuy.y = rcv[3];
 					humans.push_back( newGuy );
-				}
-				for( int i=0;i<humans.size();i++ )
+				}else
 				{
-					if( humans[i].netID == rcv[0] and i!=playerID )
+					for( int j=0;rcv[j]!=-1;j+=3 )
 					{
-						humans[i].x = rcv[1];
-						humans[i].y = rcv[2];
-						break;
+						for( int i=0;i<humans.size();i++ )
+						{
+							if( humans[i].netID == rcv[j] and i!=playerID )
+							{
+								humans[i].speed = 0;
+								if( rcv[j+1] > humans[i].x )
+									humans[i].movDirection[1] = 'e';
+								if( rcv[j+1] < humans[i].x )
+									humans[i].movDirection[1] = 'w';
+								if( rcv[j+1] == humans[i].x )
+									humans[i].movDirection[1] = 0;
+								if( rcv[j+2] > humans[i].y )
+									humans[i].movDirection[0] = 's';
+								if( rcv[j+2] < humans[i].y )
+									humans[i].movDirection[0] = 'n';
+								if( rcv[j+2] == humans[i].y )
+									humans[i].movDirection[0] = 0;
+								humans[i].x = rcv[j+1];
+								humans[i].y = rcv[j+2];
+								break;
+							}
+						}
 					}
 				}
 			}
@@ -682,6 +713,9 @@ int main()
 				sframes.push_back(bucket.back());
 				bucket.pop_back();
 			}
+			std::cout<<"Send: "<<send<<std::endl<<"Recieved: "<<recievd<<std::endl;
+			send = 0;
+			recievd = 0;
 			frames = 0;
 			fpsT = SDL_GetTicks();
 		}
