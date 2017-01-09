@@ -84,7 +84,7 @@ int main()
 					for( int j=0;j<num_clients;j++ )
 					{
 						if( clients[i].id!=clients[j].id )
-							SDLNet_TCP_Send( clients[j].socket, info, 16 );
+							SDLNet_TCP_Send( clients[j].socket, info, 20 );
 					}
 				}
 			}
