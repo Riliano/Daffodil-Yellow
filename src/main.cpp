@@ -496,8 +496,11 @@ int main()
 		}
 		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
 		{
-			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-			SDLNet_TCP_Send( sock, info, 20 );
+			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 )
+			{
+				int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+				SDLNet_TCP_Send( sock, info, 20 );
+			}
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
 			{
