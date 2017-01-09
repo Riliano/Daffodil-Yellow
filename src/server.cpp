@@ -47,7 +47,7 @@ int main()
 				clients[num_clients].socket = newSocket;
 				clients[num_clients].id = ++nextAvalID;
 
-				int msg[num_clients+1] = {1, clients[num_clients].id};
+				int msg[num_clients*3+2] = {1, clients[num_clients].id};
 				int msgLen = 2;
 				for( int i=0;i<num_clients;i++ )
 				{
