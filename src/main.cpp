@@ -512,7 +512,7 @@ int main()
 				}
 				if( rcv[0] == 3 )
 				{
-					for( int i=1;rcv[i]!=-1;i+=3 )
+					for( int i=1;rcv[i]!=-1;i+=4 )
 					{
 						int updateThisGuy = netIDTable[rcv[i]];
 						if( updateThisGuy != playerID )
@@ -533,6 +533,7 @@ int main()
 								humans[updateThisGuy].movDirection[1] = 0;
 							humans[updateThisGuy].x = rcv[i+1];
 							humans[updateThisGuy].y = rcv[i+2];
+							humans[updateThisGuy].attDirection = rcv[i+3];
 						}
 					}
 				}
@@ -653,9 +654,9 @@ int main()
 		}
 		if( SDL_GetTicks() - sendNetT >= 15 and !ignoreNet and humans[playerID].netID != -1 )
 		{
-			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 )
+			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 or humans[playerID].attDirection != 0 )
 			{
-				int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+				int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y, humans[playerID].attDirection};
 				SDLNet_TCP_Send( sock, info, 20 );
 				send++;
 			}

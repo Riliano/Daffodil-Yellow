@@ -10,6 +10,7 @@ struct client_t
 	int x, y;
 	int id;
 	bool activity;
+	int attDir;
 }clients[200];
 int nextAvalID = 0;
 int num_clients;
@@ -95,6 +96,7 @@ int main()
 						{
 							clients[i].x = msg[1];
 							clients[i].y = msg[2];
+							clients[i].attDir = msg[3];
 							clients[i].activity = true;
 							break;
 						}
@@ -115,8 +117,9 @@ int main()
 					msg[msgLen] = clients[i].id;
 					msg[msgLen+1] = clients[i].x;
 					msg[msgLen+2] = clients[i].y;
+					msg[msgLen+3] = clients[i].attDir;
 					clients[i].activity = false;
-					msgLen+=3;
+					msgLen+=4;
 				}
 			}
 			msg[msgLen] = -1;
