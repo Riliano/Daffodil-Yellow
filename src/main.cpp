@@ -442,7 +442,7 @@ int main()
 
 			if( !ignoreNet )
 			{
-				int active = SDLNet_CheckSockets( chkNet, -1 );
+				int active = SDLNet_CheckSockets( chkNet, 0 );
 				int recv[1000];
 				if( active > 0 )
 				{
@@ -517,6 +517,19 @@ int main()
 				{
 					if( humans[i].netID == rcv[0] and i!=playerID )
 					{
+						humans[i].speed = 0;
+						if( rcv[1] > humans[i].x )
+							humans[i].movDirection[1] = 'e';
+						if( rcv[1] < humans[i].x )
+							humans[i].movDirection[1] = 'w';
+						if( rcv[1] == humans[i].x )
+							humans[i].movDirection[1] = 0;
+						if( rcv[2] > humans[i].y )
+							humans[i].movDirection[0] = 's';
+						if( rcv[2] < humans[i].y )
+							humans[i].movDirection[0] = 'n';
+						if( rcv[2] == humans[i].y )
+							humans[i].movDirection[0] = 0;
 						humans[i].x = rcv[1];
 						humans[i].y = rcv[2];
 						break;
