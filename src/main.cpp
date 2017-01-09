@@ -44,6 +44,8 @@ int nextAvalHumanID = -1;
 int nextAvalTextureID = -1;
 int nextAvalThreadID = -1;
 
+int netIDTable[2000];
+
 void Spell( aoe_t &magic )
 {
 	switch( magic.dir )
@@ -95,6 +97,7 @@ void Spell( aoe_t &magic )
 				if( humans[i].curHealth <= 0 and i != playerID )
 				{
 					std::swap( humans[i], humans[humans.size()-1] );
+					netIDTable[humans[i].netIDTable] = i;	
 					humans.pop_back();
 				}
 			}
@@ -370,7 +373,6 @@ void LoadLevel( char levelToLoad[] )
 #endif
 }
 
-int netIDTable[2000];
 
 int main()
 {
