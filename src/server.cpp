@@ -27,6 +27,10 @@ int main()
 	allSockets = SDLNet_AllocSocketSet( 200 );
 	SDLNet_TCP_AddSocket( allSockets, server );
 
+	long long sendT = SDL_GetTicks();
+
+	std::cout<<"Start"<<std::endl;
+
 	while( true )
 	{
 		int activeSockets = SDLNet_CheckSockets( allSockets, 0 );
@@ -90,10 +94,6 @@ int main()
 						{
 							clients[i].x = msg[1];
 							clients[i].y = msg[2];
-							for( int j=0;j<num_clients;j++ )
-							{
-								SDLNet_TCP_Send( clients[j].socket, msg, 20 );
-							}
 							break;
 						}
 					}
@@ -101,5 +101,27 @@ int main()
 				}
 			}
 		}
+		
+		if( SDL_GetTicks() - sendT >= 10 )
+		{
+			int msg[300];
+			int msgLen = 0;
+			for( int i=0;i<num_clients;i++ )
+			{
+				msg[msgLen] = clients[i].id;
+				msg[msgLen+1] = clients[i].x;
+				msg[msgLen+2] = clients[i].y;
+				msgLen+=3;
+			}
+			msg[msgLen] = -1;
+			msgLen++;
+
+			for( int j=0;j<num_clients;j++ )
+			{
+				SDLNet_TCP_Send( clients[j].socket, msg, msgLen*4 );
+			}
+			sendT = SDL_GetTicks();
+		}
+
 	}
 }
