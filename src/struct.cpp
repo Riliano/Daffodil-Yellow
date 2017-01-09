@@ -53,7 +53,7 @@ struct human_t
 {
 	int id;
 	int textureID;
-	int netID;
+	int netID = -1;
 	SDL_Rect pos;
 	SDL_Rect frame;
 	char movDirection[2] = {0, 0};

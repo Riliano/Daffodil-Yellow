@@ -46,8 +46,8 @@ int main()
 				clients[num_clients].socket = newSocket;
 				clients[num_clients].id = ++nextAvalID;
 
-				int msg[num_clients+1] = {clients[num_clients].id};
-				int msgLen = 1;
+				int msg[num_clients+1] = {1, clients[num_clients].id};
+				int msgLen = 2;
 				for( int i=0;i<num_clients;i++ )
 				{
 					msg[msgLen] = clients[i].id;
@@ -64,7 +64,7 @@ int main()
 				SDLNet_TCP_Send( clients[num_clients].socket, msg, 4*msgLen );
 				SDLNet_TCP_AddSocket( allSockets, clients[num_clients].socket );
 
-				int othrmsg[5] = {-1, clients[num_clients].id, clients[num_clients].x, clients[num_clients].y};
+				int othrmsg[5] = {2, clients[num_clients].id, clients[num_clients].x, clients[num_clients].y};
 				for( int i=0;i<num_clients;i++ )
 					SDLNet_TCP_Send( clients[i].socket, othrmsg, 20 );
 				num_clients++;
@@ -79,7 +79,7 @@ int main()
 
 				int msg[20];
 				int res = SDLNet_TCP_Recv( clients[i].socket, msg, 20 );
-				if( res <=0 )
+				if( res <= 0 )
 				{
 					SDLNet_TCP_DelSocket( allSockets, clients[i].socket );
 					SDLNet_TCP_Close( clients[i].socket );
@@ -104,10 +104,10 @@ int main()
 			}
 		}
 		
-		if( SDL_GetTicks() - sendT >= 10 )
+		if( SDL_GetTicks() - sendT >= 15 )
 		{
-			int msg[300];
-			int msgLen = 0;
+			int msg[300] = {3};
+			int msgLen = 1;
 			for( int i=0;i<num_clients;i++ )
 			{
 				if( clients[i].activity )
@@ -121,7 +121,7 @@ int main()
 			}
 			msg[msgLen] = -1;
 			msgLen++;
-			if( msgLen > 1 )
+			if( msgLen > 2 )
 			{
 				for( int j=0;j<num_clients;j++ )
 				{

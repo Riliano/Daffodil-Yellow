@@ -97,7 +97,7 @@ void Spell( aoe_t &magic )
 				if( humans[i].curHealth <= 0 and i != playerID )
 				{
 					std::swap( humans[i], humans[humans.size()-1] );
-					netIDTable[humans[i].netIDTable] = i;	
+					netIDTable[humans[i].netID] = i;	
 					humans.pop_back();
 				}
 			}
@@ -448,37 +448,6 @@ int main()
 			SDL_RenderCopy( renderer, loading, NULL, NULL );
 			SDL_RenderPresent( renderer );
 			LoadLevel( level );
-
-			if( !ignoreNet )
-			{
-				int active = SDLNet_CheckSockets( chkNet, 0 );
-				int recv[1000];
-				if( active > 0 )
-				{
-					int recvLen = SDLNet_TCP_Recv( sock, recv, 1000 );
-					recvLen/=4;
-					humans[playerID].netID = recv[0];
-					for( int i=1;i<recvLen;i+=3 )
-					{
-						if( recv[i] == -1 )
-							break;
-						human_t newGuy = humans[playerID];
-						newGuy.netID = recv[i];
-						newGuy.state = -9;
-						newGuy.id = ++nextAvalHumanID;
-						newGuy.x = recv[i+1];
-						newGuy.y = recv[i+2];
-						netIDTable[newGuy.netID] = humans.size();
-						humans.push_back( newGuy );
-					}
-					int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-					SDLNet_TCP_Send( sock, info, 16 );
-				}
-			}
-
-			for( int i=0;i<humans.size();i++ )
-				netIDTable[humans[i].netID] = i;
-
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
 		}
@@ -507,58 +476,63 @@ int main()
 
 			inputT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - sendNetT >= 15 and !ignoreNet )
-		{
-			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 )
-			{
-				int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-				SDLNet_TCP_Send( sock, info, 20 );
-				send++;
-			}
-			sendNetT = SDL_GetTicks();
-		}
 		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
 		{
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
 			{
-				int rcv[300];
+				int rcv[1000];
 				SDLNet_TCP_Recv( sock, rcv, 1200 );
 				recievd++;
-				if( rcv[0] == -1 )
+				if( rcv[0] == 1 )
+				{
+					humans[playerID].netID = rcv[1];
+					for( int i=2;rcv[i]!=-1;i+=3 )
+					{
+						human_t newGuy = humans[playerID];
+						newGuy.netID = rcv[i];
+						newGuy.state = -9;
+						newGuy.id = ++nextAvalHumanID;
+						newGuy.x = rcv[i+1];
+						newGuy.y = rcv[i+2];
+						netIDTable[newGuy.netID] = humans.size();
+						humans.push_back( newGuy );
+					}
+				}
+				if( rcv[0] == 2 )
 				{
 					human_t newGuy = humans[playerID];
 					newGuy.id = ++nextAvalHumanID;
-					newGuy.state = -9;
 					newGuy.netID = rcv[1];
+					newGuy.state = -9;
 					newGuy.x = rcv[2];
 					newGuy.y = rcv[3];
 					netIDTable[newGuy.netID] = humans.size();
 					humans.push_back( newGuy );
-
-				}else
+				}
+				if( rcv[0] == 3 )
 				{
-
-					for( int j=0;rcv[j]!=-1;j+=3 )
+					for( int i=1;rcv[i]!=-1;i+=3 )
 					{
-						int i = netIDTable[rcv[j]];
-						if( i!=playerID )
+						int updateThisGuy = netIDTable[rcv[i]];
+						if( updateThisGuy != playerID )
 						{
-							humans[i].speed = 0;
-							if( rcv[j+1] > humans[i].x )
-								humans[i].movDirection[1] = 'e';
-							if( rcv[j+1] < humans[i].x )
-								humans[i].movDirection[1] = 'w';
-							if( rcv[j+1] == humans[i].x )
-								humans[i].movDirection[1] = 0;
-							if( rcv[j+2] > humans[i].y )
-								humans[i].movDirection[0] = 's';
-							if( rcv[j+2] < humans[i].y )
-								humans[i].movDirection[0] = 'n';
-							if( rcv[j+2] == humans[i].y )
-								humans[i].movDirection[0] = 0;
-							humans[i].x = rcv[j+1];
-							humans[i].y = rcv[j+2];
+							humans[updateThisGuy].speed = 0;
+							if( rcv[i+2] > humans[updateThisGuy].y )
+								humans[updateThisGuy].movDirection[0] = 's';
+							if( rcv[i+2] < humans[updateThisGuy].y )
+								humans[updateThisGuy].movDirection[0] = 'n';
+							if( rcv[i+2] == humans[updateThisGuy].y )
+								humans[updateThisGuy].movDirection[0] = 0;
+
+							if( rcv[i+1] > humans[updateThisGuy].x )
+								humans[updateThisGuy].movDirection[1] = 'e';
+							if( rcv[i+1] < humans[updateThisGuy].x )
+								humans[updateThisGuy].movDirection[1] = 'w';
+							if( rcv[i+1] == humans[updateThisGuy].x )
+								humans[updateThisGuy].movDirection[1] = 0;
+							humans[updateThisGuy].x = rcv[i+1];
+							humans[updateThisGuy].y = rcv[i+2];
 						}
 					}
 				}
@@ -676,6 +650,16 @@ int main()
 				Move( humans[i], followHuman );
 			}
 			movT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - sendNetT >= 15 and !ignoreNet and humans[playerID].netID != -1 )
+		{
+			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 )
+			{
+				int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+				SDLNet_TCP_Send( sock, info, 20 );
+				send++;
+			}
+			sendNetT = SDL_GetTicks();
 		}
 		for( int i=0;i<humans.size();i++ )
 		{
