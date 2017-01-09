@@ -497,7 +497,7 @@ int main()
 		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
 		{
 			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-			SDLNet_TCP_Send( sock, info, 16 );
+			SDLNet_TCP_Send( sock, info, 20 );
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
 			{
