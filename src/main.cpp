@@ -536,6 +536,13 @@ int main()
 							humans[updateThisGuy].x = rcv[i+1];
 							humans[updateThisGuy].y = rcv[i+2];
 							humans[updateThisGuy].attDirection = rcv[i+3];
+						}else
+						{
+							if( rcv[i+1] != humans[playerID].x or rcv[i+2] != humans[playerID].y )
+							{
+								int info[3] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+								SDLNet_TCP_Send( sock, info, 12 );
+							}
 						}
 					}
 				}
@@ -622,7 +629,6 @@ int main()
 					CheckVision( humans[i], humans );
 			BOTvisionT = SDL_GetTicks();
 		}
-		
 		if( SDL_GetTicks() - BOTattackT >= 10 )
 		{
 			for( int i=0;i<humans.size();i++ )
@@ -654,7 +660,7 @@ int main()
 			}
 			movT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - sendNetT >= 15 and !ignoreNet and humans[playerID].netID != -1 )
+		if( SDL_GetTicks() - sendNetT >= 1 and !ignoreNet and humans[playerID].netID != -1 )
 		{
 			if( humans[playerID].movDirection[0] != 0 or humans[playerID].movDirection[1] != 0 or humans[playerID].attDirection != 0 )
 			{
@@ -737,8 +743,8 @@ int main()
 		{
 			if( i!=playerID )
 			{
-				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x + (humans[i].pos.w - humans[i].w)/2;
-				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y + (humans[i].pos.h - humans[i].h)/2;
+				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x;// + (humans[i].pos.w - humans[i].w)/2;
+				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y;// + (humans[i].pos.h - humans[i].h)/2;
 			}
 			SDL_RenderCopy( renderer, textures[humans[i].textureID], &humans[i].frame, &humans[i].pos );
 		}

@@ -97,6 +97,7 @@ int main()
 							clients[i].x = msg[1];
 							clients[i].y = msg[2];
 							clients[i].attDir = msg[3];
+							std::cout<<msg[0]<<" "<<msg[1]<<" "<<msg[2]<<std::endl;
 							clients[i].activity = true;
 							break;
 						}
