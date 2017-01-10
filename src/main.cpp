@@ -45,44 +45,9 @@ int nextAvalTextureID = -1;
 int nextAvalThreadID = -1;
 
 int netIDTable[2000];
+
 #include"move.cpp"
-void Attack(human_t &someone)
-{
-	if(someone.attDirection == 0)
-		return;
-	if(someone.eqpSpell == -1)
-	{
-		someone.drawDirection = someone.attDirection;
-		return;
-	}
-	aoe_t attack = avalSpells[someone.eqpSpell];
-	attack.castByID = someone.id;
-	attack.x = someone.x;
-	attack.y = someone.y;
-	attack.dir = someone.attDirection;
-	switch( someone.attDirection )
-	{
-		case 'n' : attack.y-=attack.h;attack.angle=270;break;
-		case 's' : attack.y+=someone.h;attack.angle=90;break;
-		case 'e' : attack.x+=someone.w;attack.angle=0;break;
-		case 'w' : attack.x-=attack.w;attack.angle=180;break;
-	}
-	attack.x += (someone.w-attack.w)/2;
-	attack.y += (someone.h-attack.h)/2;
-	if( someone.attDirection == 'n' or someone.attDirection == 's' )
-	{
-		std::swap( attack.w, attack.h );
-//		std::swap( attack.pos.w, attack.pos.h );
-	}
-//	attack.flip = SDL_FLIP_NONE;
-	if( someone.spellWaitTime[someone.eqpSpell] <= 0 )
-	{
-		activeSpells.push_back( attack );
-		someone.spellWaitTime[someone.eqpSpell] = attack.waitTime;
-	}
-	someone.drawDirection = someone.attDirection;
-	someone.attDirection = 0;
-}
+
 void LoadLevel( char levelToLoad[] )
 {
 	humans.clear();
