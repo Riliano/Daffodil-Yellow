@@ -498,6 +498,8 @@ int main()
 						netIDTable[newGuy.netID] = humans.size();
 						humans.push_back( newGuy );
 					}
+					int msg[3] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+					SDLNet_TCP_Send( sock, msg, 14 );
 				}
 				if( rcv[0] == 2 )
 				{
