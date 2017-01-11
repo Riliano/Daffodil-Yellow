@@ -122,7 +122,12 @@ int main()
 		{
 			SDL_RenderCopy( renderer, loading, NULL, NULL );
 			SDL_RenderPresent( renderer );
-			LoadLevel( level );
+			
+			char levelInfo[1000][300];
+			int numLines = 0;
+			ReadFromFile( level, levelInfo, numLines );
+			LoadLevel( levelInfo, numLines );
+
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
 		}

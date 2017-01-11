@@ -18,9 +18,13 @@ void ReadFromFile( char fileName[], char writeHere[1000][300], int &numLines )
 	}
 }
 
-//void RecieveFromNet();
+void RecieveFromNet( TCPsocket sock, char writeHere[1000][300], int &numLines )
+{
+	SDLNet_TCP_Recv( sock, writeHere[numLines], 1200 );
+	numLines++;
+}
 
-void LoadLevel( char levelToLoad[] )
+void LoadLevel( char level[1000][300], int numLines )
 {
 	humans.clear();
 	roadblock.clear();
@@ -28,11 +32,6 @@ void LoadLevel( char levelToLoad[] )
 	activeSpells.clear();
 	std::vector< std::pair<int, int> > loadedTextures;
 	
-	char level[1000][300];
-	int numLines = 0;
-
-	ReadFromFile( levelToLoad, level, numLines );
-
 	for( int l=0;l<numLines;l++ )
 	{
 		int i=0;
