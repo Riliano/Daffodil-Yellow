@@ -20,8 +20,15 @@ void ReadFromFile( char fileName[], char writeHere[1000][300], int &numLines )
 
 void RecieveFromNet( TCPsocket sock, char writeHere[1000][300], int &numLines )
 {
-	SDLNet_TCP_Recv( sock, writeHere[numLines], 1200 );
-	numLines++;
+	while( writeHere[numLines][0] != '-' and writeHere[numLines][1] != '1' )
+	{
+		SDLNet_TCP_Recv( sock, writeHere[numLines], 300 );
+		std::cout<<writeHere[numLines]<<" "<<numLines<<std::endl;
+		if( writeHere[numLines][0] == '-' and writeHere[numLines][1] == '1' )
+			break;
+		else
+			numLines++;
+	}
 }
 
 void LoadLevel( char level[1000][300], int numLines )

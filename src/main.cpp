@@ -125,7 +125,10 @@ int main()
 			
 			char levelInfo[1000][300];
 			int numLines = 0;
-			ReadFromFile( level, levelInfo, numLines );
+			if( ignoreNet )
+				ReadFromFile( level, levelInfo, numLines );
+			else
+				RecieveFromNet( sock, levelInfo, numLines );
 			LoadLevel( levelInfo, numLines );
 
 			levelLoaded = true;
