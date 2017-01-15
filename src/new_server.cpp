@@ -57,7 +57,7 @@ int main()
 
 	SDLNet_Init();
 	TCPsocket server;
-	SDLNet_SocketSet allSockets = SDLNet_AllocSocketSet( 1 );
+	SDLNet_SocketSet allSockets = SDLNet_AllocSocketSet( 1000 );
 	IPaddress ip;
 	char address[40];
 	Uint16 port = 1234;
@@ -84,10 +84,12 @@ int main()
 	char levelInfo[1000][300];
 	int numLines = 0;
 
+	human_t humanTemplate;
 
 	int frames = 0;
 	std::vector<int> sframes;
 	sframes.push_back(0);
+	std::cout<<"Start"<<std::endl;
 	while( true )
 	{
 		if( !levelLoaded )
@@ -96,6 +98,8 @@ int main()
 			ReadFromFile( level, levelInfo, numLines );
 			
 			LoadLevel( levelInfo, numLines );
+			humanTemplate = humans[0];
+			humans.clear();
 			levelLoaded = true;
 		}
 		if( SDL_GetTicks() - checkNetT >= 10 )
@@ -108,16 +112,129 @@ int main()
 				if( newSocket )
 				{
 					std::cout<<"New player"<<std::endl;
+					active--;
+					human_t newGuy;
+					newGuy.socket = newSocket;
+					SDLNet_TCP_AddSocket( allSockets, newGuy.socket );
+					newGuy.id = ++ nextAvalHumanID;
+					newGuy.state = -9;
+					newGuy.active = false;
 
 					for( int i=0;i<numLines;i++ )
-						SDLNet_TCP_Send( newSocket, levelInfo[i], 300 );
-					char endOfLevel[3] = { '-', '1', '\0' };
-					SDLNet_TCP_Send( newSocket, endOfLevel, 4 );
+						SDLNet_TCP_Send( newGuy.socket, levelInfo[i], 300 );
+					int endOfLevel[1] = { -1 };
+					SDL_Delay(1000);
+					SDLNet_TCP_Send( newGuy.socket, endOfLevel, 4 );
+
+					int msg[humans.size()*3 + 3 ] = { 1, newGuy.id };
+					int msgLen = 2;
+					for( int i=0;i<humans.size();i++ )
+					{
+						msg[msgLen] = humans[i].id;
+						msg[msgLen+1] = humans[i].x;
+						msg[msgLen+2] = humans[i].y;
+						msgLen+=3;
+					}
+					msg[msgLen] = -1;
+					msgLen++;
+					SDL_Delay(200);
+					SDLNet_TCP_Send( newGuy.socket, msg, msgLen*4 );
+
+					int othrmsg[4] = {2, newGuy.id, newGuy.x, newGuy.y};
+					for( int i=0;i<humans.size();i++ )
+						SDLNet_TCP_Send( humans[i].socket, othrmsg, 16 );
+
+					humans.push_back( newGuy );
+				}
+			}
+			
+			for( int i=0;i<humans.size() and active > 0;i++ )
+			{
+				if( SDLNet_SocketReady( humans[i].socket ) )
+				{
+					active--;
+					int msg[4];
+					int result = SDLNet_TCP_Recv( humans[i].socket, msg, 16 );
+					if( result > 0 )
+					{
+						humans[i].x = msg[1];
+						humans[i].y = msg[2];
+						humans[i].active = true;
+					}else
+					{
+						int msg[2] = {4, humans[i].id};
+						std::swap( humans[i], humans[humans.size()-1] );
+						humans.pop_back();
+						for( int j=0;j<humans.size();j++ )
+							SDLNet_TCP_Send( humans[j].socket, msg, 8 );
+					}
 				}
 			}
 
 			checkNetT = SDL_GetTicks();
 		}
+		
+
+		if( SDL_GetTicks() - attT >= 1000/60 )
+		{
+			for( int i = 0;i<humans.size();i++ )
+				Attack( humans[i] );
+			attT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - movT >= 1000/60 )
+		{
+			for( int i=0;i<humans.size();i++ )
+			{
+				bool followHuman = false;
+				if( i == playerID )
+					followHuman = true;
+				Move( humans[i], humans, roadblock, followHuman );
+			}
+			movT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - sendNetT >= 10 ) 
+		{
+			int msg[300] = {3};
+			int msgLen = 1;
+			for( int i=0;i<humans.size();i++ )
+			{
+				if( humans[i].active )
+				{
+					msg[msgLen] = humans[i].id;
+					msg[msgLen+1] = humans[i].x;
+					msg[msgLen+2] = humans[i].y;
+					humans[i].active = false;
+					msgLen+=3;
+				}
+			}
+			msg[msgLen] = -1;
+			msgLen++;
+			if( msgLen > 2 )
+				for( int i=0;i<humans.size();i++ )
+					SDLNet_TCP_Send( humans[i].socket, msg, msgLen*4 );
+			sendNetT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - spellT >= 10 )
+		{
+			for( int i = 0;i<activeSpells.size();i++ )
+				if( activeSpells[i].duration > 0 )
+					Spell( activeSpells[i], humans, roadblock );
+			for( int j = 0;j < humans.size(); j++ )
+				for( int i = 0;i<NUM_SPELLS;i++ )
+					if( humans[j].spellWaitTime[i] > 0 )
+						humans[j].spellWaitTime[i]--;
+			spellT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - infoT >= 800 )
+		{
+			//std::cout<<SDL_GetError()<<std::endl;
+			//std::cout<<SDLNet_GetError()<<std::endl;
+			infoT = SDL_GetTicks();
+		}
+	}
+}
+
+/*
 		if( SDL_GetTicks() - checkFlagsT >= 10 )
 		{
 			for( int i=0;i<humans.size();i++ )
@@ -210,44 +327,4 @@ int main()
 			}
 			BOTattackT = SDL_GetTicks();
 		}
-
-		if( SDL_GetTicks() - attT >= 1000/60 )
-		{
-			for( int i = 0;i<humans.size();i++ )
-				Attack( humans[i] );
-			attT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - movT >= 1000/60 )
-		{
-			for( int i=0;i<humans.size();i++ )
-			{
-				bool followHuman = false;
-				if( i == playerID )
-					followHuman = true;
-				Move( humans[i], humans, roadblock, followHuman );
-			}
-			movT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - sendNetT >= 1 ) 
-		{
-			sendNetT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - spellT >= 10 )
-		{
-			for( int i = 0;i<activeSpells.size();i++ )
-				if( activeSpells[i].duration > 0 )
-					Spell( activeSpells[i], humans, roadblock );
-			for( int j = 0;j < humans.size(); j++ )
-				for( int i = 0;i<NUM_SPELLS;i++ )
-					if( humans[j].spellWaitTime[i] > 0 )
-						humans[j].spellWaitTime[i]--;
-			spellT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - infoT >= 800 )
-		{
-			//std::cout<<SDL_GetError()<<std::endl;
-			//std::cout<<SDLNet_GetError()<<std::endl;
-			infoT = SDL_GetTicks();
-		}
-	}
-}
+*/

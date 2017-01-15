@@ -20,12 +20,11 @@ void ReadFromFile( char fileName[], char writeHere[1000][300], int &numLines )
 
 void RecieveFromNet( TCPsocket sock, char writeHere[1000][300], int &numLines )
 {
-	while( writeHere[numLines][0] != '-' and writeHere[numLines][1] != '1' )
+	while( writeHere[numLines][0] != -1 )
 	{
 		SDLNet_TCP_Recv( sock, writeHere[numLines], 300 );
-		if( writeHere[numLines][0] == '-' and writeHere[numLines][1] == '1' )
-			break;
-		else
+		std::cout<<writeHere[numLines]<<std::endl;
+		if( writeHere[numLines][0] != -1 )
 			numLines++;
 	}
 }
@@ -102,7 +101,9 @@ void LoadLevel( char level[1000][300], int numLines )
 			char format[] = ".png\0";
 			std::copy( format, format+5, fileName+f );
 			std::copy( std::begin(fileName), std::end(fileName), fullFileName+9 );
+#ifdef RENDER
 			textures.push_back( IMG_LoadTexture( renderer, fullFileName ) );
+#endif
 			loadedTextures.push_back( {pseudoHash, textureIDToGive} );
 		}
 		if( type == 'o' )

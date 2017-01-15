@@ -165,7 +165,7 @@ int main()
 			if( active > 0 )
 			{
 				int rcv[1000];
-				SDLNet_TCP_Recv( sock, rcv, 1200 );
+				int r = SDLNet_TCP_Recv( sock, rcv, 1200 );
 				recievd++;
 				if( rcv[0] == 1 )
 				{
@@ -197,7 +197,7 @@ int main()
 				}
 				if( rcv[0] == 3 )
 				{
-					for( int i=1;rcv[i]!=-1;i+=4 )
+					for( int i=1;rcv[i]!=-1;i+=3 )
 					{
 						int updateThisGuy = netIDTable[rcv[i]];
 						if( updateThisGuy != playerID )
@@ -218,16 +218,15 @@ int main()
 								humans[updateThisGuy].movDirection[1] = 0;
 							humans[updateThisGuy].x = rcv[i+1];
 							humans[updateThisGuy].y = rcv[i+2];
-							humans[updateThisGuy].attDirection = rcv[i+3];
-						}else
-						{
-							if( rcv[i+1] != humans[playerID].x or rcv[i+2] != humans[playerID].y )
-							{
-								int info[3] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-								SDLNet_TCP_Send( sock, info, 12 );
-							}
 						}
 					}
+				}
+				if( rcv[0] == 4 )
+				{
+					int guyToRemove = netIDTable[rcv[1]];
+					std::swap( humans[guyToRemove], humans[humans.size()-1] );
+					netIDTable[humans[guyToRemove].netID] = guyToRemove;
+					humans.pop_back();
 				}
 			}
 			checkNetT = SDL_GetTicks();
@@ -345,8 +344,8 @@ int main()
 		}
 		if( SDL_GetTicks() - sendNetT >= 1 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
 		{
-			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y, humans[playerID].attDirection};
-			SDLNet_TCP_Send( sock, info, 20 );
+			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
+			SDLNet_TCP_Send( sock, info, 16 );
 			send++;
 			humans[playerID].active = false;
 			sendNetT = SDL_GetTicks();
@@ -378,7 +377,8 @@ int main()
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
 		{
-			//std::cout<<SDL_GetError()<<std::endl;
+	//		std::cout<<SDL_GetError()<<std::endl;
+	//		std::cout<<SDLNet_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - fpsT >= 1000 and ShouldIDisplayFPS() )
