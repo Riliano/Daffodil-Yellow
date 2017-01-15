@@ -90,6 +90,9 @@ struct human_t
 	int switchToNextPoint = 1;
 	bool cycle = true;
 
+	TCPsocket socket;
+	bool active;
+
 	human_t( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
 	{
 		for( int i=0;i<5;i++ )

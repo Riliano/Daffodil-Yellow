@@ -38,6 +38,9 @@ void ScanKeyboard()
 int spellchngTimeout = 0;
 void AnalyzeInput( human_t &someone )
 {
+	for( int i=0;i<input.size();i++ )
+		if( input[i].active )
+			someone.active = true;
 	if( input[0].active )
 		someone.movDirection[0] = 'n';
 	if( input[1].active )
