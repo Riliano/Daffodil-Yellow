@@ -23,7 +23,6 @@ void RecieveFromNet( TCPsocket sock, char writeHere[1000][300], int &numLines )
 	while( writeHere[numLines][0] != '-' and writeHere[numLines][1] != '1' )
 	{
 		SDLNet_TCP_Recv( sock, writeHere[numLines], 300 );
-		std::cout<<writeHere[numLines]<<" "<<numLines<<std::endl;
 		if( writeHere[numLines][0] == '-' and writeHere[numLines][1] == '1' )
 			break;
 		else
@@ -119,7 +118,8 @@ void LoadLevel( char level[1000][300], int numLines )
 		}
 		if( type == 'h' )
 		{
-			human_t toPush( info, ++nextAvalHumanID, textureIDToGive, ++nextAvalThreadID, scale );
+			human_t toPush;
+			toPush.CreateFromInfo( info, ++nextAvalHumanID, textureIDToGive, ++nextAvalThreadID, scale );
 			humans.push_back( toPush );
 			if( toPush.state == -1 )
 			{

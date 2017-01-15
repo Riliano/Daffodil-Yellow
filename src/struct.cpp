@@ -93,7 +93,7 @@ struct human_t
 	TCPsocket socket;
 	bool active;
 
-	human_t( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
+	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
 	{
 		for( int i=0;i<5;i++ )
 			spellWaitTime[i]=0;
