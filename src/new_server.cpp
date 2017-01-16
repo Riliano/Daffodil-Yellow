@@ -114,7 +114,7 @@ int main()
 					SDLNet_TCP_Send( newGuy.socket, endOfLevel, 4 );
 					SDL_Delay(200);
 
-					int msg[humans.size()*3] = { newGuy.id };
+					int msg[humans.size()*3+1] = { newGuy.id };
 					int msgLen = 1;
 					for( int i=0;i<humans.size();i++ )
 					{
