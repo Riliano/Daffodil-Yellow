@@ -23,7 +23,6 @@ void RecieveFromNet( TCPsocket sock, char writeHere[1000][300], int &numLines )
 	while( writeHere[numLines][0] != -1 )
 	{
 		SDLNet_TCP_Recv( sock, writeHere[numLines], 300 );
-		std::cout<<writeHere[numLines]<<std::endl;
 		if( writeHere[numLines][0] != -1 )
 			numLines++;
 	}

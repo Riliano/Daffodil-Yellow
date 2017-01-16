@@ -163,66 +163,71 @@ int main()
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
 			{
-				int rcv[1000];
-				int r = SDLNet_TCP_Recv( sock, rcv, 1200 );
+				Uint8 meta[2];
+				int info[1000];
+				SDLNet_TCP_Recv( sock, meta, 2 );
+				std::cout<<(int)meta[0]<<" "<<(int)meta[1]<<std::endl;
 				recievd++;
-				if( rcv[0] == 1 )
+				int size = meta[1]*4;
+				int recievd = 0;
+				while(  recievd<size )
+					recievd = SDLNet_TCP_Recv( sock, info+recievd, size-recievd );
+
+				if( meta[0] == 1 )
 				{
-					humans[playerID].netID = rcv[1];
-					for( int i=2;rcv[i]!=-1;i+=3 )
+					humans[playerID].netID = info[0];
+					for( int i=1;i<meta[1];i+=3 )
 					{
 						human_t newGuy = humans[playerID];
-						newGuy.netID = rcv[i];
+						newGuy.netID = info[i];
 						newGuy.state = -9;
 						newGuy.id = ++nextAvalHumanID;
-						newGuy.x = rcv[i+1];
-						newGuy.y = rcv[i+2];
+						newGuy.x = info[i+1];
+						newGuy.y = info[i+2];
 						netIDTable[newGuy.netID] = humans.size();
 						humans.push_back( newGuy );
 					}
-					int msg[3] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-					SDLNet_TCP_Send( sock, msg, 14 );
 				}
-				if( rcv[0] == 2 )
+				if( meta[0] == 2 )
 				{
 					human_t newGuy = humans[playerID];
 					newGuy.id = ++nextAvalHumanID;
-					newGuy.netID = rcv[1];
+					newGuy.netID = info[0];
 					newGuy.state = -9;
-					newGuy.x = rcv[2];
-					newGuy.y = rcv[3];
+					newGuy.x = info[1];
+					newGuy.y = info[2];
 					netIDTable[newGuy.netID] = humans.size();
 					humans.push_back( newGuy );
 				}
-				if( rcv[0] == 3 )
+				if( meta[0] == 3 )
 				{
-					for( int i=1;rcv[i]!=-1;i+=3 )
+					for( int i=0;i<meta[1];i+=3 )
 					{
-						int updateThisGuy = netIDTable[rcv[i]];
+						int updateThisGuy = netIDTable[info[i]];
 						if( updateThisGuy != playerID )
 						{
 							humans[updateThisGuy].speed = 0;
-							if( rcv[i+2] > humans[updateThisGuy].y )
+							if( info[i+2] > humans[updateThisGuy].y )
 								humans[updateThisGuy].movDirection[0] = 's';
-							if( rcv[i+2] < humans[updateThisGuy].y )
+							if( info[i+2] < humans[updateThisGuy].y )
 								humans[updateThisGuy].movDirection[0] = 'n';
-							if( rcv[i+2] == humans[updateThisGuy].y )
+							if( info[i+2] == humans[updateThisGuy].y )
 								humans[updateThisGuy].movDirection[0] = 0;
 
-							if( rcv[i+1] > humans[updateThisGuy].x )
+							if( info[i+1] > humans[updateThisGuy].x )
 								humans[updateThisGuy].movDirection[1] = 'e';
-							if( rcv[i+1] < humans[updateThisGuy].x )
+							if( info[i+1] < humans[updateThisGuy].x )
 								humans[updateThisGuy].movDirection[1] = 'w';
-							if( rcv[i+1] == humans[updateThisGuy].x )
+							if( info[i+1] == humans[updateThisGuy].x )
 								humans[updateThisGuy].movDirection[1] = 0;
-							humans[updateThisGuy].x = rcv[i+1];
-							humans[updateThisGuy].y = rcv[i+2];
+							humans[updateThisGuy].x = info[i+1];
+							humans[updateThisGuy].y = info[i+2];
 						}
 					}
 				}
-				if( rcv[0] == 4 )
+				if( meta[0] == 4 )
 				{
-					int guyToRemove = netIDTable[rcv[1]];
+					int guyToRemove = netIDTable[info[0]];
 					std::swap( humans[guyToRemove], humans[humans.size()-1] );
 					netIDTable[humans[guyToRemove].netID] = guyToRemove;
 					humans.pop_back();

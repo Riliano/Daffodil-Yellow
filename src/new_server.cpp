@@ -112,9 +112,10 @@ int main()
 					int endOfLevel[1] = { -1 };
 					SDL_Delay(1000);
 					SDLNet_TCP_Send( newGuy.socket, endOfLevel, 4 );
+					SDL_Delay(200);
 
-					int msg[humans.size()*3 + 3 ] = { 1, newGuy.id };
-					int msgLen = 2;
+					int msg[humans.size()*3] = { newGuy.id };
+					int msgLen = 1;
 					for( int i=0;i<humans.size();i++ )
 					{
 						msg[msgLen] = humans[i].id;
@@ -122,14 +123,17 @@ int main()
 						msg[msgLen+2] = humans[i].y;
 						msgLen+=3;
 					}
-					msg[msgLen] = -1;
-					msgLen++;
-					SDL_Delay(200);
+					Uint8 meta[2] = {1, (Uint8)msgLen};
+					SDLNet_TCP_Send( newGuy.socket, meta, 2 );
 					SDLNet_TCP_Send( newGuy.socket, msg, msgLen*4 );
 
-					int othrmsg[4] = {2, newGuy.id, newGuy.x, newGuy.y};
+					Uint8 othrmeta[2] = {2, 3};
+					int othrmsg[3] = {newGuy.id, newGuy.x, newGuy.y};
 					for( int i=0;i<humans.size();i++ )
-						SDLNet_TCP_Send( humans[i].socket, othrmsg, 16 );
+					{
+						SDLNet_TCP_Send( humans[i].socket, othrmeta, 2 );
+						SDLNet_TCP_Send( humans[i].socket, othrmsg, 12 );
+					}
 
 					humans.push_back( newGuy );
 				}
@@ -149,11 +153,15 @@ int main()
 						humans[i].active = true;
 					}else
 					{
-						int msg[2] = {4, humans[i].id};
+						Uint8 meta[2] = {4, 1};
+						int msg[1] = {humans[i].id};
 						std::swap( humans[i], humans[humans.size()-1] );
 						humans.pop_back();
 						for( int j=0;j<humans.size();j++ )
-							SDLNet_TCP_Send( humans[j].socket, msg, 8 );
+						{
+							SDLNet_TCP_Send( humans[j].socket, meta, 2 );
+							SDLNet_TCP_Send( humans[j].socket, msg, 4 );
+						}
 					}
 				}
 			}
@@ -163,8 +171,8 @@ int main()
 		
 		if( SDL_GetTicks() - sendNetT >= 10 ) 
 		{
-			int msg[300] = {3};
-			int msgLen = 1;
+			int msg[300];
+			int msgLen = 0;
 			for( int i=0;i<humans.size();i++ )
 			{
 				if( humans[i].active )
@@ -176,11 +184,15 @@ int main()
 					msgLen+=3;
 				}
 			}
-			msg[msgLen] = -1;
-			msgLen++;
 			if( msgLen > 2 )
+			{
+				Uint8 meta[2] = {3, (Uint8)msgLen};
 				for( int i=0;i<humans.size();i++ )
+				{
+					SDLNet_TCP_Send( humans[i].socket, meta, 2 );
 					SDLNet_TCP_Send( humans[i].socket, msg, msgLen*4 );
+				}
+			}
 			sendNetT = SDL_GetTicks();
 		}
 		
