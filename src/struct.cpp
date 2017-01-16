@@ -93,7 +93,7 @@ struct human_t
 	TCPsocket socket;
 	bool active;
 
-	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale )
+	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale = 1 )
 	{
 		for( int i=0;i<5;i++ )
 			spellWaitTime[i]=0;
@@ -184,7 +184,7 @@ struct obsticle_t
 	int w;
 	int h;
 
-	obsticle_t( std::vector<int> info, int giveMeTextureID, float scale )
+	obsticle_t( std::vector<int> info, int giveMeTextureID, float scale = 1 )
 	{
 		textureID = giveMeTextureID;
 		x = info[0];
@@ -242,7 +242,7 @@ struct aoe_t
 			}
 		}
 	}
-	void CreateFromInfo( std::vector<int> info, int getTextureID, float scale )
+	void CreateFromInfo( std::vector<int> info, int getTextureID, float scale = 1 )
 	{
 		textureID = getTextureID;
 		dmg = info[0];

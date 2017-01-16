@@ -29,7 +29,7 @@ void RecieveFromNet( TCPsocket sock, char writeHere[1000][300], int &numLines )
 	}
 }
 
-void LoadLevel( char level[1000][300], int numLines )
+void LoadLevel( char level[1000][300], int numLines, float scale = 1 )
 {
 	humans.clear();
 	roadblock.clear();
@@ -123,10 +123,7 @@ void LoadLevel( char level[1000][300], int numLines )
 			toPush.CreateFromInfo( info, ++nextAvalHumanID, textureIDToGive, ++nextAvalThreadID, scale );
 			humans.push_back( toPush );
 			if( toPush.state == -1 )
-			{
-				playerID = 0;
 				std::swap( humans[ humans.size()-1 ], humans[0] );
-			}
 		}
 		if( type == 'b' )
 		{

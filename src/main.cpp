@@ -36,7 +36,6 @@ int backgroundTextureID;
 
 std::vector<aoe_t> activeSpells;
 std::vector<aoe_t> avalSpells;
-const int NUM_SPELLS = 5;
 
 float scale = 1;//(float)screenWidth/480.0;
 int playerID = 0;
@@ -129,7 +128,7 @@ int main()
 				ReadFromFile( level, levelInfo, numLines );
 			else
 				RecieveFromNet( sock, levelInfo, numLines );
-			LoadLevel( levelInfo, numLines );
+			LoadLevel( levelInfo, numLines, scale );
 
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
@@ -364,7 +363,7 @@ int main()
 				if( activeSpells[i].duration > 0 )
 					Spell( activeSpells[i], humans, roadblock );
 			for( int j = 0;j < humans.size(); j++ )
-				for( int i = 0;i<NUM_SPELLS;i++ )
+				for( int i = 0;i<avalSpells.size();i++ )
 					if( humans[j].spellWaitTime[i] > 0 )
 						humans[j].spellWaitTime[i]--;
 			spellT = SDL_GetTicks();

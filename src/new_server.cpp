@@ -2,7 +2,6 @@
 #include<SDL2/SDL.h>
 #include<SDL2/SDL_image.h>
 #include<SDL2/SDL_net.h>
-//#include<SDL2/SDL_ttf.h>
 #include<queue>
 #include<vector>
 #include<thread>
@@ -18,15 +17,10 @@
 #include"ai.cpp"
 
 SDL_Renderer* renderer;
-SDL_Event e;
 std::vector<SDL_Texture*> textures;
 
-//std::queue<int> tasks;
-//int numThread = 2;
 const int MAX_THREAD = 200;
 std::vector<flag_t> tempMesh[MAX_THREAD];
-
-//TTF_Font* gothic;
 
 std::vector<human_t> humans;
 std::vector <obsticle_t> roadblock;
@@ -36,13 +30,11 @@ int backgroundTextureID;
 
 std::vector<aoe_t> activeSpells;
 std::vector<aoe_t> avalSpells;
-const int NUM_SPELLS = 5;
 
-float scale = 1;//(float)screenWidth/480.0;
-int playerID = 0;
 int nextAvalHumanID = -1;
 int nextAvalTextureID = -1;
 int nextAvalThreadID = -1;
+int playerID = 0;
 
 int netIDTable[2000];
 
@@ -51,9 +43,7 @@ int netIDTable[2000];
 
 int main()
 {
-	//std::thread worker[numThread];
 	worker_t threads[MAX_THREAD];
-	InitInput();
 
 	SDLNet_Init();
 	TCPsocket server;
@@ -78,7 +68,6 @@ int main()
 	long long BOTvisionT = SDL_GetTicks();
 	long long checkNetT = SDL_GetTicks();
 	long long sendNetT = SDL_GetTicks();
-	int spellchngTimeout = 0;
 
 	long long send=0, recievd = 0;
 	char levelInfo[1000][300];
@@ -87,8 +76,6 @@ int main()
 	human_t humanTemplate;
 
 	int frames = 0;
-	std::vector<int> sframes;
-	sframes.push_back(0);
 	std::cout<<"Start"<<std::endl;
 	while( true )
 	{
@@ -174,24 +161,6 @@ int main()
 			checkNetT = SDL_GetTicks();
 		}
 		
-
-		if( SDL_GetTicks() - attT >= 1000/60 )
-		{
-			for( int i = 0;i<humans.size();i++ )
-				Attack( humans[i] );
-			attT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - movT >= 1000/60 )
-		{
-			for( int i=0;i<humans.size();i++ )
-			{
-				bool followHuman = false;
-				if( i == playerID )
-					followHuman = true;
-				Move( humans[i], humans, roadblock, followHuman );
-			}
-			movT = SDL_GetTicks();
-		}
 		if( SDL_GetTicks() - sendNetT >= 10 ) 
 		{
 			int msg[300] = {3};
@@ -214,13 +183,28 @@ int main()
 					SDLNet_TCP_Send( humans[i].socket, msg, msgLen*4 );
 			sendNetT = SDL_GetTicks();
 		}
+		
+
+		if( SDL_GetTicks() - attT >= 1000/60 )
+		{
+			for( int i = 0;i<humans.size();i++ )
+				Attack( humans[i] );
+			attT = SDL_GetTicks();
+		}
+		if( SDL_GetTicks() - movT >= 1000/60 )
+		{
+			for( int i=0;i<humans.size();i++ )
+				Move( humans[i], humans, roadblock );
+			movT = SDL_GetTicks();
+		}
+		
 		if( SDL_GetTicks() - spellT >= 10 )
 		{
 			for( int i = 0;i<activeSpells.size();i++ )
 				if( activeSpells[i].duration > 0 )
 					Spell( activeSpells[i], humans, roadblock );
 			for( int j = 0;j < humans.size(); j++ )
-				for( int i = 0;i<NUM_SPELLS;i++ )
+				for( int i = 0;i<avalSpells.size();i++ )
 					if( humans[j].spellWaitTime[i] > 0 )
 						humans[j].spellWaitTime[i]--;
 			spellT = SDL_GetTicks();
