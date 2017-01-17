@@ -166,7 +166,6 @@ int main()
 				Uint8 meta[2];
 				int info[1000];
 				SDLNet_TCP_Recv( sock, meta, 2 );
-				std::cout<<(int)meta[0]<<" "<<(int)meta[1]<<std::endl;
 				recievd++;
 				int size = meta[1]*4;
 				int recievd = 0;
