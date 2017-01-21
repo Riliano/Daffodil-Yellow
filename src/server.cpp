@@ -100,7 +100,7 @@ int main()
 				{
 					std::cout<<"New player"<<std::endl;
 					active--;
-					human_t newGuy;
+					human_t newGuy = humanTemplate;
 					newGuy.socket = newSocket;
 					SDLNet_TCP_AddSocket( allSockets, newGuy.socket );
 					newGuy.id = ++ nextAvalHumanID;
@@ -144,12 +144,14 @@ int main()
 				if( SDLNet_SocketReady( humans[i].socket ) )
 				{
 					active--;
-					int msg[4];
-					int result = SDLNet_TCP_Recv( humans[i].socket, msg, 16 );
+					char msg[4];
+					int result = SDLNet_TCP_Recv( humans[i].socket, msg, 2 );
 					if( result > 0 )
 					{
-						humans[i].x = msg[1];
-						humans[i].y = msg[2];
+						humans[i].movDirection[0] = msg[0];
+						humans[i].movDirection[1] = msg[1];
+					//	humans[i].x = msg[1];
+					//	humans[i].y = msg[2];
 						humans[i].active = true;
 					}else
 					{
@@ -180,8 +182,9 @@ int main()
 					msg[msgLen] = humans[i].id;
 					msg[msgLen+1] = humans[i].x;
 					msg[msgLen+2] = humans[i].y;
+					msg[msgLen+3] = humans[i].drawDirection;
 					humans[i].active = false;
-					msgLen+=3;
+					msgLen+=4;
 				}
 			}
 			if( msgLen > 2 )

@@ -200,28 +200,37 @@ int main()
 				}
 				if( meta[0] == 3 )
 				{
-					for( int i=0;i<meta[1];i+=3 )
+					for( int i=0;i<meta[1];i+=4 )
 					{
 						int updateThisGuy = netIDTable[info[i]];
-						if( updateThisGuy != playerID )
+						if( updateThisGuy == playerID )
 						{
-							humans[updateThisGuy].speed = 0;
-							if( info[i+2] > humans[updateThisGuy].y )
-								humans[updateThisGuy].movDirection[0] = 's';
-							if( info[i+2] < humans[updateThisGuy].y )
-								humans[updateThisGuy].movDirection[0] = 'n';
-							if( info[i+2] == humans[updateThisGuy].y )
-								humans[updateThisGuy].movDirection[0] = 0;
+							int bgOffsetX = info[i+1] - humans[playerID].x;
+							int bgOffsetY = info[i+2] - humans[playerID].y;
+							bool movePlayerPosX = false;
+							bool movePlayerPosY = false;
+							if( bgOffsetX > 0 and humans[playerID].pos.x + bgOffsetX <= (screenWidth - humans[playerID].pos.w*8) )
+								movePlayerPosX = true;
+							if( bgOffsetX < 0 and humans[playerID].pos.x + bgOffsetX >= humans[playerID].pos.w*7 )
+								movePlayerPosX = true;       
+							if( bgOffsetY > 0 and  humans[playerID].pos.y + bgOffsetY <= (screenHeight - humans[playerID].pos.h*6) )
+								movePlayerPosY = true;
+							if( bgOffsetY < 0 and humans[playerID].pos.y + bgOffsetY >= humans[playerID].pos.h*5 )
+								movePlayerPosY = true;
 
-							if( info[i+1] > humans[updateThisGuy].x )
-								humans[updateThisGuy].movDirection[1] = 'e';
-							if( info[i+1] < humans[updateThisGuy].x )
-								humans[updateThisGuy].movDirection[1] = 'w';
-							if( info[i+1] == humans[updateThisGuy].x )
-								humans[updateThisGuy].movDirection[1] = 0;
-							humans[updateThisGuy].x = info[i+1];
-							humans[updateThisGuy].y = info[i+2];
+							if( movePlayerPosX )
+								humans[playerID].pos.x+=bgOffsetX;
+							else
+								backgroundPos.x-=bgOffsetX;
+							if( movePlayerPosY )
+								humans[playerID].pos.y+=bgOffsetY;
+							else
+								backgroundPos.y-=bgOffsetY;
+
 						}
+						humans[updateThisGuy].x = info[i+1];
+						humans[updateThisGuy].y = info[i+2];
+						humans[updateThisGuy].drawDirection = info[i+3];
 					}
 				}
 				if( meta[0] == 4 )
@@ -341,14 +350,17 @@ int main()
 				bool followHuman = false;
 				if( i == playerID )
 					followHuman = true;
-				Move( humans[i], humans, roadblock, followHuman );
+				if( ignoreNet )
+					Move( humans[i], humans, roadblock, followHuman );
 			}
 			movT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - sendNetT >= 1 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
 		{
-			int info[4] = {humans[playerID].netID, humans[playerID].x, humans[playerID].y};
-			SDLNet_TCP_Send( sock, info, 16 );
+			char info[2] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1]};
+			SDLNet_TCP_Send( sock, info, 2 );
+			humans[playerID].movDirection[0] = 0;
+			humans[playerID].movDirection[1] = 0;
 			send++;
 			humans[playerID].active = false;
 			sendNetT = SDL_GetTicks();
