@@ -88,7 +88,7 @@ int main()
 			humans.clear();
 			levelLoaded = true;
 		}
-		if( SDL_GetTicks() - checkNetT >= 10 )
+		if( SDL_GetTicks() - checkNetT >= 0 )
 		{
 			int active = SDLNet_CheckSockets( allSockets, 0 );
 			

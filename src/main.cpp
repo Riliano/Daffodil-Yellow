@@ -158,7 +158,7 @@ int main()
 
 			inputT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - checkNetT >= 10 and !ignoreNet )
+		if( SDL_GetTicks() - checkNetT >= 0 and !ignoreNet )
 		{
 			int active = SDLNet_CheckSockets( chkNet, 0 );
 			if( active > 0 )
