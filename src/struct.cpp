@@ -173,6 +173,7 @@ struct human_t
 struct obsticle_t
 {
 	int textureID;
+	int id;
 	SDL_Rect pos;
 	SDL_Rect frame;
 	int curHealth;

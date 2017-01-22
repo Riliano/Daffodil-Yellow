@@ -146,6 +146,8 @@ void LoadLevel( char level[1000][300], int numLines, float scale = 1 )
 		humans[i].speed = humans[i].normSpeed;
 	for( int i=0;i<avalSpells.size();i++ )
 		avalSpells[i].id = i;
+	for( int i=0;i<roadblock.size();i++ )
+		roadblock[i].id = i;
 #ifdef TEXTURE_TEST
 	std::cout<<"Begin"<<std::endl;
 	for( int i=0;i<textures.size();i++ )

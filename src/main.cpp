@@ -44,6 +44,8 @@ int nextAvalTextureID = -1;
 int nextAvalThreadID = -1;
 
 int netIDTable[2000];
+int roadblockIDTable[2000];
+int humanIDTable[2000];
 
 #include"move.cpp"
 #include"load.cpp"
@@ -246,6 +248,14 @@ int main()
 						activeSpells.push_back( newAttack );
 					}
 				}
+				if( meta[0] == 6 )
+				{
+					for( int i=0;i<meta[1];i++ )
+					{
+						std::swap( roadblock[ info[i] ], roadblock[roadblock.size()-1] );
+						roadblock.pop_back();
+					}
+				}
 			}
 			checkNetT = SDL_GetTicks();
 		}
@@ -361,7 +371,7 @@ int main()
 			}
 			movT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - sendNetT >= 1 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
+		if( SDL_GetTicks() - sendNetT >= 10 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
 		{
 			char info[3] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection};
 			SDLNet_TCP_Send( sock, info, 3 );
@@ -384,7 +394,25 @@ int main()
 		{
 			for( int i = 0;i<activeSpells.size();i++ )
 				if( activeSpells[i].duration > 0 )
-					Spell( activeSpells[i], humans, roadblock );
+				{
+					std::vector<int> destroyedHumans, destroyedRoadblocks;
+					Spell( activeSpells[i], humans, roadblock, destroyedHumans, destroyedRoadblocks );
+					if( ignoreNet )
+					{
+						for( int j=0;j<destroyedRoadblocks.size();j++ )
+						{
+							std::swap( roadblock[ destroyedRoadblocks[j] ], roadblock[roadblock.size()-1] );
+							roadblock.pop_back();
+						}
+						for( int j=0;j<destroyedHumans.size();j++ )
+						{
+							if( destroyedHumans[j] == playerID )
+								std::cout<<"Game Over"<<std::endl;
+							std::swap( humans[ destroyedHumans[j] ], humans[humans.size()-1] );
+							humans.pop_back();
+						}
+					}
+				}
 			for( int j = 0;j < humans.size(); j++ )
 				for( int i = 0;i<avalSpells.size();i++ )
 					if( humans[j].spellWaitTime[i] > 0 )

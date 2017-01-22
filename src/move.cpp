@@ -1,4 +1,4 @@
-void Spell( aoe_t &magic, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock )
+void Spell( aoe_t &magic, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock, std::vector<int> &destroyedHumans, std::vector<int> &destroyedRoadblocks )
 {
 	switch( magic.dir )
 	{
@@ -26,10 +26,7 @@ void Spell( aoe_t &magic, std::vector<human_t> &humans, std::vector<obsticle_t> 
 			{
 				roadblock[i].curHealth-=magic.dmg;
 				if( roadblock[i].curHealth <= 0 )
-				{
-					std::swap( roadblock[i], roadblock[roadblock.size()-1] );
-					roadblock.pop_back();
-				}
+					destroyedRoadblocks.push_back( i );
 			}
 			magic.duration = 0;
 		}
@@ -46,12 +43,8 @@ void Spell( aoe_t &magic, std::vector<human_t> &humans, std::vector<obsticle_t> 
 			{
 				humans[i].curHealth -= magic.dmg;
 				magic.duration = 0;
-				if( humans[i].curHealth <= 0 and i != playerID )
-				{
-					std::swap( humans[i], humans[humans.size()-1] );
-					netIDTable[humans[i].netID] = i;	
-					humans.pop_back();
-				}
+				if( humans[i].curHealth <= 0 )
+					destroyedHumans.push_back( i );
 			}
 		}else
 		{

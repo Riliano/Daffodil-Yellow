@@ -238,7 +238,47 @@ int main()
 		{
 			for( int i = 0;i<activeSpells.size();i++ )
 				if( activeSpells[i].duration > 0 )
-					Spell( activeSpells[i], humans, roadblock );
+				{
+					std::vector<int> destroyedHumans, destroyedRoadblocks;
+					Spell( activeSpells[i], humans, roadblock, destroyedHumans, destroyedRoadblocks );
+					int msgR[300];
+					int msgRLen = 0;
+					for( int j=0;j<destroyedRoadblocks.size();j++ )
+					{
+						msgR[msgRLen] = roadblock[ destroyedRoadblocks[j] ].id;
+						msgRLen++;
+						std::swap( roadblock[ roadblock.size()-1 ], roadblock[ destroyedRoadblocks[j] ] );
+						roadblock.pop_back();
+					}
+					if( msgRLen > 0 )
+					{
+						Uint8 meta[2] = {6, (Uint8)msgRLen};
+						for( int j=0;j<humans.size();j++ )
+						{
+							SDLNet_TCP_Send( humans[j].socket, meta, 2 );
+							SDLNet_TCP_Send( humans[j].socket, msgR, msgRLen*4 );
+						}
+					}
+
+					int msgH[300];
+					int msgHLen = 0;
+					for( int j=0;j<destroyedHumans.size();j++ )
+					{
+						msgH[msgHLen] = humans[ destroyedHumans[j] ].id;
+						msgHLen++;
+						std::swap( humans[j], humans[ destroyedHumans[j] ] );
+						humans.pop_back();
+					}
+					if( msgHLen > 0 )
+					{
+						Uint8 meta[2] = {7, (Uint8)msgHLen};
+						for( int j=0;j<humans.size();j++ )
+						{
+							SDLNet_TCP_Send( humans[j].socket, meta, 2 );
+							SDLNet_TCP_Send( humans[j].socket, msgH, msgHLen*4 );
+						}
+					}
+				}
 			for( int j = 0;j < humans.size(); j++ )
 				for( int i = 0;i<avalSpells.size();i++ )
 					if( humans[j].spellWaitTime[i] > 0 )
@@ -247,8 +287,6 @@ int main()
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
 		{
-			for( int i=0;i<activeSpells.size();i++ )
-				std::cout<<activeSpells[i].duration<<std::endl;
 			//std::cout<<SDL_GetError()<<std::endl;
 			//std::cout<<SDLNet_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
