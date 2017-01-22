@@ -208,7 +208,10 @@ int main()
 		if( SDL_GetTicks() - movT >= 1000/60 )
 		{
 			for( int i=0;i<humans.size();i++ )
+			{
+				humans[i].DrawDir();
 				Move( humans[i], humans, roadblock );
+			}
 			movT = SDL_GetTicks();
 		}
 		

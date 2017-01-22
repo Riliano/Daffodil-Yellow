@@ -129,6 +129,8 @@ int main()
 			else
 				RecieveFromNet( sock, levelInfo, numLines );
 			LoadLevel( levelInfo, numLines, scale );
+			for( int i=0;i<humans.size();i++ )
+				humans[i].speed = humans[i].normSpeed;
 
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
@@ -411,7 +413,7 @@ int main()
 				sframes.push_back(bucket.back());
 				bucket.pop_back();
 			}
-			std::cout<<"Send: "<<send<<std::endl<<"Recieved: "<<recievd<<std::endl;
+	//		std::cout<<"Send: "<<send<<std::endl<<"Recieved: "<<recievd<<std::endl;
 			send = 0;
 			recievd = 0;
 			frames = 0;
