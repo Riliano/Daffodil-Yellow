@@ -144,13 +144,12 @@ int main()
 				{
 					active--;
 					char msg[4];
-					int result = SDLNet_TCP_Recv( humans[i].socket, msg, 2 );
+					int result = SDLNet_TCP_Recv( humans[i].socket, msg, 3 );
 					if( result > 0 )
 					{
 						humans[i].movDirection[0] = msg[0];
 						humans[i].movDirection[1] = msg[1];
-					//	humans[i].x = msg[1];
-					//	humans[i].y = msg[2];
+						humans[i].attDirection = msg[2];
 						humans[i].active = true;
 					}else
 					{
@@ -172,29 +171,49 @@ int main()
 		
 		if( SDL_GetTicks() - sendNetT >= 10 ) 
 		{
-			int msg[300];
-			int msgLen = 0;
+			int msgH[300];
+			int msgHLen = 0;
 			for( int i=0;i<humans.size();i++ )
 			{
 				if( humans[i].active )
 				{
-					msg[msgLen] = humans[i].id;
-					msg[msgLen+1] = humans[i].x;
-					msg[msgLen+2] = humans[i].y;
-					msg[msgLen+3] = humans[i].drawDirection;
+					msgH[msgHLen] = humans[i].id;
+					msgH[msgHLen+1] = humans[i].x;
+					msgH[msgHLen+2] = humans[i].y;
+					msgH[msgHLen+3] = humans[i].drawDirection;
 					humans[i].active = false;
-					msgLen+=4;
+					msgHLen+=4;
 				}
 			}
-			if( msgLen > 2 )
+			if( msgHLen > 0 )
 			{
-				Uint8 meta[2] = {3, (Uint8)msgLen};
+				Uint8 meta[2] = {3, (Uint8)msgHLen};
 				for( int i=0;i<humans.size();i++ )
 				{
 					SDLNet_TCP_Send( humans[i].socket, meta, 2 );
-					SDLNet_TCP_Send( humans[i].socket, msg, msgLen*4 );
+					SDLNet_TCP_Send( humans[i].socket, msgH, msgHLen*4 );
 				}
 			}
+			int msgA[300];
+			int msgALen = 0;
+			for( int i=0;i<activeSpells.size();i++ )
+			{
+				msgA[msgALen] = activeSpells[i].id;
+				msgA[msgALen+1] = activeSpells[i].x;
+				msgA[msgALen+2] = activeSpells[i].y;
+				msgA[msgALen+3] = (int)activeSpells[i].angle;
+				msgALen+=4;
+			}
+			if( msgALen > 0 )
+			{
+				Uint8 meta[2] = {5, (Uint8)msgALen};
+				for( int i=0;i<humans.size();i++ )
+				{
+					SDLNet_TCP_Send( humans[i].socket, meta, 2 );
+					SDLNet_TCP_Send( humans[i].socket, msgA, msgALen*4 );
+				}
+			}
+
 			sendNetT = SDL_GetTicks();
 		}
 		
@@ -228,9 +247,19 @@ int main()
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
 		{
+			for( int i=0;i<activeSpells.size();i++ )
+				std::cout<<activeSpells[i].duration<<std::endl;
 			//std::cout<<SDL_GetError()<<std::endl;
 			//std::cout<<SDLNet_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
+		}
+		for( int i=0;i<activeSpells.size();i++ )
+		{
+			if( activeSpells[i].duration<=0 )
+			{
+				std::swap( activeSpells[i], avalSpells[ avalSpells.size()-1 ] );
+				activeSpells.pop_back();
+			}
 		}
 	}
 }

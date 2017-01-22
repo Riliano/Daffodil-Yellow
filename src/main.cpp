@@ -129,9 +129,7 @@ int main()
 			else
 				RecieveFromNet( sock, levelInfo, numLines );
 			LoadLevel( levelInfo, numLines, scale );
-			for( int i=0;i<humans.size();i++ )
-				humans[i].speed = humans[i].normSpeed;
-
+			
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
 		}
@@ -209,22 +207,13 @@ int main()
 						{
 							int bgOffsetX = info[i+1] - humans[playerID].x;
 							int bgOffsetY = info[i+2] - humans[playerID].y;
-							bool movePlayerPosX = false;
-							bool movePlayerPosY = false;
-							if( bgOffsetX > 0 and humans[playerID].pos.x + bgOffsetX <= (screenWidth - humans[playerID].pos.w*8) )
-								movePlayerPosX = true;
-							if( bgOffsetX < 0 and humans[playerID].pos.x + bgOffsetX >= humans[playerID].pos.w*7 )
-								movePlayerPosX = true;       
-							if( bgOffsetY > 0 and  humans[playerID].pos.y + bgOffsetY <= (screenHeight - humans[playerID].pos.h*6) )
-								movePlayerPosY = true;
-							if( bgOffsetY < 0 and humans[playerID].pos.y + bgOffsetY >= humans[playerID].pos.h*5 )
-								movePlayerPosY = true;
-
-							if( movePlayerPosX )
+							if( ( bgOffsetX > 0 and humans[playerID].pos.x + bgOffsetX <= (screenWidth - humans[playerID].pos.w*8) )
+							 or ( bgOffsetX < 0 and humans[playerID].pos.x + bgOffsetX >= humans[playerID].pos.w*7 ) )
 								humans[playerID].pos.x+=bgOffsetX;
 							else
 								backgroundPos.x-=bgOffsetX;
-							if( movePlayerPosY )
+							if( ( bgOffsetY > 0 and  humans[playerID].pos.y + bgOffsetY <= (screenHeight - humans[playerID].pos.h*6) )
+							 or ( bgOffsetY < 0 and humans[playerID].pos.y + bgOffsetY >= humans[playerID].pos.h*5 ) )
 								humans[playerID].pos.y+=bgOffsetY;
 							else
 								backgroundPos.y-=bgOffsetY;
@@ -241,6 +230,21 @@ int main()
 					std::swap( humans[guyToRemove], humans[humans.size()-1] );
 					netIDTable[humans[guyToRemove].netID] = guyToRemove;
 					humans.pop_back();
+				}
+				if( meta[0] == 5 )
+				{
+					activeSpells.clear();
+					for( int i=0;i<meta[1];i+=4 )
+					{
+						aoe_t newAttack = avalSpells[info[i]];
+						newAttack.speed = 0;
+						newAttack.dmg = 0;
+						newAttack.duration = 1;
+						newAttack.x = info[i+1];
+						newAttack.y = info[i+2];
+						newAttack.angle = (float)info[i+3];
+						activeSpells.push_back( newAttack );
+					}
 				}
 			}
 			checkNetT = SDL_GetTicks();
@@ -338,7 +342,7 @@ int main()
 			BOTattackT = SDL_GetTicks();
 		}
 
-		if( SDL_GetTicks() - attT >= 1000/60 )
+		if( SDL_GetTicks() - attT >= 1000/60 and ignoreNet )
 		{
 			for( int i = 0;i<humans.size();i++ )
 				Attack( humans[i] );
@@ -359,10 +363,11 @@ int main()
 		}
 		if( SDL_GetTicks() - sendNetT >= 1 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
 		{
-			char info[2] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1]};
-			SDLNet_TCP_Send( sock, info, 2 );
+			char info[3] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection};
+			SDLNet_TCP_Send( sock, info, 3 );
 			humans[playerID].movDirection[0] = 0;
 			humans[playerID].movDirection[1] = 0;
+			humans[playerID].attDirection = 0;
 			send++;
 			humans[playerID].active = false;
 			sendNetT = SDL_GetTicks();
