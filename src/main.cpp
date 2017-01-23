@@ -129,8 +129,13 @@ int main()
 		//	if( ignoreNet )
 				ReadFromFile( level, levelInfo, numLines );
 		//	else
-		//		RecieveFromNet( sock, levelInfo, numLines );		
+		//		RecieveFromNet( sock, levelInfo, numLines );	
 			LoadLevel( levelInfo, numLines, scale );
+			if( humans.empty() )
+			{
+				human_t spaceTaker;
+				humans.push_back( spaceTaker );
+			}
 			if( !ignoreNet )
 			{
 				human_t save = humans[0];
