@@ -103,11 +103,15 @@ void LoadLevel( char level[1000][300], int numLines, float scale = 1 )
 #ifdef RENDER
 			textures.push_back( IMG_LoadTexture( renderer, fullFileName ) );
 #endif
+#ifdef SERVER
+			texturesFileNames.push_back( fullFileName );
+#endif
 			loadedTextures.push_back( {pseudoHash, textureIDToGive} );
 		}
 		if( type == 'o' )
 		{
-			obsticle_t toPush( info, textureIDToGive, scale );
+			obsticle_t toPush;
+			toPush.CreateFromInfo( info, textureIDToGive, scale );
 			roadblock.push_back(toPush);
 		}
 		if( type == 'a' )

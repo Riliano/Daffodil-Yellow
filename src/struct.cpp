@@ -185,7 +185,7 @@ struct obsticle_t
 	int w;
 	int h;
 
-	obsticle_t( std::vector<int> info, int giveMeTextureID, float scale = 1 )
+	void CreateFromInfo( std::vector<int> info, int giveMeTextureID, float scale = 1 )
 	{
 		textureID = giveMeTextureID;
 		x = info[0];

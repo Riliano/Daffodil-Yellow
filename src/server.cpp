@@ -17,6 +17,7 @@
 
 SDL_Renderer* renderer;
 std::vector<SDL_Texture*> textures;
+std::vector< std::string > texturesFileNames;
 
 const int MAX_THREAD = 200;
 std::vector<flag_t> tempMesh[MAX_THREAD];
@@ -105,33 +106,66 @@ int main()
 					newGuy.id = ++ nextAvalHumanID;
 					newGuy.state = -9;
 					newGuy.active = false;
-
-					for( int i=0;i<numLines;i++ )
-						SDLNet_TCP_Send( newGuy.socket, levelInfo[i], 300 );
-					int endOfLevel[1] = { -1 };
-					SDL_Delay(1000);
-					SDLNet_TCP_Send( newGuy.socket, endOfLevel, 4 );
-					SDL_Delay(200);
-
-					int msg[humans.size()*3+1] = { newGuy.id };
-					int msgLen = 1;
-					for( int i=0;i<humans.size();i++ )
+					int msg0[ roadblock.size()*15 ];
+					int msg0Len = 0;
+					for( int i=0;i<roadblock.size();i++ )
 					{
-						msg[msgLen] = humans[i].id;
-						msg[msgLen+1] = humans[i].x;
-						msg[msgLen+2] = humans[i].y;
-						msgLen+=3;
+						msg0[msg0Len] = roadblock[i].id;
+						msg0[msg0Len+1] = roadblock[i].textureID;
+						msg0[msg0Len+2] = roadblock[i].x;
+						msg0[msg0Len+3] = roadblock[i].y;
+						msg0[msg0Len+4] = roadblock[i].w;
+						msg0[msg0Len+5] = roadblock[i].h;
+						msg0[msg0Len+6] = roadblock[i].pos.x;
+						msg0[msg0Len+7] = roadblock[i].pos.y;
+						msg0[msg0Len+8] = roadblock[i].pos.w;
+						msg0[msg0Len+9] = roadblock[i].pos.h;
+						msg0[msg0Len+10] = roadblock[i].frame.x;
+						msg0[msg0Len+11] = roadblock[i].frame.y;
+						msg0[msg0Len+12] = roadblock[i].frame.w;
+						msg0[msg0Len+13] = roadblock[i].frame.h;
+						msg0Len+=14;
+						if( msg0Len > 255 - 14 )
+						{
+							Uint8 meta0[2] = {0, (Uint8)msg0Len};
+							SDLNet_TCP_Send( newSocket, meta0, 2 );
+							SDLNet_TCP_Send( newSocket, msg0, msg0Len*4 );
+							msg0Len = 0;
+						}
 					}
-					Uint8 meta[2] = {1, (Uint8)msgLen};
-					SDLNet_TCP_Send( newGuy.socket, meta, 2 );
-					SDLNet_TCP_Send( newGuy.socket, msg, msgLen*4 );
+					if( msg0Len > 0 )
+					{
+						Uint8 meta0[2] = {0, (Uint8)msg0Len};
+						SDLNet_TCP_Send( newSocket, meta0, 2 );
+						SDLNet_TCP_Send( newSocket, msg0, msg0Len*4 );
+					}
 
-					Uint8 othrmeta[2] = {2, 3};
-					int othrmsg[3] = {newGuy.id, newGuy.x, newGuy.y};
+					//for( int i=0;i<numLines;i++ )
+					//	SDLNet_TCP_Send( newGuy.socket, levelInfo[i], 300 );
+					//int endOfLevel[1] = { -1 };
+					//SDL_Delay(1000);
+					//SDLNet_TCP_Send( newGuy.socket, endOfLevel, 4 );
+					//SDL_Delay(200);
+
+					int msg1[humans.size()*3+1] = { newGuy.id };
+					int msg1Len = 1;
 					for( int i=0;i<humans.size();i++ )
 					{
-						SDLNet_TCP_Send( humans[i].socket, othrmeta, 2 );
-						SDLNet_TCP_Send( humans[i].socket, othrmsg, 12 );
+						msg1[msg1Len] = humans[i].id;
+						msg1[msg1Len+1] = humans[i].x;
+						msg1[msg1Len+2] = humans[i].y;
+						msg1Len+=3;
+					}
+					Uint8 meta1[2] = {1, (Uint8)msg1Len};
+					SDLNet_TCP_Send( newGuy.socket, meta1, 2 );
+					SDLNet_TCP_Send( newGuy.socket, msg1, msg1Len*4 );
+
+					Uint8 meta2[2] = {2, 3};
+					int msg2[3] = {newGuy.id, newGuy.x, newGuy.y};
+					for( int i=0;i<humans.size();i++ )
+					{
+						SDLNet_TCP_Send( humans[i].socket, meta2, 2 );
+						SDLNet_TCP_Send( humans[i].socket, msg2, 12 );
 					}
 
 					humans.push_back( newGuy );

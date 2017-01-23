@@ -126,11 +126,18 @@ int main()
 			
 			char levelInfo[1000][300];
 			int numLines = 0;
-			if( ignoreNet )
+		//	if( ignoreNet )
 				ReadFromFile( level, levelInfo, numLines );
-			else
-				RecieveFromNet( sock, levelInfo, numLines );
+		//	else
+		//		RecieveFromNet( sock, levelInfo, numLines );		
 			LoadLevel( levelInfo, numLines, scale );
+			if( !ignoreNet )
+			{
+				human_t save = humans[0];
+				humans.clear();
+				humans.push_back( save );
+				roadblock.clear();
+			}
 			
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
@@ -173,7 +180,30 @@ int main()
 				int recievd = 0;
 				while(  recievd<size )
 					recievd = SDLNet_TCP_Recv( sock, info+recievd, size-recievd );
-
+				if( meta[0] == 0 )
+				{
+					for( int i=0;i<meta[1];i+=14 )
+					{
+						obsticle_t newRoadblock;
+						newRoadblock.curHealth = 1;
+						newRoadblock.id = info[i];
+						newRoadblock.textureID = info[i+1]+2;
+						newRoadblock.x = info[i+2];
+						newRoadblock.y = info[i+3];
+						newRoadblock.w = info[i+4];
+						newRoadblock.h = info[i+5];
+						newRoadblock.pos.x = info[i+6];
+						newRoadblock.pos.y = info[i+7];
+						newRoadblock.pos.w = info[i+8];
+						newRoadblock.pos.h = info[i+9];
+						newRoadblock.frame.x = info[i+10];
+						newRoadblock.frame.y = info[i+11];
+						newRoadblock.frame.w = info[i+12];
+						newRoadblock.frame.h = info[i+13];
+						roadblockIDTable[newRoadblock.id] = roadblock.size();
+						roadblock.push_back( newRoadblock );
+					}
+				}
 				if( meta[0] == 1 )
 				{
 					humans[playerID].netID = info[0];
