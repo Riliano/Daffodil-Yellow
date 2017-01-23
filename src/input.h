@@ -75,7 +75,8 @@ void AnalyzeInput( human_t &someone )
 	}
 	if( spellchngTimeout > 0 )
 		spellchngTimeout--;
-	someone.eqpSpell = someone.avalSpells[someone.curSpellNum];
+	if( !someone.avalSpells.empty() )
+		someone.eqpSpell = someone.avalSpells[someone.curSpellNum];
 
 }
 void ResetKeyboard()
