@@ -160,7 +160,7 @@ int main()
 					SDLNet_TCP_Send( newGuy.socket, meta1, 2 );
 					SDLNet_TCP_Send( newGuy.socket, msg1, msg1Len*4 );
 
-					Uint8 meta2[2] = {2, 3};
+					Uint8 meta2[2] = {9, 3};
 					int msg2[3] = {newGuy.id, newGuy.x, newGuy.y};
 					for( int i=0;i<humans.size();i++ )
 					{
@@ -187,7 +187,7 @@ int main()
 						humans[i].active = true;
 					}else
 					{
-						Uint8 meta[2] = {4, 1};
+						Uint8 meta[2] = {11, 1};
 						int msg[1] = {humans[i].id};
 						std::swap( humans[i], humans[humans.size()-1] );
 						humans.pop_back();
@@ -221,7 +221,7 @@ int main()
 			}
 			if( msgHLen > 0 )
 			{
-				Uint8 meta[2] = {3, (Uint8)msgHLen};
+				Uint8 meta[2] = {10, (Uint8)msgHLen};
 				for( int i=0;i<humans.size();i++ )
 				{
 					SDLNet_TCP_Send( humans[i].socket, meta, 2 );
@@ -240,7 +240,7 @@ int main()
 			}
 			if( msgALen > 0 )
 			{
-				Uint8 meta[2] = {5, (Uint8)msgALen};
+				Uint8 meta[2] = {12, (Uint8)msgALen};
 				for( int i=0;i<humans.size();i++ )
 				{
 					SDLNet_TCP_Send( humans[i].socket, meta, 2 );
@@ -286,7 +286,7 @@ int main()
 					}
 					if( msgRLen > 0 )
 					{
-						Uint8 meta[2] = {6, (Uint8)msgRLen};
+						Uint8 meta[2] = {13, (Uint8)msgRLen};
 						for( int j=0;j<humans.size();j++ )
 						{
 							SDLNet_TCP_Send( humans[j].socket, meta, 2 );

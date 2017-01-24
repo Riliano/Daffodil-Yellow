@@ -224,7 +224,7 @@ int main()
 						humans.push_back( newGuy );
 					}
 				}
-				if( meta[0] == 2 )
+				if( meta[0] == 9 )
 				{
 					human_t newGuy = humans[playerID];
 					newGuy.id = ++nextAvalHumanID;
@@ -235,7 +235,7 @@ int main()
 					netIDTable[newGuy.netID] = humans.size();
 					humans.push_back( newGuy );
 				}
-				if( meta[0] == 3 )
+				if( meta[0] == 10 )
 				{
 					for( int i=0;i<meta[1];i+=4 )
 					{
@@ -261,14 +261,14 @@ int main()
 						humans[updateThisGuy].drawDirection = info[i+3];
 					}
 				}
-				if( meta[0] == 4 )
+				if( meta[0] == 11 )
 				{
 					int guyToRemove = netIDTable[info[0]];
 					std::swap( humans[guyToRemove], humans[humans.size()-1] );
 					netIDTable[humans[guyToRemove].netID] = guyToRemove;
 					humans.pop_back();
 				}
-				if( meta[0] == 5 )
+				if( meta[0] == 12 )
 				{
 					activeSpells.clear();
 					for( int i=0;i<meta[1];i+=4 )
@@ -283,7 +283,7 @@ int main()
 						activeSpells.push_back( newAttack );
 					}
 				}
-				if( meta[0] == 6 )
+				if( meta[0] == 13 )
 				{
 					for( int i=0;i<meta[1];i++ )
 					{
