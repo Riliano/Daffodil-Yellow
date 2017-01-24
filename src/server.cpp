@@ -106,66 +106,60 @@ int main()
 					newGuy.id = ++ nextAvalHumanID;
 					newGuy.state = -9;
 					newGuy.active = false;
-					int msg0[ roadblock.size()*15 ];
-					int msg0Len = 0;
+
+					int msg0[humans.size()*3+1] = { newGuy.id };
+					int msg0Len = 1;
+					for( int i=0;i<humans.size();i++ )
+					{
+						msg0[msg0Len] = humans[i].id;
+						msg0[msg0Len+1] = humans[i].x;
+						msg0[msg0Len+2] = humans[i].y;
+						msg0Len+=3;
+					}
+					Uint8 meta0[2] = {0, (Uint8)msg0Len};
+					SDLNet_TCP_Send( newGuy.socket, meta0, 2 );
+					SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len*4 );
+
+					int msg1[ roadblock.size()*15 ];
+					int msg1Len = 0;
 					for( int i=0;i<roadblock.size();i++ )
 					{
-						msg0[msg0Len] = roadblock[i].id;
-						msg0[msg0Len+1] = roadblock[i].textureID;
-						msg0[msg0Len+2] = roadblock[i].x;
-						msg0[msg0Len+3] = roadblock[i].y;
-						msg0[msg0Len+4] = roadblock[i].w;
-						msg0[msg0Len+5] = roadblock[i].h;
-						msg0[msg0Len+6] = roadblock[i].pos.x;
-						msg0[msg0Len+7] = roadblock[i].pos.y;
-						msg0[msg0Len+8] = roadblock[i].pos.w;
-						msg0[msg0Len+9] = roadblock[i].pos.h;
-						msg0[msg0Len+10] = roadblock[i].frame.x;
-						msg0[msg0Len+11] = roadblock[i].frame.y;
-						msg0[msg0Len+12] = roadblock[i].frame.w;
-						msg0[msg0Len+13] = roadblock[i].frame.h;
-						msg0Len+=14;
-						if( msg0Len > 255 - 14 )
+						msg1[msg1Len] = roadblock[i].id;
+						msg1[msg1Len+1] = roadblock[i].textureID;
+						msg1[msg1Len+2] = roadblock[i].x;
+						msg1[msg1Len+3] = roadblock[i].y;
+						msg1[msg1Len+4] = roadblock[i].w;
+						msg1[msg1Len+5] = roadblock[i].h;
+						msg1[msg1Len+6] = roadblock[i].pos.x;
+						msg1[msg1Len+7] = roadblock[i].pos.y;
+						msg1[msg1Len+8] = roadblock[i].pos.w;
+						msg1[msg1Len+9] = roadblock[i].pos.h;
+						msg1[msg1Len+10] = roadblock[i].frame.x;
+						msg1[msg1Len+11] = roadblock[i].frame.y;
+						msg1[msg1Len+12] = roadblock[i].frame.w;
+						msg1[msg1Len+13] = roadblock[i].frame.h;
+						msg1Len+=14;
+						if( msg1Len > 255 - 14 )
 						{
-							Uint8 meta0[2] = {0, (Uint8)msg0Len};
-							SDLNet_TCP_Send( newSocket, meta0, 2 );
-							SDLNet_TCP_Send( newSocket, msg0, msg0Len*4 );
-							msg0Len = 0;
+							Uint8 meta1[2] = {1, (Uint8)msg1Len};
+							SDLNet_TCP_Send( newSocket, meta1, 2 );
+							SDLNet_TCP_Send( newSocket, msg1, msg1Len*4 );
+							msg1Len = 0;
 						}
 					}
-					if( msg0Len > 0 )
+					if( msg1Len > 0 )
 					{
-						Uint8 meta0[2] = {0, (Uint8)msg0Len};
-						SDLNet_TCP_Send( newSocket, meta0, 2 );
-						SDLNet_TCP_Send( newSocket, msg0, msg0Len*4 );
+						Uint8 meta1[2] = {1, (Uint8)msg1Len};
+						SDLNet_TCP_Send( newSocket, meta1, 2 );
+						SDLNet_TCP_Send( newSocket, msg1, msg1Len*4 );
 					}
 
-					//for( int i=0;i<numLines;i++ )
-					//	SDLNet_TCP_Send( newGuy.socket, levelInfo[i], 300 );
-					//int endOfLevel[1] = { -1 };
-					//SDL_Delay(1000);
-					//SDLNet_TCP_Send( newGuy.socket, endOfLevel, 4 );
-					//SDL_Delay(200);
-
-					int msg1[humans.size()*3+1] = { newGuy.id };
-					int msg1Len = 1;
+					Uint8 meta9[2] = {9, 3};
+					int msg9[3] = {newGuy.id, newGuy.x, newGuy.y};
 					for( int i=0;i<humans.size();i++ )
 					{
-						msg1[msg1Len] = humans[i].id;
-						msg1[msg1Len+1] = humans[i].x;
-						msg1[msg1Len+2] = humans[i].y;
-						msg1Len+=3;
-					}
-					Uint8 meta1[2] = {1, (Uint8)msg1Len};
-					SDLNet_TCP_Send( newGuy.socket, meta1, 2 );
-					SDLNet_TCP_Send( newGuy.socket, msg1, msg1Len*4 );
-
-					Uint8 meta2[2] = {9, 3};
-					int msg2[3] = {newGuy.id, newGuy.x, newGuy.y};
-					for( int i=0;i<humans.size();i++ )
-					{
-						SDLNet_TCP_Send( humans[i].socket, meta2, 2 );
-						SDLNet_TCP_Send( humans[i].socket, msg2, 12 );
+						SDLNet_TCP_Send( humans[i].socket, meta9, 2 );
+						SDLNet_TCP_Send( humans[i].socket, msg9, 12 );
 					}
 
 					humans.push_back( newGuy );

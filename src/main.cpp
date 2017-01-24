@@ -185,7 +185,23 @@ int main()
 				int recievd = 0;
 				while(  recievd<size )
 					recievd = SDLNet_TCP_Recv( sock, info+recievd, size-recievd );
+
 				if( meta[0] == 0 )
+				{
+					humans[playerID].netID = info[0];
+					for( int i=1;i<meta[1];i+=3 )
+					{
+						human_t newGuy = humans[playerID];
+						newGuy.netID = info[i];
+						newGuy.state = -9;
+						newGuy.id = ++nextAvalHumanID;
+						newGuy.x = info[i+1];
+						newGuy.y = info[i+2];
+						netIDTable[newGuy.netID] = humans.size();
+						humans.push_back( newGuy );
+					}
+				}
+				if( meta[0] == 1 )
 				{
 					for( int i=0;i<meta[1];i+=14 )
 					{
@@ -207,21 +223,6 @@ int main()
 						newRoadblock.frame.h = info[i+13];
 						roadblockIDTable[newRoadblock.id] = roadblock.size();
 						roadblock.push_back( newRoadblock );
-					}
-				}
-				if( meta[0] == 1 )
-				{
-					humans[playerID].netID = info[0];
-					for( int i=1;i<meta[1];i+=3 )
-					{
-						human_t newGuy = humans[playerID];
-						newGuy.netID = info[i];
-						newGuy.state = -9;
-						newGuy.id = ++nextAvalHumanID;
-						newGuy.x = info[i+1];
-						newGuy.y = info[i+2];
-						netIDTable[newGuy.netID] = humans.size();
-						humans.push_back( newGuy );
 					}
 				}
 				if( meta[0] == 9 )
