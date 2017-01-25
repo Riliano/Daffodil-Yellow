@@ -16,8 +16,7 @@
 #include"ai.cpp"
 
 SDL_Renderer* renderer;
-std::vector<SDL_Texture*> textures;
-std::vector< std::string > texturesFileNames;
+std::vector<texture_t> textures;
 
 const int MAX_THREAD = 200;
 std::vector<flag_t> tempMesh[MAX_THREAD];
@@ -109,14 +108,14 @@ int main()
 
 					char msg0[300];
 					int msg0Len = 0;
-					for( int i=0;i<texturesFileNames.size();i++ )
+					for( int i=0;i<textures.size();i++ )
 					{
-						for( int j=0;j<=texturesFileNames[i].length();j++ )
+						for( int j=0;j<=textures[i].nameLen;j++ )
 						{
-							msg0[msg0Len] = texturesFileNames[i][j];
+							msg0[msg0Len] = textures[i].name[j];
 							msg0Len++;
 						}
-						if( msg0Len + texturesFileNames[i+1].length() > 255 )
+						if( msg0Len + textures[i+1].nameLen > 255 )
 						{
 							Uint8 meta[2] = {0, (Uint8)msg0Len};
 							SDLNet_TCP_Send( newGuy.socket, meta, 2 );
@@ -130,7 +129,6 @@ int main()
 						SDLNet_TCP_Send( newGuy.socket, meta, 2 );
 						SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
 					}
-
 					
 					int msg1[humans.size()*3+13] = { newGuy.id, newGuy.textureID, newGuy.x, newGuy.y, newGuy.w, newGuy.h, newGuy.pos.x, newGuy.pos.y, newGuy.pos.w, newGuy.pos.h, newGuy.frame.x, newGuy.frame.y, newGuy.frame.w, newGuy.frame.h};
 					int msg1Len = 14;
@@ -196,24 +194,41 @@ int main()
 				if( SDLNet_SocketReady( humans[i].socket ) )
 				{
 					active--;
-					char msg[4];
-					int result = SDLNet_TCP_Recv( humans[i].socket, msg, 3 );
-					if( result > 0 )
-					{
-						humans[i].movDirection[0] = msg[0];
-						humans[i].movDirection[1] = msg[1];
-						humans[i].attDirection = msg[2];
-						humans[i].active = true;
+					Uint8 meta[2];
+					int recv = SDLNet_TCP_Recv( humans[i].socket, meta, 2 );
+					if( recv > 0 )
+					{		
+						char msg[ meta[1] ];
+						int fetched = 0;
+						while( fetched < meta[1] )
+							fetched = SDLNet_TCP_Recv( humans[i].socket, msg+fetched, meta[1]-fetched );
+						if( meta[0] == 1 )
+						{
+							humans[i].movDirection[0] = msg[0];
+							humans[i].movDirection[1] = msg[1];
+							humans[i].attDirection = msg[2];
+							humans[i].active = true;
+						}
+						if( meta[0] == 2 )
+						{
+							for( int i=0;i<meta[1];i++ )
+							{
+								Uint8 myMeta[2] = {3, (Uint8)textures[ msg[i] ].fileSize};
+								SDLNet_TCP_Send( humans[i].socket, myMeta, 2 );
+								SDLNet_TCP_Send( humans[i].socket, textures[ msg[i] ].binaryTexture, textures[ msg[i] ].fileSize );
+							}
+						}
 					}else
 					{
-						Uint8 meta[2] = {11, 1};
-						int msg[1] = {humans[i].id};
+						std::cout<<"User has disconnected"<<std::endl;
+						Uint8 meta11[2] = {11, 1};
+						int msg11[1] = {humans[i].id};
 						std::swap( humans[i], humans[humans.size()-1] );
 						humans.pop_back();
 						for( int j=0;j<humans.size();j++ )
 						{
-							SDLNet_TCP_Send( humans[j].socket, meta, 2 );
-							SDLNet_TCP_Send( humans[j].socket, msg, 4 );
+							SDLNet_TCP_Send( humans[j].socket, meta11, 2 );
+							SDLNet_TCP_Send( humans[j].socket, msg11, 4 );
 						}
 					}
 				}

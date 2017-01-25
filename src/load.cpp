@@ -96,16 +96,14 @@ void LoadLevel( char level[1000][300], int numLines, float scale = 1 )
 		if( newTexture and type != 'p' )
 		{
 			textureIDToGive = ++nextAvalTextureID;
+
+			texture_t newTexture;
+			newTexture.CreateFromInfo( fileName, textureIDToGive );
 #ifdef RENDER
-			char fullFileName[30] = "Textures/";
-			char format[] = ".png\0";
-			std::copy( format, format+5, fileName+f );
-			std::copy( std::begin(fileName), std::end(fileName), fullFileName+9 );
-			textures.push_back( IMG_LoadTexture( renderer, fullFileName ) );
+			newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
 #endif
-#ifdef SERVER
-			texturesFileNames.push_back( fileName );
-#endif
+			textures.push_back( newTexture );
+
 			loadedTextures.push_back( {pseudoHash, textureIDToGive} );
 		}
 		if( type == 'o' )

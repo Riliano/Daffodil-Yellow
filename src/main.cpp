@@ -19,7 +19,7 @@
 
 SDL_Renderer* renderer;
 SDL_Event e;
-std::vector<SDL_Texture*> textures;
+std::vector<texture_t> textures;
 
 //std::queue<int> tasks;
 //int numThread = 2;
@@ -87,13 +87,13 @@ int main()
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
-	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
-	textures.push_back( IMG_LoadTexture( renderer, "Textures/select.png" ) );
+//	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
+//	textures.push_back( IMG_LoadTexture( renderer, "Textures/select.png" ) );
 	int numbersTextureID = ++nextAvalTextureID;
 	int selectTextureID = ++nextAvalTextureID;
 	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 	//backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
-	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
+//	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
 	char level[] = "Levels/1.lvl";
 	bool levelLoaded = false;
 
@@ -122,7 +122,7 @@ int main()
 	{
 		if( !levelLoaded )
 		{
-			SDL_RenderCopy( renderer, loading, NULL, NULL );
+		//	SDL_RenderCopy( renderer, loading, NULL, NULL );
 			SDL_RenderPresent( renderer );
 			
 			char levelInfo[1000][300];
@@ -179,17 +179,16 @@ int main()
 			if( active > 0 )
 			{
 				Uint8 meta[2];
-				int info[1000];
 				SDLNet_TCP_Recv( sock, meta, 2 );
+				int info[ meta[1] ];
 				recievd++;
 				int size;
 				int recievd = 0;
-				if( meta[0] == 0 )
+				if( meta[0] == 0 or meta[0] == 3 )
 				{
-					size = meta[1];
-					char text[1000];
-					while(  recievd<size )
-						recievd = SDLNet_TCP_Recv( sock, text+recievd, size-recievd );
+					char text[ meta[1] ];
+					while(  recievd<meta[1] )
+						recievd = SDLNet_TCP_Recv( sock, text+recievd, meta[1]-recievd );
 					for( int i=0;i<meta[1];i++ )
 						info[i] = text[i];
 				}else
@@ -200,26 +199,38 @@ int main()
 				}
 				if( meta[0] == 0 )
 				{
-					char newTexture[310];
-					int newTextureSize = 0;
+					char newTextureName[310];
+					int newTextureNameSize = 0;
 					int numTexture = 0;
+					char texturesIDontHave[ meta[1] ];
+					int numTexturesIDontHave = 0;
 					for( int i=0;i<meta[1];i++ )
 					{
-						newTexture[newTextureSize] = info[i];
-						newTextureSize++;
+						newTextureName[newTextureNameSize] = info[i];
+						newTextureNameSize++;
 						if( (char)info[i] == '\0' )
 						{
-							char fullFileName[350] = "Textures/";
-							char format[] = ".png\0";
-							std::copy( format, format+5, newTexture+newTextureSize-1 );
-							std::copy( std::begin(newTexture), std::end(newTexture), fullFileName+9 );
-							textureIDTable[numTexture] = textures.size();
-							std::cout<<fullFileName<<std::endl;
-							std::cout<<numTexture<<" "<<textures.size()<<std::endl;
+							texture_t newTexture;
+							newTexture.CreateFromInfo( newTextureName, ++nextAvalTextureID );
+							newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
+							textureIDTable[nextAvalTextureID] = textures.size();
 							numTexture++;
-							textures.push_back( IMG_LoadTexture( renderer, fullFileName ) );
-							newTextureSize = 0;
+							if( newTexture.texture == NULL )
+							{							
+								//add to requested
+								std::cout<<"I dont have that"<<std::endl;
+								texturesIDontHave[ numTexturesIDontHave ] = textures.size(); //The id of the texture I don't have_writer
+								numTexturesIDontHave++;
+							}
+							textures.push_back( newTexture );
+							newTextureNameSize = 0;
 						}
+					}
+					if( numTexturesIDontHave > 0 )
+					{
+						Uint8 myMeta[2] = {2, (Uint8)numTexturesIDontHave};
+						SDLNet_TCP_Send( sock, myMeta, 2 );
+						SDLNet_TCP_Send( sock, texturesIDontHave, numTexturesIDontHave );
 					}
 				}
 				
@@ -261,12 +272,12 @@ int main()
 				}
 				if( meta[0] == 2 )
 				{
-					for( int i=0;i<=meta[1];i+=14 )
+					for( int i=0;i<meta[1];i+=14 )
 					{
 						obsticle_t newRoadblock;
 						newRoadblock.curHealth = 1;
 						newRoadblock.id = info[i];
-						newRoadblock.textureID = textureIDTable[info[i+1]];
+						newRoadblock.textureID = info[i+1];// textureIDTable[ info[i+1] ];
 						newRoadblock.x = info[i+2];
 						newRoadblock.y = info[i+3];
 						newRoadblock.w = info[i+4];
@@ -281,6 +292,18 @@ int main()
 						newRoadblock.frame.h = info[i+13];
 						roadblockIDTable[newRoadblock.id] = roadblock.size();
 						roadblock.push_back( newRoadblock );
+					}
+				}
+				if( meta[0] == 3 )
+				{
+					std::ofstream file;
+					
+					for( int i=0;i<textures.size();i++ )
+					{
+						if( textures[i].texture == NULL )
+						{
+							//ifstream
+						}
 					}
 				}
 				if( meta[0] == 9 )
@@ -327,7 +350,7 @@ int main()
 					netIDTable[humans[guyToRemove].netID] = guyToRemove;
 					humans.pop_back();
 				}
-				if( meta[0] == 12 )
+				if( meta[0] == 12 and false )
 				{
 					activeSpells.clear();
 					for( int i=0;i<meta[1];i+=4 )
@@ -467,6 +490,8 @@ int main()
 		}
 		if( SDL_GetTicks() - sendNetT >= 10 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
 		{
+			Uint8 meta[2] = {1, 3};
+			SDLNet_TCP_Send( sock, meta, 2 );
 			char info[3] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection};
 			SDLNet_TCP_Send( sock, info, 3 );
 			humans[playerID].movDirection[0] = 0;
@@ -546,18 +571,18 @@ int main()
 			frames = 0;
 			fpsT = SDL_GetTicks();
 		}
-		SDL_RenderCopy( renderer, textures[backgroundTextureID], NULL, &backgroundPos );
+		SDL_RenderCopy( renderer, textures[backgroundTextureID].texture, NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
 		{
 			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x + (roadblock[i].pos.w - roadblock[i].w)/2;
 			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y + (roadblock[i].pos.h - roadblock[i].h)/2;
-			SDL_RenderCopy( renderer, textures[roadblock[i].textureID], &roadblock[i].frame, &roadblock[i].pos );
+			SDL_RenderCopy( renderer, textures[roadblock[i].textureID].texture, &roadblock[i].frame, &roadblock[i].pos );
 		}
 		for( int i = 0;i<activeSpells.size();i++ )
 		{
 			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x + (activeSpells[i].pos.w - activeSpells[i].w)/2;
 			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y + (activeSpells[i].pos.h - activeSpells[i].h)/2;
-			SDL_RenderCopyEx( renderer, textures[ activeSpells[i].textureID ], &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
+			SDL_RenderCopyEx( renderer, textures[ activeSpells[i].textureID ].texture, &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
 			if( activeSpells[i].duration <= -5 )
 			{
 				std::swap( activeSpells[i], activeSpells[activeSpells.size()-1] );
@@ -571,7 +596,7 @@ int main()
 				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x;// + (humans[i].pos.w - humans[i].w)/2;
 				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y;// + (humans[i].pos.h - humans[i].h)/2;
 			}
-			SDL_RenderCopy( renderer, textures[humans[i].textureID], &humans[i].frame, &humans[i].pos );
+			SDL_RenderCopy( renderer, textures[humans[i].textureID].texture, &humans[i].frame, &humans[i].pos );
 		}
 		if( ShouldIDisplayFPS() )
 		{
@@ -579,7 +604,7 @@ int main()
 			{
 				SDL_Rect nextNumber = {sframes[i]*10, 0, 10, 18};
 				SDL_Rect nextNumberPos = {i*13 + 2, 5, 12, 20};
-				SDL_RenderCopy( renderer, textures[numbersTextureID], &nextNumber, &nextNumberPos );
+				SDL_RenderCopy( renderer, textures[numbersTextureID].texture, &nextNumber, &nextNumberPos );
 			}
 			frames++;
 		}
@@ -590,16 +615,11 @@ int main()
 			SDL_Rect pos = {start + i*60, screenHeight-70, 40, 40};
 			if( humans[playerID].avalSpells[i] == humans[playerID].eqpSpell )
 			{
-				SDL_RenderCopy( renderer, textures[ selectTextureID ], NULL, &pos );
+				SDL_RenderCopy( renderer, textures[ selectTextureID ].texture, NULL, &pos );
 			}
-			SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ], &frame, &pos );
+			SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ].texture, &frame, &pos );
 		}
-		if( humans[playerID].curHealth <= 0 )
-		{
-			std::cout<<"Game Over"<<std::endl;
-			SDL_Delay( 1000 );
-			levelLoaded = false;			
-		}
+
 		SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
 	}

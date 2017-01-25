@@ -260,3 +260,40 @@ struct aoe_t
 		frames = info[14];
 	}
 };
+struct texture_t
+{
+	int id;
+	char name[200];
+	int nameLen;
+	char fullFileName[250] = "Textures/"; //9 symbols
+	char *binaryTexture;
+	SDL_Texture *texture;
+	int fileSize;
+	void CreateFromInfo( char myName[], int myId, bool loadBinary = false )
+	{
+		id = myId;
+		int i;
+		for( nameLen=0;myName[nameLen]!='\0';nameLen++ )
+		{
+			name[nameLen] = myName[nameLen];
+			fullFileName[nameLen+9] = myName[nameLen];
+		}
+		name[nameLen] = '\0';
+		fullFileName[nameLen+9] = '.';
+		fullFileName[nameLen+9+1] = 'p';
+		fullFileName[nameLen+9+2] = 'n';
+		fullFileName[nameLen+9+3] = 'g';	
+		fullFileName[nameLen+9+4] = '\0';
+		
+		if( loadBinary )
+		{
+			std::ifstream file;
+			file.open( fullFileName, std::ifstream::binary );
+			file.seekg( 0, file.end );
+			int fileSize = 	(int)file.tellg();
+			binaryTexture = new char[fileSize];
+			file.read( binaryTexture, fileSize );
+			file.close();
+		}
+	}
+};
