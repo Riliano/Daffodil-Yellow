@@ -107,51 +107,76 @@ int main()
 					newGuy.state = -9;
 					newGuy.active = false;
 
-					int msg0[humans.size()*3+1] = { newGuy.id };
-					int msg0Len = 1;
-					for( int i=0;i<humans.size();i++ )
+					char msg0[300];
+					int msg0Len = 0;
+					for( int i=0;i<texturesFileNames.size();i++ )
 					{
-						msg0[msg0Len] = humans[i].id;
-						msg0[msg0Len+1] = humans[i].x;
-						msg0[msg0Len+2] = humans[i].y;
-						msg0Len+=3;
-					}
-					Uint8 meta0[2] = {0, (Uint8)msg0Len};
-					SDLNet_TCP_Send( newGuy.socket, meta0, 2 );
-					SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len*4 );
-
-					int msg1[ roadblock.size()*15 ];
-					int msg1Len = 0;
-					for( int i=0;i<roadblock.size();i++ )
-					{
-						msg1[msg1Len] = roadblock[i].id;
-						msg1[msg1Len+1] = roadblock[i].textureID;
-						msg1[msg1Len+2] = roadblock[i].x;
-						msg1[msg1Len+3] = roadblock[i].y;
-						msg1[msg1Len+4] = roadblock[i].w;
-						msg1[msg1Len+5] = roadblock[i].h;
-						msg1[msg1Len+6] = roadblock[i].pos.x;
-						msg1[msg1Len+7] = roadblock[i].pos.y;
-						msg1[msg1Len+8] = roadblock[i].pos.w;
-						msg1[msg1Len+9] = roadblock[i].pos.h;
-						msg1[msg1Len+10] = roadblock[i].frame.x;
-						msg1[msg1Len+11] = roadblock[i].frame.y;
-						msg1[msg1Len+12] = roadblock[i].frame.w;
-						msg1[msg1Len+13] = roadblock[i].frame.h;
-						msg1Len+=14;
-						if( msg1Len > 255 - 14 )
+						for( int j=0;j<=texturesFileNames[i].length();j++ )
 						{
-							Uint8 meta1[2] = {1, (Uint8)msg1Len};
-							SDLNet_TCP_Send( newSocket, meta1, 2 );
-							SDLNet_TCP_Send( newSocket, msg1, msg1Len*4 );
-							msg1Len = 0;
+							msg0[msg0Len] = texturesFileNames[i][j];
+							msg0Len++;
+						}
+						if( msg0Len + texturesFileNames[i+1].length() > 255 )
+						{
+							Uint8 meta[2] = {0, (Uint8)msg0Len};
+							SDLNet_TCP_Send( newGuy.socket, meta, 2 );
+							SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
+							msg0Len = 0;
 						}
 					}
-					if( msg1Len > 0 )
+					if( msg0Len > 0 )
 					{
-						Uint8 meta1[2] = {1, (Uint8)msg1Len};
-						SDLNet_TCP_Send( newSocket, meta1, 2 );
-						SDLNet_TCP_Send( newSocket, msg1, msg1Len*4 );
+						Uint8 meta[2] = {0, (Uint8)msg0Len};
+						SDLNet_TCP_Send( newGuy.socket, meta, 2 );
+						SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
+					}
+
+					
+					int msg1[humans.size()*3+13] = { newGuy.id, newGuy.textureID, newGuy.x, newGuy.y, newGuy.w, newGuy.h, newGuy.pos.x, newGuy.pos.y, newGuy.pos.w, newGuy.pos.h, newGuy.frame.x, newGuy.frame.y, newGuy.frame.w, newGuy.frame.h};
+					int msg1Len = 14;
+					for( int i=0;i<humans.size();i++ )
+					{
+						msg1[msg1Len] = humans[i].id;
+						msg1[msg1Len+1] = humans[i].x;
+						msg1[msg1Len+2] = humans[i].y;
+						msg1Len+=3;
+					}
+					Uint8 meta1[2] = {1, (Uint8)msg1Len};
+					SDLNet_TCP_Send( newGuy.socket, meta1, 2 );
+					SDLNet_TCP_Send( newGuy.socket, msg1, msg1Len*4 );
+
+					int msg2[ roadblock.size()*15 ];
+					int msg2Len = 0;
+					for( int i=0;i<roadblock.size();i++ )
+					{
+						msg2[msg2Len] = roadblock[i].id;
+						msg2[msg2Len+1] = roadblock[i].textureID;
+						msg2[msg2Len+2] = roadblock[i].x;
+						msg2[msg2Len+3] = roadblock[i].y;
+						msg2[msg2Len+4] = roadblock[i].w;
+						msg2[msg2Len+5] = roadblock[i].h;
+						msg2[msg2Len+6] = roadblock[i].pos.x;
+						msg2[msg2Len+7] = roadblock[i].pos.y;
+						msg2[msg2Len+8] = roadblock[i].pos.w;
+						msg2[msg2Len+9] = roadblock[i].pos.h;
+						msg2[msg2Len+10] = roadblock[i].frame.x;
+						msg2[msg2Len+11] = roadblock[i].frame.y;
+						msg2[msg2Len+12] = roadblock[i].frame.w;
+						msg2[msg2Len+13] = roadblock[i].frame.h;
+						msg2Len+=14;
+						if( msg2Len > 255 - 14 )
+						{
+							Uint8 meta2[2] = {2, (Uint8)msg2Len};
+							SDLNet_TCP_Send( newSocket, meta2, 2 );
+							SDLNet_TCP_Send( newSocket, msg2, msg2Len*4 );
+							msg2Len = 0;
+						}
+					}
+					if( msg2Len > 0 )
+					{
+						Uint8 meta2[2] = {2, (Uint8)msg2Len};
+						SDLNet_TCP_Send( newSocket, meta2, 2 );
+						SDLNet_TCP_Send( newSocket, msg2, msg2Len*4 );
 					}
 
 					Uint8 meta9[2] = {9, 3};

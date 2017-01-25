@@ -46,6 +46,7 @@ int nextAvalThreadID = -1;
 int netIDTable[2000];
 int roadblockIDTable[2000];
 int humanIDTable[2000];
+int textureIDTable[2000];
 
 #include"move.cpp"
 #include"load.cpp"
@@ -126,7 +127,7 @@ int main()
 			
 			char levelInfo[1000][300];
 			int numLines = 0;
-		//	if( ignoreNet )
+			if( ignoreNet )
 				ReadFromFile( level, levelInfo, numLines );
 		//	else
 		//		RecieveFromNet( sock, levelInfo, numLines );	
@@ -181,15 +182,72 @@ int main()
 				int info[1000];
 				SDLNet_TCP_Recv( sock, meta, 2 );
 				recievd++;
-				int size = meta[1]*4;
+				int size;
 				int recievd = 0;
-				while(  recievd<size )
-					recievd = SDLNet_TCP_Recv( sock, info+recievd, size-recievd );
-
 				if( meta[0] == 0 )
 				{
-					humans[playerID].netID = info[0];
-					for( int i=1;i<meta[1];i+=3 )
+					size = meta[1];
+					char text[1000];
+					while(  recievd<size )
+						recievd = SDLNet_TCP_Recv( sock, text+recievd, size-recievd );
+					for( int i=0;i<meta[1];i++ )
+						info[i] = text[i];
+				}else
+				{
+					size = meta[1]*4;
+					while(  recievd<size )
+						recievd = SDLNet_TCP_Recv( sock, info+recievd, size-recievd );
+				}
+				if( meta[0] == 0 )
+				{
+					char newTexture[310];
+					int newTextureSize = 0;
+					int numTexture = 0;
+					for( int i=0;i<meta[1];i++ )
+					{
+						newTexture[newTextureSize] = info[i];
+						newTextureSize++;
+						if( (char)info[i] == '\0' )
+						{
+							char fullFileName[350] = "Textures/";
+							char format[] = ".png\0";
+							std::copy( format, format+5, newTexture+newTextureSize-1 );
+							std::copy( std::begin(newTexture), std::end(newTexture), fullFileName+9 );
+							textureIDTable[numTexture] = textures.size();
+							std::cout<<fullFileName<<std::endl;
+							std::cout<<numTexture<<" "<<textures.size()<<std::endl;
+							numTexture++;
+							textures.push_back( IMG_LoadTexture( renderer, fullFileName ) );
+							newTextureSize = 0;
+						}
+					}
+				}
+				
+				if( meta[0] == 1 )
+				{
+					humans.clear();
+					human_t player;
+					player.netID = info[0];
+					player.textureID = textureIDTable[ info[1] ];
+					player.curHealth = 1;
+					player.x = info[2];
+					player.y = info[3];
+					player.w = info[4];
+					player.h = info[5];
+
+					player.pos.x = info[6];
+					player.pos.y = info[7];
+					player.pos.w = info[8];
+					player.pos.h = info[9];
+
+					player.frame.x = info[10];
+					player.frame.y = info[11];
+					player.frame.w = info[12];
+					player.frame.h = info[13];
+
+					humans.push_back( player );
+
+					for( int i=14;i<meta[1];i+=3 )
 					{
 						human_t newGuy = humans[playerID];
 						newGuy.netID = info[i];
@@ -201,14 +259,14 @@ int main()
 						humans.push_back( newGuy );
 					}
 				}
-				if( meta[0] == 1 )
+				if( meta[0] == 2 )
 				{
-					for( int i=0;i<meta[1];i+=14 )
+					for( int i=0;i<=meta[1];i+=14 )
 					{
 						obsticle_t newRoadblock;
 						newRoadblock.curHealth = 1;
 						newRoadblock.id = info[i];
-						newRoadblock.textureID = info[i+1]+2;
+						newRoadblock.textureID = textureIDTable[info[i+1]];
 						newRoadblock.x = info[i+2];
 						newRoadblock.y = info[i+3];
 						newRoadblock.w = info[i+4];
@@ -463,8 +521,8 @@ int main()
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
 		{
-	//		std::cout<<SDL_GetError()<<std::endl;
-	//		std::cout<<SDLNet_GetError()<<std::endl;
+		//	std::cout<<SDL_GetError()<<std::endl;
+		//	std::cout<<SDLNet_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - fpsT >= 1000 and ShouldIDisplayFPS() )
