@@ -11,13 +11,14 @@
 #include<fstream>
 #include<time.h>
 
+SDL_Renderer* renderer;
+
 #include"simpleGeometry.h"
 #include"struct.cpp"
 #include"init.h"
 #include"input.h"
 #include"ai.cpp"
 
-SDL_Renderer* renderer;
 SDL_Event e;
 std::vector<texture_t> textures;
 
@@ -87,10 +88,20 @@ int main()
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
+///UI textures
+	texture_t numbers( "numbers", ++nextAvalTextureID );
+	textures.push_back( numbers );
+	texture_t select( "select", ++nextAvalTextureID );
+	textures.push_back( select );
+	texture_t loading( "loading" );
+
+//	numbers.CreateFromInfo( "numbers", ++nextAvalTextureID );
+//	texture_t select;
+//	select.CreateFromInfo( "");
 //	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
 //	textures.push_back( IMG_LoadTexture( renderer, "Textures/select.png" ) );
-	int numbersTextureID = ++nextAvalTextureID;
-	int selectTextureID = ++nextAvalTextureID;
+	int numbersTextureID = numbers.id;
+	int selectTextureID = select.id;
 	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 	//backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
 //	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
@@ -119,10 +130,10 @@ int main()
 	std::vector<int> sframes;
 	sframes.push_back(0);
 	while( true )
-	{
+	{	
 		if( !levelLoaded )
 		{
-		//	SDL_RenderCopy( renderer, loading, NULL, NULL );
+			SDL_RenderCopy( renderer, loading.texture, NULL, NULL );
 			SDL_RenderPresent( renderer );
 			
 			char levelInfo[1000][300];
@@ -210,10 +221,10 @@ int main()
 						newTextureNameSize++;
 						if( (char)info[i] == '\0' )
 						{
-							texture_t newTexture;
-							newTexture.CreateFromInfo( newTextureName, ++nextAvalTextureID );
+							texture_t newTexture( newTextureName, ++nextAvalTextureID, renderer );
 							newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
-							textureIDTable[nextAvalTextureID] = textures.size();
+							textureIDTable[numTexture] = nextAvalTextureID;
+							std::cout<<"Hi "<<numTexture<<" "<<nextAvalTextureID<<std::endl;
 							numTexture++;
 							if( newTexture.texture == NULL )
 							{							
@@ -238,6 +249,10 @@ int main()
 				{
 					humans.clear();
 					human_t player;
+					player.state = -1;
+					player.id = ++nextAvalHumanID;
+					player.normSpeed = 4;
+					player.speed = player.normSpeed;
 					player.netID = info[0];
 					player.textureID = textureIDTable[ info[1] ];
 					player.curHealth = 1;
@@ -277,7 +292,7 @@ int main()
 						obsticle_t newRoadblock;
 						newRoadblock.curHealth = 1;
 						newRoadblock.id = info[i];
-						newRoadblock.textureID = info[i+1];// textureIDTable[ info[i+1] ];
+						newRoadblock.textureID = textureIDTable[ info[i+1] ];
 						newRoadblock.x = info[i+2];
 						newRoadblock.y = info[i+3];
 						newRoadblock.w = info[i+4];
@@ -319,11 +334,13 @@ int main()
 				}
 				if( meta[0] == 10 )
 				{
+					bool updatedPlayer = false;
 					for( int i=0;i<meta[1];i+=4 )
 					{
 						int updateThisGuy = netIDTable[info[i]];
 						if( updateThisGuy == playerID )
 						{
+							updatedPlayer = true;
 							int bgOffsetX = info[i+1] - humans[playerID].x;
 							int bgOffsetY = info[i+2] - humans[playerID].y;
 							if( ( bgOffsetX > 0 and humans[playerID].pos.x + bgOffsetX <= (screenWidth - humans[playerID].pos.w*8) )
@@ -342,6 +359,8 @@ int main()
 						humans[updateThisGuy].y = info[i+2];
 						humans[updateThisGuy].drawDirection = info[i+3];
 					}
+					if( !updatedPlayer )
+						humans[playerID].drawDirection = 0;
 				}
 				if( meta[0] == 11 )
 				{
@@ -380,7 +399,7 @@ int main()
 		{
 			for( int i=0;i<humans.size();i++ )
 			{
-				if( humans[i].id != humans[playerID].id and threads[humans[i].threadID].done )
+				if( humans[i].id != humans[playerID].id and threads[humans[i].threadID].done and humans[i].state > 0 )
 				{
 					for( int j=0;j<tempMesh[humans[i].threadID].size();j++ )
 						humans[i].navMesh.push_back( tempMesh[humans[i].threadID][j] );
@@ -452,7 +471,7 @@ int main()
 		if( SDL_GetTicks() - BOTvisionT >= 10 )
 		{
 			for( int i=0;i<humans.size();i++ )
-				if( i != playerID )
+				if( i != playerID and humans[i].state > 0 )
 					CheckVision( humans[i], humans );
 			BOTvisionT = SDL_GetTicks();
 		}
@@ -468,7 +487,6 @@ int main()
 			}
 			BOTattackT = SDL_GetTicks();
 		}
-
 		if( SDL_GetTicks() - attT >= 1000/60 and ignoreNet )
 		{
 			for( int i = 0;i<humans.size();i++ )

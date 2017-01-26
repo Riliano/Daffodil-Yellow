@@ -97,11 +97,7 @@ void LoadLevel( char level[1000][300], int numLines, float scale = 1 )
 		{
 			textureIDToGive = ++nextAvalTextureID;
 
-			texture_t newTexture;
-			newTexture.CreateFromInfo( fileName, textureIDToGive );
-#ifdef RENDER
-			newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
-#endif
+			texture_t newTexture( fileName, textureIDToGive );
 			textures.push_back( newTexture );
 
 			loadedTextures.push_back( {pseudoHash, textureIDToGive} );

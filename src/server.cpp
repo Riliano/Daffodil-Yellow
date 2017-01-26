@@ -86,6 +86,8 @@ int main()
 			LoadLevel( levelInfo, numLines );
 			humanTemplate = humans[0];
 			humans.clear();
+			for( int i=0;i<textures.size();i++ )
+				std::cout<<i<<" "<<textures[i].id<<" "<<textures[i].name<<std::endl;
 			levelLoaded = true;
 		}
 		if( SDL_GetTicks() - checkNetT >= 0 )

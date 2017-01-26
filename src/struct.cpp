@@ -146,7 +146,6 @@ struct human_t
 			case 0 : return;
 		}
 		prevDrawDirection = drawDirection;
-		drawDirection = 0;
 	}
 	void Draw()
 	{
@@ -269,7 +268,7 @@ struct texture_t
 	char *binaryTexture;
 	SDL_Texture *texture;
 	int fileSize;
-	void CreateFromInfo( char myName[], int myId, bool loadBinary = false )
+	texture_t( char myName[], int myId = 0, bool loadBinary = false )
 	{
 		id = myId;
 		int i;
@@ -284,7 +283,12 @@ struct texture_t
 		fullFileName[nameLen+9+2] = 'n';
 		fullFileName[nameLen+9+3] = 'g';	
 		fullFileName[nameLen+9+4] = '\0';
-		
+
+#ifdef RENDER
+		if( renderer != NULL )
+			texture = IMG_LoadTexture( renderer, fullFileName );
+#endif
+
 		if( loadBinary )
 		{
 			std::ifstream file;
