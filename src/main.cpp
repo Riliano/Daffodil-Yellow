@@ -395,97 +395,100 @@ int main()
 			}
 			checkNetT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - checkFlagsT >= 10 )
+		if( ignoreNet )
 		{
-			for( int i=0;i<humans.size();i++ )
+			if( SDL_GetTicks() - checkFlagsT >= 10 )
 			{
-				if( humans[i].id != humans[playerID].id and threads[humans[i].threadID].done and humans[i].state > 0 )
+				for( int i=0;i<humans.size();i++ )
 				{
-					for( int j=0;j<tempMesh[humans[i].threadID].size();j++ )
-						humans[i].navMesh.push_back( tempMesh[humans[i].threadID][j] );
+					if( humans[i].id != humans[playerID].id and threads[humans[i].threadID].done and humans[i].state > 0 )
+					{
+						for( int j=0;j<tempMesh[humans[i].threadID].size();j++ )
+							humans[i].navMesh.push_back( tempMesh[humans[i].threadID][j] );
 
-					for( int j=0;j<humans[i].navMesh.size();j++ )
-					{
-						if( humans[i].x == humans[i].navMesh[j].x and humans[i].y == humans[i].navMesh[j].y )
+						for( int j=0;j<humans[i].navMesh.size();j++ )
 						{
-							humans[i].movDirection[0] = humans[i].navMesh[j].goTo[0];
-							humans[i].movDirection[1] = humans[i].navMesh[j].goTo[1];
-							break;
-						}
-					}
-					if( Distance( humans[i].x, humans[i].y, humans[i].patrolPoint[humans[i].patrolCycle].x, humans[i].patrolPoint[humans[i].patrolCycle].y ) <= 40 )
-						humans[i].patrolCycle+=humans[i].switchToNextPoint;
-					if( humans[i].cycle )
-					{
-						if( humans[i].patrolCycle >= humans[i].patrolPoint.size() )
-							humans[i].patrolCycle = 0;
-					}else
-					{
-						if( humans[i].patrolCycle >= humans[i].patrolPoint.size()-1 )
-							humans[i].switchToNextPoint = -1;
-						if( humans[i].patrolCycle <= 0 )
-							humans[i].switchToNextPoint = 1;
-					}
-				
-				}
-			}
-			checkFlagsT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - BOTpathFindT >= 400 )
-		{	
-			for( int i=0;i<humans.size();i++ )
-			{
-				if( humans[i].state >= 1 and humans[i].id != humans[playerID].id )
-				{
-					if( threads[humans[i].threadID].done )
-					{
-						if( humans[i].state == 1 )
-						{
-							humans[i].targetX = humans[i].patrolPoint[ humans[i].patrolCycle ].x;
-							humans[i].targetY = humans[i].patrolPoint[ humans[i].patrolCycle ].y;
-						}
-						if( humans[i].state == 2 )
-						{
-							for( int j=0;j<humans.size();j++ )
+							if( humans[i].x == humans[i].navMesh[j].x and humans[i].y == humans[i].navMesh[j].y )
 							{
-								if( humans[i].targetID == humans[j].id )
-								{
-									humans[i].targetX = humans[j].x;
-									humans[i].targetY = humans[j].y;
-									break;
-								}
+								humans[i].movDirection[0] = humans[i].navMesh[j].goTo[0];
+								humans[i].movDirection[1] = humans[i].navMesh[j].goTo[1];
+								break;
 							}
 						}
-						humans[i].navMesh.clear();
-						tempMesh[humans[i].threadID].clear();
-						threads[humans[i].threadID].done = false;
-						if( threads[humans[i].threadID].trd.joinable() )
-							threads[humans[i].threadID].trd.join();
-						threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], &tempMesh[humans[i].threadID], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
+						if( Distance( humans[i].x, humans[i].y, humans[i].patrolPoint[humans[i].patrolCycle].x, humans[i].patrolPoint[humans[i].patrolCycle].y ) <= 40 )
+							humans[i].patrolCycle+=humans[i].switchToNextPoint;
+						if( humans[i].cycle )
+						{
+							if( humans[i].patrolCycle >= humans[i].patrolPoint.size() )
+								humans[i].patrolCycle = 0;
+						}else
+						{
+							if( humans[i].patrolCycle >= humans[i].patrolPoint.size()-1 )
+								humans[i].switchToNextPoint = -1;
+							if( humans[i].patrolCycle <= 0 )
+								humans[i].switchToNextPoint = 1;
+						}
+					
 					}
 				}
-				
+				checkFlagsT = SDL_GetTicks();
 			}
-			BOTpathFindT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - BOTvisionT >= 10 )
-		{
-			for( int i=0;i<humans.size();i++ )
-				if( i != playerID and humans[i].state > 0 )
-					CheckVision( humans[i], humans );
-			BOTvisionT = SDL_GetTicks();
-		}
-		if( SDL_GetTicks() - BOTattackT >= 10 )
-		{
-			for( int i=0;i<humans.size();i++ )
-			{
-				if( i!=playerID and humans[i].state == 2 )
+			if( SDL_GetTicks() - BOTpathFindT >= 400 )
+			{	
+				for( int i=0;i<humans.size();i++ )
 				{
-						if( (avalSpells[humans[i].eqpSpell].speed == 0 and Distance( humans[i].x, humans[i].y, humans[i].targetX, humans[i].targetY ) < 50 )or avalSpells[humans[i].eqpSpell].speed != 0 )
-							humans[i].attDirection = humans[i].prevDrawDirection;
+					if( humans[i].state >= 1 and humans[i].id != humans[playerID].id )
+					{
+						if( threads[humans[i].threadID].done )
+						{
+							if( humans[i].state == 1 )
+							{
+								humans[i].targetX = humans[i].patrolPoint[ humans[i].patrolCycle ].x;
+								humans[i].targetY = humans[i].patrolPoint[ humans[i].patrolCycle ].y;
+							}
+							if( humans[i].state == 2 )
+							{
+								for( int j=0;j<humans.size();j++ )
+								{
+									if( humans[i].targetID == humans[j].id )
+									{
+										humans[i].targetX = humans[j].x;
+										humans[i].targetY = humans[j].y;
+										break;
+									}
+								}
+							}
+							humans[i].navMesh.clear();
+							tempMesh[humans[i].threadID].clear();
+							threads[humans[i].threadID].done = false;
+							if( threads[humans[i].threadID].trd.joinable() )
+								threads[humans[i].threadID].trd.join();
+							threads[humans[i].threadID].trd = std::thread( PathBuilder, &humans[i], &tempMesh[humans[i].threadID], humans, roadblock, &threads[humans[i].threadID].done, &threads[humans[i].threadID].quit );
+						}
+					}
+					
 				}
+				BOTpathFindT = SDL_GetTicks();
 			}
-			BOTattackT = SDL_GetTicks();
+			if( SDL_GetTicks() - BOTvisionT >= 10 )
+			{
+				for( int i=0;i<humans.size();i++ )
+					if( i != playerID and humans[i].state > 0 )
+						CheckVision( humans[i], humans );
+				BOTvisionT = SDL_GetTicks();
+			}
+			if( SDL_GetTicks() - BOTattackT >= 10 )
+			{
+				for( int i=0;i<humans.size();i++ )
+				{
+					if( i!=playerID and humans[i].state == 2 )
+					{
+							if( (avalSpells[humans[i].eqpSpell].speed == 0 and Distance( humans[i].x, humans[i].y, humans[i].targetX, humans[i].targetY ) < 50 )or avalSpells[humans[i].eqpSpell].speed != 0 )
+								humans[i].attDirection = humans[i].prevDrawDirection;
+					}
+				}
+				BOTattackT = SDL_GetTicks();
+			}
 		}
 		if( SDL_GetTicks() - attT >= 1000/60 and ignoreNet )
 		{

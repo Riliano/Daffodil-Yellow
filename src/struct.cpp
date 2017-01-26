@@ -266,7 +266,7 @@ struct texture_t
 	int nameLen;
 	char fullFileName[250] = "Textures/"; //9 symbols
 	char *binaryTexture;
-	SDL_Texture *texture;
+	SDL_Texture *texture = NULL;
 	int fileSize;
 	texture_t( char myName[], int myId = 0, bool loadBinary = false )
 	{
