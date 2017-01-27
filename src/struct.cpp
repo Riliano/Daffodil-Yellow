@@ -288,7 +288,6 @@ struct texture_t
 		if( renderer != NULL )
 			texture = IMG_LoadTexture( renderer, fullFileName );
 #endif
-
 		if( loadBinary )
 		{
 			std::ifstream file;

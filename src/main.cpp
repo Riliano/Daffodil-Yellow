@@ -221,10 +221,10 @@ int main()
 						newTextureNameSize++;
 						if( (char)info[i] == '\0' )
 						{
-							texture_t newTexture( newTextureName, ++nextAvalTextureID, renderer );
+							std::cout<<"Begin"<<std::endl;
+							texture_t newTexture( newTextureName, ++nextAvalTextureID );
 							newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
 							textureIDTable[numTexture] = nextAvalTextureID;
-							std::cout<<"Hi "<<numTexture<<" "<<nextAvalTextureID<<std::endl;
 							numTexture++;
 							if( newTexture.texture == NULL )
 							{							
@@ -235,6 +235,7 @@ int main()
 							}
 							textures.push_back( newTexture );
 							newTextureNameSize = 0;
+							std::cout<<"End"<<std::endl;
 						}
 					}
 					if( numTexturesIDontHave > 0 )
