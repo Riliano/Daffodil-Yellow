@@ -348,6 +348,27 @@ int main()
 					backgroundPos.w = info[3];
 					backgroundPos.h = info[4];
 				}
+				if( meta[0] == 5 )
+				{
+					for( int i=0;i<meta[1];i+=9 )
+					{
+						aoe_t newAoe;
+						newAoe.duration = 1;
+						newAoe.speed = 1;
+						newAoe.textureID = textureIDTable[ info[i] ];
+						newAoe.w = info[i+1];
+						newAoe.h = info[i+2]; 
+						newAoe.pos.w = info[i+3];
+						newAoe.pos.h = info[i+4];
+						newAoe.frame.x = info[i+5];
+						newAoe.frame.y = info[i+6];
+						newAoe.frame.w = info[i+7];
+						newAoe.frame.h = info[i+8];
+						humans[playerID].avalSpells.push_back( avalSpells.size() );				
+						avalSpells.push_back( newAoe );
+
+					}
+				}
 				if( meta[0] == 9 )
 				{
 					human_t newGuy = humans[playerID];
@@ -396,7 +417,7 @@ int main()
 					netIDTable[humans[guyToRemove].netID] = guyToRemove;
 					humans.pop_back();
 				}
-				if( meta[0] == 12 and false )
+				if( meta[0] == 12 )
 				{
 					activeSpells.clear();
 					for( int i=0;i<meta[1];i+=4 )

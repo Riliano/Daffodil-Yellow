@@ -183,6 +183,35 @@ int main()
 					SDLNet_TCP_Send( newSocket, meta4, 2 );
 					SDLNet_TCP_Send( newSocket, msg4, 20 );
 
+					int msg5[ avalSpells.size()*9 + 1];
+					int msg5Len = 0;
+					for( int i=0;i<avalSpells.size();i++ )
+					{
+						msg5[msg5Len] = avalSpells[i].textureID;
+						msg5[msg5Len+1] = avalSpells[i].w;
+						msg5[msg5Len+2] = avalSpells[i].h;
+						msg5[msg5Len+3] = avalSpells[i].pos.w;
+						msg5[msg5Len+4] = avalSpells[i].pos.h;
+						msg5[msg5Len+5] = avalSpells[i].frame.x;
+						msg5[msg5Len+6] = avalSpells[i].frame.y;
+						msg5[msg5Len+7] = avalSpells[i].frame.w;
+						msg5[msg5Len+8] = avalSpells[i].frame.h;
+						msg5Len+=9;
+						if( msg5Len > 255 - 8 )
+						{
+							Uint8 meta5[2] = {5, (Uint8)msg5Len};
+							SDLNet_TCP_Send( newSocket, meta5, 2 );
+							SDLNet_TCP_Send( newSocket, msg5, msg5Len*4 );
+							msg5Len = 0;
+						}
+					}
+					if( msg5Len > 0 )
+					{
+						Uint8 meta5[2] = {5, (Uint8)msg5Len};
+						SDLNet_TCP_Send( newSocket, meta5, 2 );
+						SDLNet_TCP_Send( newSocket, msg5, msg5Len*4 );
+					}
+
 					Uint8 meta9[2] = {9, 3};
 					int msg9[3] = {newGuy.id, newGuy.x, newGuy.y};
 					for( int i=0;i<humans.size();i++ )
