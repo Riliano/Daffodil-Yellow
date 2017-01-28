@@ -195,7 +195,7 @@ int main()
 				recievd++;
 				int size;
 				int recievd = 0;
-				if( meta[0] == 0 or meta[0] == 3 )
+				if( meta[0] == 0 )
 				{
 					char text[ meta[1] ];
 					while(  recievd<meta[1] )
@@ -221,21 +221,19 @@ int main()
 						newTextureNameSize++;
 						if( (char)info[i] == '\0' )
 						{
-							std::cout<<"Begin"<<std::endl;
 							texture_t newTexture( newTextureName, ++nextAvalTextureID );
 							newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
 							textureIDTable[numTexture] = nextAvalTextureID;
-							numTexture++;
 							if( newTexture.texture == NULL )
 							{							
 								//add to requested
 								std::cout<<"I dont have that"<<std::endl;
-								texturesIDontHave[ numTexturesIDontHave ] = textures.size(); //The id of the texture I don't have_writer
+								texturesIDontHave[ numTexturesIDontHave ] = numTexture;
 								numTexturesIDontHave++;
 							}
+							numTexture++;
 							textures.push_back( newTexture );
 							newTextureNameSize = 0;
-							std::cout<<"End"<<std::endl;
 						}
 					}
 					if( numTexturesIDontHave > 0 )
@@ -312,13 +310,35 @@ int main()
 				}
 				if( meta[0] == 3 )
 				{
-					std::ofstream file;
-					
+					std::cout<<(int)meta[1]<<std::endl;
+					for( int i=0;i<meta[1];i++ )
+						std::cout<<info[i]<<" ";
+					std::cout<<std::endl;					
 					for( int i=0;i<textures.size();i++ )
 					{
 						if( textures[i].texture == NULL )
 						{
-							//ifstream
+							std::cout<<"Getting: "<<textures[i].name;
+							std::ofstream file;
+							file.open( textures[i].fullFileName, std::ofstream::binary );
+							int textureSize = info[0];
+							char binTexture[textureSize];
+							int fetched = 0;
+							while( fetched < textureSize )
+							{
+								std::cout<<"Fetching: "<<fetched<<"/"<<textureSize<<std::endl;
+								fetched = SDLNet_TCP_Recv( sock, binTexture+fetched, textureSize-fetched );
+							}
+							std::cout<<"Done"<<std::endl;
+							for( int i=0;i<textureSize;i++ )
+							{
+								file<<binTexture[i];
+								std::cout<<"Writing: "<<i<<"/"<<textureSize<<std::endl;
+							}
+							std::cout<<"Done"<<std::endl;
+							file.close();
+							textures[i].texture = IMG_LoadTexture( renderer, textures[i].fullFileName );
+							break;
 						}
 					}
 				}

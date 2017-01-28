@@ -213,11 +213,14 @@ int main()
 						}
 						if( meta[0] == 2 )
 						{
-							for( int i=0;i<meta[1];i++ )
+							for( int j=0;j<meta[1];j++ )
 							{
-								Uint8 myMeta[2] = {3, (Uint8)textures[ msg[i] ].fileSize};
+								Uint8 myMeta[2] = {3, 1};
+								std::cout<<(int)msg[j]<<" "<<textures[ msg[j] ].name<<" "<<textures[ msg[j] ].fileSize<<std::endl;
 								SDLNet_TCP_Send( humans[i].socket, myMeta, 2 );
-								SDLNet_TCP_Send( humans[i].socket, textures[ msg[i] ].binaryTexture, textures[ msg[i] ].fileSize );
+								int size[1] = {textures[ msg[j] ].fileSize};
+								SDLNet_TCP_Send( humans[i].socket, size, 4 );
+								SDLNet_TCP_Send( humans[i].socket, textures[ msg[j] ].binaryTexture, textures[ msg[j] ].fileSize );
 							}
 						}
 					}else

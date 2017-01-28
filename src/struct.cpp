@@ -268,7 +268,7 @@ struct texture_t
 	char *binaryTexture;
 	SDL_Texture *texture = NULL;
 	int fileSize;
-	texture_t( char myName[], int myId = 0, bool loadBinary = false )
+	texture_t( char myName[], int myId = 0 )
 	{
 		id = myId;
 		int i;
@@ -288,15 +288,15 @@ struct texture_t
 		if( renderer != NULL )
 			texture = IMG_LoadTexture( renderer, fullFileName );
 #endif
-		if( loadBinary )
-		{
-			std::ifstream file;
-			file.open( fullFileName, std::ifstream::binary );
-			file.seekg( 0, file.end );
-			int fileSize = 	(int)file.tellg();
-			binaryTexture = new char[fileSize];
-			file.read( binaryTexture, fileSize );
-			file.close();
-		}
+#ifdef SERVER
+		std::ifstream file;
+		file.open( fullFileName, std::ifstream::binary );
+		file.seekg( 0, file.end );
+		fileSize = (int)file.tellg();
+		file.seekg( 0, file.beg );
+		binaryTexture = new char[fileSize];
+		file.read( binaryTexture, fileSize );
+		file.close();
+#endif
 	}
 };
