@@ -287,6 +287,7 @@ int main()
 					msgH[msgHLen+1] = humans[i].x;
 					msgH[msgHLen+2] = humans[i].y;
 					msgH[msgHLen+3] = humans[i].drawDirection;
+					humans[i].drawDirection = 0;
 					humans[i].active = false;
 					msgHLen+=4;
 				}
