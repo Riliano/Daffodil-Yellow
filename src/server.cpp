@@ -156,16 +156,14 @@ int main()
 						msg2[msg2Len+3] = roadblock[i].y;
 						msg2[msg2Len+4] = roadblock[i].w;
 						msg2[msg2Len+5] = roadblock[i].h;
-						msg2[msg2Len+6] = roadblock[i].pos.x;
-						msg2[msg2Len+7] = roadblock[i].pos.y;
-						msg2[msg2Len+8] = roadblock[i].pos.w;
-						msg2[msg2Len+9] = roadblock[i].pos.h;
-						msg2[msg2Len+10] = roadblock[i].frame.x;
-						msg2[msg2Len+11] = roadblock[i].frame.y;
-						msg2[msg2Len+12] = roadblock[i].frame.w;
-						msg2[msg2Len+13] = roadblock[i].frame.h;
-						msg2Len+=14;
-						if( msg2Len > 255 - 14 )
+						msg2[msg2Len+6] = roadblock[i].pos.w;
+						msg2[msg2Len+7] = roadblock[i].pos.h;
+						msg2[msg2Len+8] = roadblock[i].frame.x;
+						msg2[msg2Len+9] = roadblock[i].frame.y;
+						msg2[msg2Len+10] = roadblock[i].frame.w;
+						msg2[msg2Len+11] = roadblock[i].frame.h;
+						msg2Len+=12;
+						if( msg2Len > 255 - 12 )
 						{
 							Uint8 meta2[2] = {2, (Uint8)msg2Len};
 							SDLNet_TCP_Send( newSocket, meta2, 2 );
@@ -181,11 +179,9 @@ int main()
 					}
 
 					Uint8 meta4[2] = {4, 5};
-					std::cout<<backgroundTextureID<<std::endl;
 					int msg4[5] = { textures[backgroundTextureID].id, backgroundPos.x, backgroundPos.y, backgroundPos.w, backgroundPos.h };
 					SDLNet_TCP_Send( newSocket, meta4, 2 );
 					SDLNet_TCP_Send( newSocket, msg4, 20 );
-					
 
 					Uint8 meta9[2] = {9, 3};
 					int msg9[3] = {newGuy.id, newGuy.x, newGuy.y};

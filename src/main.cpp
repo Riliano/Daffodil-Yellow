@@ -286,7 +286,7 @@ int main()
 				}
 				if( meta[0] == 2 )
 				{
-					for( int i=0;i<meta[1];i+=14 )
+					for( int i=0;i<meta[1];i+=12 )
 					{
 						obsticle_t newRoadblock;
 						newRoadblock.curHealth = 1;
@@ -296,14 +296,12 @@ int main()
 						newRoadblock.y = info[i+3];
 						newRoadblock.w = info[i+4];
 						newRoadblock.h = info[i+5];
-						newRoadblock.pos.x = info[i+6];
-						newRoadblock.pos.y = info[i+7];
-						newRoadblock.pos.w = info[i+8];
-						newRoadblock.pos.h = info[i+9];
-						newRoadblock.frame.x = info[i+10];
-						newRoadblock.frame.y = info[i+11];
-						newRoadblock.frame.w = info[i+12];
-						newRoadblock.frame.h = info[i+13];
+						newRoadblock.pos.w = info[i+6];
+						newRoadblock.pos.h = info[i+7];
+						newRoadblock.frame.x = info[i+8];
+						newRoadblock.frame.y = info[i+9];
+						newRoadblock.frame.w = info[i+10];
+						newRoadblock.frame.h = info[i+11];
 						roadblockIDTable[newRoadblock.id] = roadblock.size();
 						roadblock.push_back( newRoadblock );
 					}
@@ -345,7 +343,6 @@ int main()
 				if( meta[0] == 4 )
 				{
 					backgroundTextureID = textureIDTable[ info[0] ];
-					std::cout<<info[0]<<" "<<backgroundTextureID<<std::endl;
 					backgroundPos.x = info[1];	
 					backgroundPos.y = info[2];
 					backgroundPos.w = info[3];
