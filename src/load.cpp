@@ -125,6 +125,7 @@ void LoadLevel( char level[1000][300], int numLines, float scale = 1 )
 		if( type == 'b' )
 		{
 			backgroundTextureID = textureIDToGive;
+			std::cout<<backgroundTextureID<<std::endl;
 			backgroundPos = {info[0], info[1], info[2], info[3]};
 		}
 		if( type == 'p' )

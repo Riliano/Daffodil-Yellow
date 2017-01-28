@@ -342,6 +342,15 @@ int main()
 						}
 					}
 				}
+				if( meta[0] == 4 )
+				{
+					backgroundTextureID = textureIDTable[ info[0] ];
+					std::cout<<info[0]<<" "<<backgroundTextureID<<std::endl;
+					backgroundPos.x = info[1];	
+					backgroundPos.y = info[2];
+					backgroundPos.w = info[3];
+					backgroundPos.h = info[4];
+				}
 				if( meta[0] == 9 )
 				{
 					human_t newGuy = humans[playerID];

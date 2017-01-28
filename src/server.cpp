@@ -180,6 +180,13 @@ int main()
 						SDLNet_TCP_Send( newSocket, msg2, msg2Len*4 );
 					}
 
+					Uint8 meta4[2] = {4, 5};
+					std::cout<<backgroundTextureID<<std::endl;
+					int msg4[5] = { textures[backgroundTextureID].id, backgroundPos.x, backgroundPos.y, backgroundPos.w, backgroundPos.h };
+					SDLNet_TCP_Send( newSocket, meta4, 2 );
+					SDLNet_TCP_Send( newSocket, msg4, 20 );
+					
+
 					Uint8 meta9[2] = {9, 3};
 					int msg9[3] = {newGuy.id, newGuy.x, newGuy.y};
 					for( int i=0;i<humans.size();i++ )
