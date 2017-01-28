@@ -225,8 +225,8 @@ struct aoe_t
 	int h;
 	void Draw()
 	{
-        	if(duration<=-1)
-	        {
+        if(duration<=-1)
+	    {
         	        duration--;
                 	return;
 		}

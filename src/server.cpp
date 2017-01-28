@@ -85,6 +85,7 @@ int main()
 			
 			LoadLevel( levelInfo, numLines );
 			humanTemplate = humans[0];
+			humanTemplate.eqpSpell = 1;
 			humans.clear();
 			for( int i=0;i<textures.size();i++ )
 				std::cout<<i<<" "<<textures[i].id<<" "<<textures[i].name<<std::endl;
@@ -290,10 +291,9 @@ int main()
 			sendNetT = SDL_GetTicks();
 		}
 		
-
 		if( SDL_GetTicks() - attT >= 1000/60 )
 		{
-			for( int i = 0;i<humans.size();i++ )
+			for( int i=0;i<humans.size();i++ )
 				Attack( humans[i] );
 			attT = SDL_GetTicks();
 		}
@@ -368,7 +368,7 @@ int main()
 		{
 			if( activeSpells[i].duration<=0 )
 			{
-				std::swap( activeSpells[i], avalSpells[ avalSpells.size()-1 ] );
+				std::swap( activeSpells[i], activeSpells[ activeSpells.size()-1 ] );
 				activeSpells.pop_back();
 			}
 		}
