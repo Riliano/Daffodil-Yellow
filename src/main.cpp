@@ -135,14 +135,8 @@ int main()
 		{
 			SDL_RenderCopy( renderer, loading.texture, NULL, NULL );
 			SDL_RenderPresent( renderer );
-			
-			char levelInfo[1000][300];
-			int numLines = 0;
-			if( ignoreNet )
-				ReadFromFile( level, levelInfo, numLines );
-		//	else
-		//		RecieveFromNet( sock, levelInfo, numLines );	
-			LoadLevel( levelInfo, numLines, scale );
+			if( ignoreNet )	
+				LoadLevel( level, scale );
 			if( humans.empty() )
 			{
 				human_t spaceTaker;

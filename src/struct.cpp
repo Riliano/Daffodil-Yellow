@@ -289,14 +289,19 @@ struct texture_t
 			texture = IMG_LoadTexture( renderer, fullFileName );
 #endif
 #ifdef SERVER
+		std::cout<<fullFileName<<" "<<name<<std::endl;
 		std::ifstream file;
 		file.open( fullFileName, std::ifstream::binary );
-		file.seekg( 0, file.end );
-		fileSize = (int)file.tellg();
-		file.seekg( 0, file.beg );
-		binaryTexture = new char[fileSize];
-		file.read( binaryTexture, fileSize );
-		file.close();
+		if( file.is_open() )
+		{
+			file.seekg( 0, file.end );
+			fileSize = (int)file.tellg();
+			file.seekg( 0, file.beg );
+			binaryTexture = new char[fileSize];
+			file.read( binaryTexture, fileSize );
+			file.close();
+		}
+		std::cout<<"Hello "<<id<<std::endl;
 #endif
 	}
 };

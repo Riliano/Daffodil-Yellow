@@ -69,8 +69,6 @@ int main()
 	long long sendNetT = SDL_GetTicks();
 
 	long long send=0, recievd = 0;
-	char levelInfo[1000][300];
-	int numLines = 0;
 
 	human_t humanTemplate;
 
@@ -80,10 +78,7 @@ int main()
 	{
 		if( !levelLoaded )
 		{
-			
-			ReadFromFile( level, levelInfo, numLines );
-			
-			LoadLevel( levelInfo, numLines );
+			LoadLevel( level );
 			humanTemplate = humans[0];
 			humanTemplate.eqpSpell = 1;
 			humans.clear();
