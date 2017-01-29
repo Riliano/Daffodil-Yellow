@@ -291,6 +291,7 @@ int main()
 						obsticle_t newRoadblock;
 						newRoadblock.curHealth = 1;
 						newRoadblock.id = info[i];
+						roadblockIDTable[ newRoadblock.id ] = roadblock.size();
 						newRoadblock.textureID = textureIDTable[ info[i+1] ];
 						newRoadblock.x = info[i+2];
 						newRoadblock.y = info[i+3];
@@ -436,7 +437,9 @@ int main()
 				{
 					for( int i=0;i<meta[1];i++ )
 					{
-						std::swap( roadblock[ info[i] ], roadblock[roadblock.size()-1] );
+						int roadblockToRemove = roadblockIDTable[ info[i] ];
+						roadblockIDTable[ roadblock[roadblock.size()-1].id ] = roadblockToRemove;
+						std::swap( roadblock[ roadblockToRemove ], roadblock[roadblock.size()-1] );
 						roadblock.pop_back();
 					}
 				}
