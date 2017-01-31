@@ -237,6 +237,7 @@ int main()
 							humans[i].movDirection[0] = msg[0];
 							humans[i].movDirection[1] = msg[1];
 							humans[i].attDirection = msg[2];
+							humans[i].eqpSpell = msg[3];
 							humans[i].active = true;
 						}
 						if( meta[0] == 2 )

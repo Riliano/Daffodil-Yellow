@@ -556,10 +556,10 @@ int main()
 		}
 		if( SDL_GetTicks() - sendNetT >= 10 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
 		{
-			Uint8 meta[2] = {1, 3};
+			Uint8 meta[2] = {1, 4};
 			SDLNet_TCP_Send( sock, meta, 2 );
-			char info[3] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection};
-			SDLNet_TCP_Send( sock, info, 3 );
+			char info[4] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection, (char)humans[playerID].eqpSpell};
+			SDLNet_TCP_Send( sock, info, 4 );
 			humans[playerID].movDirection[0] = 0;
 			humans[playerID].movDirection[1] = 0;
 			humans[playerID].attDirection = 0;
