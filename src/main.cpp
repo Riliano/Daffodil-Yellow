@@ -130,25 +130,13 @@ int main()
 	std::vector<int> sframes;
 	sframes.push_back(0);
 	while( true )
-	{	
+	{
 		if( !levelLoaded )
 		{
 			SDL_RenderCopy( renderer, loading.texture, NULL, NULL );
 			SDL_RenderPresent( renderer );
 			if( ignoreNet )	
 				LoadLevel( level, scale );
-			if( humans.empty() )
-			{
-				human_t spaceTaker;
-				humans.push_back( spaceTaker );
-			}
-			if( !ignoreNet )
-			{
-				human_t save = humans[0];
-				humans.clear();
-				humans.push_back( save );
-				roadblock.clear();
-			}
 			
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
@@ -170,7 +158,7 @@ int main()
 			}
 			
 		}
-		if( SDL_GetTicks() - inputT >= 10 )
+		if( SDL_GetTicks() - inputT >= 10 and humans.size() > 0 )
 		{
 			ScanKeyboard();
 			AnalyzeInput( humans[playerID] );
@@ -359,6 +347,8 @@ int main()
 						newAoe.frame.y = info[i+6];
 						newAoe.frame.w = info[i+7];
 						newAoe.frame.h = info[i+8];
+						for( int i=0;i<humans.size();i++ )
+							humans[i].spellWaitTime[ avalSpells.size() ] = 0;
 						humans[playerID].avalSpells.push_back( avalSpells.size() );				
 						avalSpells.push_back( newAoe );
 
@@ -554,17 +544,23 @@ int main()
 			}
 			movT = SDL_GetTicks();
 		}
-		if( SDL_GetTicks() - sendNetT >= 10 and !ignoreNet and humans[playerID].netID != -1 and humans[playerID].active )
+		if( SDL_GetTicks() - sendNetT >= 10 and !ignoreNet )
 		{
-			Uint8 meta[2] = {1, 4};
-			SDLNet_TCP_Send( sock, meta, 2 );
-			char info[4] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection, (char)humans[playerID].eqpSpell};
-			SDLNet_TCP_Send( sock, info, 4 );
-			humans[playerID].movDirection[0] = 0;
-			humans[playerID].movDirection[1] = 0;
-			humans[playerID].attDirection = 0;
-			send++;
-			humans[playerID].active = false;
+			if( humans.size() > 0 )
+			{
+				if( humans[playerID].active )
+				{
+					Uint8 meta[2] = {1, 4};
+					SDLNet_TCP_Send( sock, meta, 2 );
+					char info[4] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection, (char)humans[playerID].eqpSpell};
+					SDLNet_TCP_Send( sock, info, 4 );
+					humans[playerID].movDirection[0] = 0;
+					humans[playerID].movDirection[1] = 0;
+					humans[playerID].attDirection = 0;
+					send++;
+					humans[playerID].active = false;
+				}
+			}
 			sendNetT = SDL_GetTicks();
 		}
 		for( int i=0;i<humans.size();i++ )
@@ -577,7 +573,9 @@ int main()
 		}
 		if( SDL_GetTicks() - spellT >= 10 )
 		{
+
 			for( int i = 0;i<activeSpells.size();i++ )
+			{
 				if( activeSpells[i].duration > 0 )
 				{
 					std::vector<int> destroyedHumans, destroyedRoadblocks;
@@ -598,10 +596,17 @@ int main()
 						}
 					}
 				}
+			}
 			for( int j = 0;j < humans.size(); j++ )
+			{
 				for( int i = 0;i<avalSpells.size();i++ )
+				{
 					if( humans[j].spellWaitTime[i] > 0 )
+					{
 						humans[j].spellWaitTime[i]--;
+					}
+				}
+			}
 			spellT = SDL_GetTicks();
 		}
 		if( SDL_GetTicks() - drawSpellT >= 1000/15 )
@@ -637,6 +642,7 @@ int main()
 			frames = 0;
 			fpsT = SDL_GetTicks();
 		}
+
 		SDL_RenderCopy( renderer, textures[backgroundTextureID].texture, NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
 		{
@@ -674,6 +680,7 @@ int main()
 			}
 			frames++;
 		}
+		/*
 		for( int i=0;i<humans[playerID].avalSpells.size();i++ )
 		{
 			SDL_Rect frame = avalSpells[ humans[playerID].avalSpells[i] ].frame;
@@ -685,6 +692,7 @@ int main()
 			}
 			SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ].texture, &frame, &pos );
 		}
+		*/
 
 		SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );

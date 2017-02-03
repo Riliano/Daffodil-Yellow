@@ -72,7 +72,7 @@ struct human_t
 	std::vector<int> avalSpells;
 	int eqpSpell;
 	int curSpellNum = 0;
-	int spellWaitTime[5];
+	int spellWaitTime[200];
 	long long drawT = 0;
 	
 	int state;
@@ -91,7 +91,7 @@ struct human_t
 	bool cycle = true;
 
 	TCPsocket socket;
-	bool active;
+	bool active = false;
 
 	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale = 1 )
 	{
@@ -128,6 +128,8 @@ struct human_t
 			curSpellNum = 0;
 			eqpSpell = avalSpells[0];
 		}
+		for( int i=0;i<200;i++ )
+			spellWaitTime[i] = 0;
 
 		flag_t start;
 		start.x = x;

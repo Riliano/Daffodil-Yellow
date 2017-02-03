@@ -128,7 +128,7 @@ int main()
 						SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
 					}
 					
-					int msg1[humans.size()*3+13] = { newGuy.id, newGuy.textureID, newGuy.x, newGuy.y, newGuy.w, newGuy.h, newGuy.pos.x, newGuy.pos.y, newGuy.pos.w, newGuy.pos.h, newGuy.frame.x, newGuy.frame.y, newGuy.frame.w, newGuy.frame.h};
+					int msg1[humans.size()*3+20] = { newGuy.id, newGuy.textureID, newGuy.x, newGuy.y, newGuy.w, newGuy.h, newGuy.pos.x, newGuy.pos.y, newGuy.pos.w, newGuy.pos.h, newGuy.frame.x, newGuy.frame.y, newGuy.frame.w, newGuy.frame.h};
 					int msg1Len = 14;
 					for( int i=0;i<humans.size();i++ )
 					{
