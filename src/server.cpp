@@ -82,8 +82,6 @@ int main()
 			humanTemplate = humans[0];
 			humanTemplate.eqpSpell = 1;
 			humans.clear();
-			for( int i=0;i<textures.size();i++ )
-				std::cout<<i<<" "<<textures[i].id<<" "<<textures[i].name<<std::endl;
 			levelLoaded = true;
 		}
 		if( SDL_GetTicks() - checkNetT >= 0 )
@@ -93,6 +91,7 @@ int main()
 			{
 				if( SDLNet_SocketReady( server ) )
 				{
+					active--;
 					TCPsocket newSocket = SDLNet_TCP_Accept( server );
 					if( newSocket )
 					{
@@ -246,7 +245,6 @@ int main()
 								for( int j=0;j<meta[1];j++ )
 								{
 									Uint8 myMeta[2] = {3, 1};
-									std::cout<<(int)msg[j]<<" "<<textures[ msg[j] ].name<<" "<<textures[ msg[j] ].fileSize<<std::endl;
 									SDLNet_TCP_Send( humans[i].socket, myMeta, 2 );
 									int size[1] = {textures[ msg[j] ].fileSize};
 									SDLNet_TCP_Send( humans[i].socket, size, 4 );
