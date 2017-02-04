@@ -89,7 +89,6 @@ int main()
 			int active = SDLNet_CheckSockets( allSockets, 0 );
 			while( active > 0 )
 			{
-				std::cout<<active<<std::endl;
 				if( SDLNet_SocketReady( server ) )
 				{
 					active--;
