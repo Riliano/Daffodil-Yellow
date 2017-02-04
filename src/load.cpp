@@ -76,8 +76,8 @@ void LoadLevel( char levelFileName[], float scale = 1 )
 			if( newTexture and type != 'p' )
 			{
 				textureIDToGive = ++nextAvalTextureID;
-				texture_t newTexture( fileName, textureIDToGive );
-				textures.push_back( newTexture );
+				texture_t toPush( fileName, textureIDToGive );
+				textures.push_back( toPush );
 
 				loadedTextures.push_back( {pseudoHash, textureIDToGive} );
 			}
