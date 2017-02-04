@@ -230,6 +230,7 @@ int main()
 				{
 					humans.clear();
 					human_t player;
+					player.eqpSpell = -1;
 					player.state = -1;
 					player.id = ++nextAvalHumanID;
 					player.normSpeed = 4;
@@ -680,19 +681,20 @@ int main()
 			}
 			frames++;
 		}
-		/*
-		for( int i=0;i<humans[playerID].avalSpells.size();i++ )
+		if( humans.size() > 0 )
 		{
-			SDL_Rect frame = avalSpells[ humans[playerID].avalSpells[i] ].frame;
-			int start = (screenWidth - 60*humans[playerID].avalSpells.size())/2;
-			SDL_Rect pos = {start + i*60, screenHeight-70, 40, 40};
-			if( humans[playerID].avalSpells[i] == humans[playerID].eqpSpell )
+			for( int i=0;i<humans[playerID].avalSpells.size();i++ )
 			{
-				SDL_RenderCopy( renderer, textures[ selectTextureID ].texture, NULL, &pos );
+				SDL_Rect frame = avalSpells[ humans[playerID].avalSpells[i] ].frame;
+				int start = (screenWidth - 60*humans[playerID].avalSpells.size())/2;
+				SDL_Rect pos = {start + i*60, screenHeight-70, 40, 40};
+				if( humans[playerID].avalSpells[i] == humans[playerID].eqpSpell )
+				{
+					SDL_RenderCopy( renderer, textures[ selectTextureID ].texture, NULL, &pos );
+				}
+				SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ].texture, &frame, &pos );
 			}
-			SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ].texture, &frame, &pos );
 		}
-		*/
 
 		SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
