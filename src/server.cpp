@@ -96,7 +96,6 @@ int main()
 					TCPsocket newSocket = SDLNet_TCP_Accept( server );
 					if( newSocket )
 					{
-						std::cout<<"New player"<<std::endl;
 						active--;
 						human_t newGuy = humanTemplate;
 						newGuy.socket = newSocket;
