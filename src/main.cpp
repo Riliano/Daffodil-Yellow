@@ -402,6 +402,7 @@ int main()
 					netIDTable[humans[guyToRemove].netID] = guyToRemove;
 					humans.pop_back();
 				}
+
 				if( meta[0] == 12 )
 				{
 					activeSpells.clear();
@@ -417,6 +418,7 @@ int main()
 						activeSpells.push_back( newAttack );
 					}
 				}
+				
 				if( meta[0] == 13 )
 				{
 					for( int i=0;i<meta[1];i++ )
@@ -571,7 +573,7 @@ int main()
 				humans[i].drawT = SDL_GetTicks();
 			}
 		}
-		if( SDL_GetTicks() - spellT >= 10 )
+		if( SDL_GetTicks() - spellT >= 10 and ignoreNet )
 		{
 
 			for( int i = 0;i<activeSpells.size();i++ )
@@ -580,20 +582,17 @@ int main()
 				{
 					std::vector<int> destroyedHumans, destroyedRoadblocks;
 					Spell( activeSpells[i], humans, roadblock, destroyedHumans, destroyedRoadblocks );
-					if( ignoreNet )
+					for( int j=0;j<destroyedRoadblocks.size();j++ )
 					{
-						for( int j=0;j<destroyedRoadblocks.size();j++ )
-						{
-							std::swap( roadblock[ destroyedRoadblocks[j] ], roadblock[roadblock.size()-1] );
-							roadblock.pop_back();
-						}
-						for( int j=0;j<destroyedHumans.size();j++ )
-						{
-							if( destroyedHumans[j] == playerID )
-								std::cout<<"Game Over"<<std::endl;
-							std::swap( humans[ destroyedHumans[j] ], humans[humans.size()-1] );
-							humans.pop_back();
-						}
+						std::swap( roadblock[ destroyedRoadblocks[j] ], roadblock[roadblock.size()-1] );
+						roadblock.pop_back();
+					}
+					for( int j=0;j<destroyedHumans.size();j++ )
+					{
+						if( destroyedHumans[j] == playerID )
+							std::cout<<"Game Over"<<std::endl;
+						std::swap( humans[ destroyedHumans[j] ], humans[humans.size()-1] );
+						humans.pop_back();
 					}
 				}
 			}
@@ -646,14 +645,14 @@ int main()
 		SDL_RenderCopy( renderer, textures[backgroundTextureID].texture, NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
 		{
-			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x + (roadblock[i].pos.w - roadblock[i].w)/2;
-			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y + (roadblock[i].pos.h - roadblock[i].h)/2;
+			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x;// + (roadblock[i].pos.w - roadblock[i].w)/2;
+			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y;// + (roadblock[i].pos.h - roadblock[i].h)/2;
 			SDL_RenderCopy( renderer, textures[roadblock[i].textureID].texture, &roadblock[i].frame, &roadblock[i].pos );
 		}
 		for( int i = 0;i<activeSpells.size();i++ )
 		{
-			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x + (activeSpells[i].pos.w - activeSpells[i].w)/2;
-			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y + (activeSpells[i].pos.h - activeSpells[i].h)/2;
+			activeSpells[i].pos.x = humans[playerID].pos.x - humans[playerID].x + activeSpells[i].x;// + (activeSpells[i].pos.w - activeSpells[i].w)/2;
+			activeSpells[i].pos.y = humans[playerID].pos.y - humans[playerID].y + activeSpells[i].y;// + (activeSpells[i].pos.h - activeSpells[i].h)/2;
 			SDL_RenderCopyEx( renderer, textures[ activeSpells[i].textureID ].texture, &activeSpells[i].frame, &activeSpells[i].pos, activeSpells[i].angle, activeSpells[i].point, activeSpells[i].flip );
 			if( activeSpells[i].duration <= -5 )
 			{
