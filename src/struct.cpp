@@ -270,7 +270,7 @@ struct texture_t
 	char *binaryTexture;
 	SDL_Texture *texture = NULL;
 	int fileSize;
-	texture_t( char myName[], int myId = 0 )
+	texture_t( const char myName[], int myId = 0 )
 	{
 		id = myId;
 		int i;
