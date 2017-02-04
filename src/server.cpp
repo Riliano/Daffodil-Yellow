@@ -89,6 +89,7 @@ int main()
 			int active = SDLNet_CheckSockets( allSockets, 0 );
 			while( active > 0 )
 			{
+				std::cout<<active<<std::endl;
 				if( SDLNet_SocketReady( server ) )
 				{
 					active--;
@@ -256,6 +257,8 @@ int main()
 							std::cout<<"User has disconnected"<<std::endl;
 							Uint8 meta11[2] = {11, 1};
 							int msg11[1] = {humans[i].id};
+							SDLNet_TCP_DelSocket( allSockets, humans[i].socket );
+							SDLNet_TCP_Close( humans[i].socket );
 							std::swap( humans[i], humans[humans.size()-1] );
 							humans.pop_back();
 							for( int j=0;j<humans.size();j++ )
