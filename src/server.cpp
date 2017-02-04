@@ -89,183 +89,186 @@ int main()
 		if( SDL_GetTicks() - checkNetT >= 0 )
 		{
 			int active = SDLNet_CheckSockets( allSockets, 0 );
-			
-			if( SDLNet_SocketReady( server ) )
+			while( active > 0 )
 			{
-				TCPsocket newSocket = SDLNet_TCP_Accept( server );
-				if( newSocket )
+				if( SDLNet_SocketReady( server ) )
 				{
-					std::cout<<"New player"<<std::endl;
-					active--;
-					human_t newGuy = humanTemplate;
-					newGuy.socket = newSocket;
-					SDLNet_TCP_AddSocket( allSockets, newGuy.socket );
-					newGuy.id = ++ nextAvalHumanID;
-					newGuy.state = -9;
-					newGuy.active = false;
-
-					char msg0[300];
-					int msg0Len = 0;
-					for( int i=0;i<textures.size();i++ )
+					TCPsocket newSocket = SDLNet_TCP_Accept( server );
+					if( newSocket )
 					{
-						for( int j=0;j<=textures[i].nameLen;j++ )
+						std::cout<<"New player"<<std::endl;
+						active--;
+						human_t newGuy = humanTemplate;
+						newGuy.socket = newSocket;
+						SDLNet_TCP_AddSocket( allSockets, newGuy.socket );
+						newGuy.id = ++ nextAvalHumanID;
+						newGuy.state = -9;
+						newGuy.active = false;
+
+						char msg0[300];
+						int msg0Len = 0;
+						for( int i=0;i<textures.size();i++ )
 						{
-							msg0[msg0Len] = textures[i].name[j];
-							msg0Len++;
+							for( int j=0;j<=textures[i].nameLen;j++ )
+							{
+								msg0[msg0Len] = textures[i].name[j];
+								msg0Len++;
+							}
+							if( msg0Len + textures[i+1].nameLen > 255 )
+							{
+								Uint8 meta[2] = {0, (Uint8)msg0Len};
+								SDLNet_TCP_Send( newGuy.socket, meta, 2 );
+								SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
+								msg0Len = 0;
+							}
 						}
-						if( msg0Len + textures[i+1].nameLen > 255 )
+						if( msg0Len > 0 )
 						{
 							Uint8 meta[2] = {0, (Uint8)msg0Len};
 							SDLNet_TCP_Send( newGuy.socket, meta, 2 );
 							SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
-							msg0Len = 0;
 						}
-					}
-					if( msg0Len > 0 )
-					{
-						Uint8 meta[2] = {0, (Uint8)msg0Len};
-						SDLNet_TCP_Send( newGuy.socket, meta, 2 );
-						SDLNet_TCP_Send( newGuy.socket, msg0, msg0Len );
-					}
-					
-					int msg1[humans.size()*3+20] = { newGuy.id, newGuy.textureID, newGuy.x, newGuy.y, newGuy.w, newGuy.h, newGuy.pos.x, newGuy.pos.y, newGuy.pos.w, newGuy.pos.h, newGuy.frame.x, newGuy.frame.y, newGuy.frame.w, newGuy.frame.h};
-					int msg1Len = 14;
-					for( int i=0;i<humans.size();i++ )
-					{
-						msg1[msg1Len] = humans[i].id;
-						msg1[msg1Len+1] = humans[i].x;
-						msg1[msg1Len+2] = humans[i].y;
-						msg1Len+=3;
-					}
-					Uint8 meta1[2] = {1, (Uint8)msg1Len};
-					SDLNet_TCP_Send( newGuy.socket, meta1, 2 );
-					SDLNet_TCP_Send( newGuy.socket, msg1, msg1Len*4 );
+						
+						int msg1[humans.size()*3+20] = { newGuy.id, newGuy.textureID, newGuy.x, newGuy.y, newGuy.w, newGuy.h, newGuy.pos.x, newGuy.pos.y, newGuy.pos.w, newGuy.pos.h, newGuy.frame.x, newGuy.frame.y, newGuy.frame.w, newGuy.frame.h};
+						int msg1Len = 14;
+						for( int i=0;i<humans.size();i++ )
+						{
+							msg1[msg1Len] = humans[i].id;
+							msg1[msg1Len+1] = humans[i].x;
+							msg1[msg1Len+2] = humans[i].y;
+							msg1Len+=3;
+						}
+						Uint8 meta1[2] = {1, (Uint8)msg1Len};
+						SDLNet_TCP_Send( newGuy.socket, meta1, 2 );
+						SDLNet_TCP_Send( newGuy.socket, msg1, msg1Len*4 );
 
-					int msg2[ roadblock.size()*15 ];
-					int msg2Len = 0;
-					for( int i=0;i<roadblock.size();i++ )
-					{
-						msg2[msg2Len] = roadblock[i].id;
-						msg2[msg2Len+1] = roadblock[i].textureID;
-						msg2[msg2Len+2] = roadblock[i].x;
-						msg2[msg2Len+3] = roadblock[i].y;
-						msg2[msg2Len+4] = roadblock[i].w;
-						msg2[msg2Len+5] = roadblock[i].h;
-						msg2[msg2Len+6] = roadblock[i].pos.w;
-						msg2[msg2Len+7] = roadblock[i].pos.h;
-						msg2[msg2Len+8] = roadblock[i].frame.x;
-						msg2[msg2Len+9] = roadblock[i].frame.y;
-						msg2[msg2Len+10] = roadblock[i].frame.w;
-						msg2[msg2Len+11] = roadblock[i].frame.h;
-						msg2Len+=12;
-						if( msg2Len > 255 - 12 )
+						int msg2[ roadblock.size()*15 ];
+						int msg2Len = 0;
+						for( int i=0;i<roadblock.size();i++ )
+						{
+							msg2[msg2Len] = roadblock[i].id;
+							msg2[msg2Len+1] = roadblock[i].textureID;
+							msg2[msg2Len+2] = roadblock[i].x;
+							msg2[msg2Len+3] = roadblock[i].y;
+							msg2[msg2Len+4] = roadblock[i].w;
+							msg2[msg2Len+5] = roadblock[i].h;
+							msg2[msg2Len+6] = roadblock[i].pos.w;
+							msg2[msg2Len+7] = roadblock[i].pos.h;
+							msg2[msg2Len+8] = roadblock[i].frame.x;
+							msg2[msg2Len+9] = roadblock[i].frame.y;
+							msg2[msg2Len+10] = roadblock[i].frame.w;
+							msg2[msg2Len+11] = roadblock[i].frame.h;
+							msg2Len+=12;
+							if( msg2Len > 255 - 12 )
+							{
+								Uint8 meta2[2] = {2, (Uint8)msg2Len};
+								SDLNet_TCP_Send( newSocket, meta2, 2 );
+								SDLNet_TCP_Send( newSocket, msg2, msg2Len*4 );
+								msg2Len = 0;
+							}
+						}
+						if( msg2Len > 0 )
 						{
 							Uint8 meta2[2] = {2, (Uint8)msg2Len};
 							SDLNet_TCP_Send( newSocket, meta2, 2 );
 							SDLNet_TCP_Send( newSocket, msg2, msg2Len*4 );
-							msg2Len = 0;
 						}
-					}
-					if( msg2Len > 0 )
-					{
-						Uint8 meta2[2] = {2, (Uint8)msg2Len};
-						SDLNet_TCP_Send( newSocket, meta2, 2 );
-						SDLNet_TCP_Send( newSocket, msg2, msg2Len*4 );
-					}
 
-					Uint8 meta4[2] = {4, 5};
-					int msg4[5] = { textures[backgroundTextureID].id, backgroundPos.x, backgroundPos.y, backgroundPos.w, backgroundPos.h };
-					SDLNet_TCP_Send( newSocket, meta4, 2 );
-					SDLNet_TCP_Send( newSocket, msg4, 20 );
+						Uint8 meta4[2] = {4, 5};
+						int msg4[5] = { textures[backgroundTextureID].id, backgroundPos.x, backgroundPos.y, backgroundPos.w, backgroundPos.h };
+						SDLNet_TCP_Send( newSocket, meta4, 2 );
+						SDLNet_TCP_Send( newSocket, msg4, 20 );
 
-					int msg5[ avalSpells.size()*9 + 1];
-					int msg5Len = 0;
-					for( int i=0;i<avalSpells.size();i++ )
-					{
-						msg5[msg5Len] = avalSpells[i].textureID;
-						msg5[msg5Len+1] = avalSpells[i].w;
-						msg5[msg5Len+2] = avalSpells[i].h;
-						msg5[msg5Len+3] = avalSpells[i].pos.w;
-						msg5[msg5Len+4] = avalSpells[i].pos.h;
-						msg5[msg5Len+5] = avalSpells[i].frame.x;
-						msg5[msg5Len+6] = avalSpells[i].frame.y;
-						msg5[msg5Len+7] = avalSpells[i].frame.w;
-						msg5[msg5Len+8] = avalSpells[i].frame.h;
-						msg5Len+=9;
-						if( msg5Len > 255 - 8 )
+						int msg5[ avalSpells.size()*9 + 1];
+						int msg5Len = 0;
+						for( int i=0;i<avalSpells.size();i++ )
+						{
+							msg5[msg5Len] = avalSpells[i].textureID;
+							msg5[msg5Len+1] = avalSpells[i].w;
+							msg5[msg5Len+2] = avalSpells[i].h;
+							msg5[msg5Len+3] = avalSpells[i].pos.w;
+							msg5[msg5Len+4] = avalSpells[i].pos.h;
+							msg5[msg5Len+5] = avalSpells[i].frame.x;
+							msg5[msg5Len+6] = avalSpells[i].frame.y;
+							msg5[msg5Len+7] = avalSpells[i].frame.w;
+							msg5[msg5Len+8] = avalSpells[i].frame.h;
+							msg5Len+=9;
+							if( msg5Len > 255 - 8 )
+							{
+								Uint8 meta5[2] = {5, (Uint8)msg5Len};
+								SDLNet_TCP_Send( newSocket, meta5, 2 );
+								SDLNet_TCP_Send( newSocket, msg5, msg5Len*4 );
+								msg5Len = 0;
+							}
+						}
+						if( msg5Len > 0 )
 						{
 							Uint8 meta5[2] = {5, (Uint8)msg5Len};
 							SDLNet_TCP_Send( newSocket, meta5, 2 );
 							SDLNet_TCP_Send( newSocket, msg5, msg5Len*4 );
-							msg5Len = 0;
 						}
-					}
-					if( msg5Len > 0 )
-					{
-						Uint8 meta5[2] = {5, (Uint8)msg5Len};
-						SDLNet_TCP_Send( newSocket, meta5, 2 );
-						SDLNet_TCP_Send( newSocket, msg5, msg5Len*4 );
-					}
 
-					Uint8 meta9[2] = {9, 3};
-					int msg9[3] = {newGuy.id, newGuy.x, newGuy.y};
-					for( int i=0;i<humans.size();i++ )
-					{
-						SDLNet_TCP_Send( humans[i].socket, meta9, 2 );
-						SDLNet_TCP_Send( humans[i].socket, msg9, 12 );
-					}
+						Uint8 meta9[2] = {9, 3};
+						int msg9[3] = {newGuy.id, newGuy.x, newGuy.y};
+						for( int i=0;i<humans.size();i++ )
+						{
+							SDLNet_TCP_Send( humans[i].socket, meta9, 2 );
+							SDLNet_TCP_Send( humans[i].socket, msg9, 12 );
+						}
 
-					humans.push_back( newGuy );
+						humans.push_back( newGuy );
+					}
 				}
-			}
-			
-			for( int i=0;i<humans.size() and active > 0;i++ )
-			{
-				if( SDLNet_SocketReady( humans[i].socket ) )
+				
+				for( int i=0;i<humans.size() and active > 0;i++ )
 				{
-					active--;
-					Uint8 meta[2];
-					int recv = SDLNet_TCP_Recv( humans[i].socket, meta, 2 );
-					if( recv > 0 )
-					{		
-						char msg[ meta[1] ];
-						int fetched = 0;
-						while( fetched < meta[1] )
-							fetched = SDLNet_TCP_Recv( humans[i].socket, msg+fetched, meta[1]-fetched );
-						if( meta[0] == 1 )
-						{
-							humans[i].movDirection[0] = msg[0];
-							humans[i].movDirection[1] = msg[1];
-							humans[i].attDirection = msg[2];
-							humans[i].eqpSpell = msg[3];
-							humans[i].active = true;
-						}
-						if( meta[0] == 2 )
-						{
-							for( int j=0;j<meta[1];j++ )
+					if( SDLNet_SocketReady( humans[i].socket ) )
+					{
+						active--;
+						Uint8 meta[2];
+						int recv = SDLNet_TCP_Recv( humans[i].socket, meta, 2 );
+						if( recv > 0 )
+						{		
+							char msg[ meta[1] ];
+							int fetched = 0;
+							while( fetched < meta[1] )
+								fetched = SDLNet_TCP_Recv( humans[i].socket, msg+fetched, meta[1]-fetched );
+							if( meta[0] == 1 )
 							{
-								Uint8 myMeta[2] = {3, 1};
-								std::cout<<(int)msg[j]<<" "<<textures[ msg[j] ].name<<" "<<textures[ msg[j] ].fileSize<<std::endl;
-								SDLNet_TCP_Send( humans[i].socket, myMeta, 2 );
-								int size[1] = {textures[ msg[j] ].fileSize};
-								SDLNet_TCP_Send( humans[i].socket, size, 4 );
-								SDLNet_TCP_Send( humans[i].socket, textures[ msg[j] ].binaryTexture, textures[ msg[j] ].fileSize );
+								humans[i].movDirection[0] = msg[0];
+								humans[i].movDirection[1] = msg[1];
+								humans[i].attDirection = msg[2];
+								humans[i].eqpSpell = msg[3];
+								humans[i].active = true;
+							}
+							if( meta[0] == 2 )
+							{
+								for( int j=0;j<meta[1];j++ )
+								{
+									Uint8 myMeta[2] = {3, 1};
+									std::cout<<(int)msg[j]<<" "<<textures[ msg[j] ].name<<" "<<textures[ msg[j] ].fileSize<<std::endl;
+									SDLNet_TCP_Send( humans[i].socket, myMeta, 2 );
+									int size[1] = {textures[ msg[j] ].fileSize};
+									SDLNet_TCP_Send( humans[i].socket, size, 4 );
+									SDLNet_TCP_Send( humans[i].socket, textures[ msg[j] ].binaryTexture, textures[ msg[j] ].fileSize );
+								}
+							}
+						}else
+						{
+							std::cout<<"User has disconnected"<<std::endl;
+							Uint8 meta11[2] = {11, 1};
+							int msg11[1] = {humans[i].id};
+							std::swap( humans[i], humans[humans.size()-1] );
+							humans.pop_back();
+							for( int j=0;j<humans.size();j++ )
+							{
+								SDLNet_TCP_Send( humans[j].socket, meta11, 2 );
+								SDLNet_TCP_Send( humans[j].socket, msg11, 4 );
 							}
 						}
-					}else
-					{
-						std::cout<<"User has disconnected"<<std::endl;
-						Uint8 meta11[2] = {11, 1};
-						int msg11[1] = {humans[i].id};
-						std::swap( humans[i], humans[humans.size()-1] );
-						humans.pop_back();
-						for( int j=0;j<humans.size();j++ )
-						{
-							SDLNet_TCP_Send( humans[j].socket, meta11, 2 );
-							SDLNet_TCP_Send( humans[j].socket, msg11, 4 );
-						}
 					}
 				}
+				active = SDLNet_CheckSockets( allSockets, 0 );
 			}
 
 			checkNetT = SDL_GetTicks();

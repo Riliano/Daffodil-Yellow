@@ -169,7 +169,7 @@ int main()
 		if( SDL_GetTicks() - checkNetT >= 0 and !ignoreNet )
 		{
 			int active = SDLNet_CheckSockets( chkNet, 0 );
-			if( active > 0 )
+			while( active > 0 )
 			{
 				Uint8 meta[2];
 				SDLNet_TCP_Recv( sock, meta, 2 );
@@ -418,7 +418,7 @@ int main()
 						activeSpells.push_back( newAttack );
 					}
 				}
-				
+
 				if( meta[0] == 13 )
 				{
 					for( int i=0;i<meta[1];i++ )
@@ -429,6 +429,7 @@ int main()
 						roadblock.pop_back();
 					}
 				}
+				active = SDLNet_CheckSockets( chkNet, 0 );
 			}
 			checkNetT = SDL_GetTicks();
 		}
