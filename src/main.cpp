@@ -33,6 +33,7 @@ std::vector<human_t> humans;
 std::vector <obsticle_t> roadblock;
 
 SDL_Rect backgroundPos;
+SDL_Rect defBackgroundPos;
 int backgroundTextureID;
 
 std::vector<aoe_t> activeSpells;
@@ -331,6 +332,7 @@ int main()
 					backgroundPos.y = info[2];
 					backgroundPos.w = info[3];
 					backgroundPos.h = info[4];
+					defBackgroundPos = backgroundPos;
 				}
 				if( meta[0] == 5 )
 				{
@@ -396,13 +398,6 @@ int main()
 					if( !updatedPlayer )
 						humans[playerID].drawDirection = 0;
 				}
-				if( meta[0] == 11 )
-				{
-					int guyToRemove = netIDTable[info[0]];
-					std::swap( humans[guyToRemove], humans[humans.size()-1] );
-					netIDTable[humans[guyToRemove].netID] = guyToRemove;
-					humans.pop_back();
-				}
 
 				if( meta[0] == 12 )
 				{
@@ -430,6 +425,23 @@ int main()
 						roadblock.pop_back();
 					}
 				}
+
+				if( meta[0] == 20 )
+				{
+					for( int i=0;i<meta[1];i+=3 )
+					{
+						int deadGuy = netIDTable[info[i]];
+						if( deadGuy == playerID )
+						{
+							std::cout<<"You have died"<<std::endl;
+							backgroundPos = defBackgroundPos;
+						}
+						humans[ deadGuy ].x = info[i+1];
+						humans[ deadGuy ].y = info[i+2];
+					}
+
+				}
+
 				active = SDLNet_CheckSockets( chkNet, 0 );
 			}
 			checkNetT = SDL_GetTicks();

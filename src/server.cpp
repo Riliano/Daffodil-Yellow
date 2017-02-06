@@ -96,6 +96,7 @@ int main()
 					if( newSocket )
 					{
 						active--;
+						std::cout<<"New guy"<<std::endl;
 						human_t newGuy = humanTemplate;
 						newGuy.socket = newSocket;
 						SDLNet_TCP_AddSocket( allSockets, newGuy.socket );
@@ -341,6 +342,7 @@ int main()
 		if( SDL_GetTicks() - spellT >= 10 )
 		{
 			for( int i = 0;i<activeSpells.size();i++ )
+			{
 				if( activeSpells[i].duration > 0 )
 				{
 					std::vector<int> destroyedHumans, destroyedRoadblocks;
@@ -369,20 +371,31 @@ int main()
 					for( int j=0;j<destroyedHumans.size();j++ )
 					{
 						msgH[msgHLen] = humans[ destroyedHumans[j] ].id;
-						msgHLen++;
-						std::swap( humans[j], humans[ destroyedHumans[j] ] );
-						humans.pop_back();
+						msgH[msgHLen+1] = humanTemplate.x;
+						msgH[msgHLen+2] = humanTemplate.y;
+
+						humans[ destroyedHumans[j] ].x = humanTemplate.x;
+						humans[ destroyedHumans[j] ].y = humanTemplate.x;
+						humans[ destroyedHumans[j] ].curHealth = humans[ destroyedHumans[j] ].maxHealth;
+
+						msgHLen+=3;
 					}
 					if( msgHLen > 0 )
 					{
-						Uint8 meta[2] = {7, (Uint8)msgHLen};
+						Uint8 meta[2] = {20, (Uint8)msgHLen};
 						for( int j=0;j<humans.size();j++ )
 						{
 							SDLNet_TCP_Send( humans[j].socket, meta, 2 );
 							SDLNet_TCP_Send( humans[j].socket, msgH, msgHLen*4 );
 						}
 					}
+
+				}else
+				{
+					std::swap( activeSpells[i], activeSpells[ activeSpells.size()-1 ] );
+					activeSpells.pop_back();
 				}
+			}
 			for( int j = 0;j < humans.size(); j++ )
 				for( int i = 0;i<avalSpells.size();i++ )
 					if( humans[j].spellWaitTime[i] > 0 )
@@ -394,14 +407,6 @@ int main()
 			//std::cout<<SDL_GetError()<<std::endl;
 			//std::cout<<SDLNet_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
-		}
-		for( int i=0;i<activeSpells.size();i++ )
-		{
-			if( activeSpells[i].duration<=0 )
-			{
-				std::swap( activeSpells[i], activeSpells[ activeSpells.size()-1 ] );
-				activeSpells.pop_back();
-			}
 		}
 	}
 }
