@@ -70,7 +70,7 @@ struct human_t
 	int w;
 	int h;
 	std::vector<int> avalSpells;
-	int eqpSpell;
+	int eqpSpell = -1;
 	int curSpellNum = 0;
 	int spellWaitTime[200];
 	long long drawT = 0;

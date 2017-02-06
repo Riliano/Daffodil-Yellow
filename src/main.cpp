@@ -53,8 +53,9 @@ int textureIDTable[2000];
 #include"move.cpp"
 #include"load.cpp"
 
-int main()
+int main( int argc, char **argv )
 {
+	SDL_Init(0);
 	//std::thread worker[numThread];
 	worker_t threads[MAX_THREAD];
 	InitInput();
@@ -65,8 +66,15 @@ int main()
 	IPaddress ip;
 	char address[40];
 	Uint16 port = 1234;
-	std::cout<<"Enter address: ";
-	std::cin>>address;
+	if( argc < 2 )
+	{
+		std::cout<<"Enter address: ";
+		std::cin>>address;
+	}else
+	{
+		for( int i=0;argv[1][i]!='\0';i++ )
+			address[i] = argv[1][i];
+	}
 	bool ignoreNet = false;
 	if( address[0] == 'n' and address[1] == 'o' and address[2] == '\0' )
 		ignoreNet = true;
@@ -90,10 +98,12 @@ int main()
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
 ///UI textures
-	texture_t numbers( "numbers", ++nextAvalTextureID );
-	textures.push_back( numbers );
-	texture_t select( "select", ++nextAvalTextureID );
-	textures.push_back( select );
+	std::cout<<std::endl<<SDL_GetError()<<std::endl;
+	texture_t numbers( "numbers" );//, ++nextAvalTextureID );
+	std::cout<<std::endl<<SDL_GetError()<<std::endl;
+//	textures.push_back( numbers );
+	texture_t select( "select" );//, ++nextAvalTextureID );
+//	textures.push_back( select );
 	texture_t loading( "loading" );
 
 //	numbers.CreateFromInfo( "numbers", ++nextAvalTextureID );
@@ -101,8 +111,8 @@ int main()
 //	select.CreateFromInfo( "");
 //	textures.push_back( IMG_LoadTexture(renderer, "Textures/numbers.png") );
 //	textures.push_back( IMG_LoadTexture( renderer, "Textures/select.png" ) );
-	int numbersTextureID = numbers.id;
-	int selectTextureID = select.id;
+//	int numbersTextureID = numbers.id;
+//	int selectTextureID = select.id;
 	//gothic = TTF_OpenFont( "Fonts/MS Gothic.ttf", 20 );
 	//backgroundPos = {0, 0, (int)scale*screenWidth, (int)scale*screenHeight};
 //	SDL_Texture* loading = IMG_LoadTexture( renderer, "Textures/loading.png" );
@@ -130,6 +140,8 @@ int main()
 	int frames = 0;
 	std::vector<int> sframes;
 	sframes.push_back(0);
+	SDL_Rect pos = {0, 0, 500, 500}, frame = {0, 0, 500, 500};
+	SDL_RenderCopy( renderer, loading.texture, &pos, &frame );
 	while( true )
 	{
 		if( !levelLoaded )
@@ -210,7 +222,7 @@ int main()
 							if( newTexture.texture == NULL )
 							{							
 								//add to requested
-								std::cout<<"I dont have that"<<std::endl;
+								//std::cout<<"I dont have that"<<std::endl;
 								texturesIDontHave[ numTexturesIDontHave ] = numTexture;
 								numTexturesIDontHave++;
 							}
@@ -293,10 +305,6 @@ int main()
 				}
 				if( meta[0] == 3 )
 				{
-					std::cout<<(int)meta[1]<<std::endl;
-					for( int i=0;i<meta[1];i++ )
-						std::cout<<info[i]<<" ";
-					std::cout<<std::endl;					
 					for( int i=0;i<textures.size();i++ )
 					{
 						if( textures[i].texture == NULL )
@@ -683,13 +691,14 @@ int main()
 			}
 			SDL_RenderCopy( renderer, textures[humans[i].textureID].texture, &humans[i].frame, &humans[i].pos );
 		}
+		
 		if( ShouldIDisplayFPS() )
 		{
 			for( int i=0;i<sframes.size();i++ )
 			{
 				SDL_Rect nextNumber = {sframes[i]*10, 0, 10, 18};
 				SDL_Rect nextNumberPos = {i*13 + 2, 5, 12, 20};
-				SDL_RenderCopy( renderer, textures[numbersTextureID].texture, &nextNumber, &nextNumberPos );
+				SDL_RenderCopy( renderer, numbers.texture, &nextNumber, &nextNumberPos );
 			}
 			frames++;
 		}
@@ -702,7 +711,7 @@ int main()
 				SDL_Rect pos = {start + i*60, screenHeight-70, 40, 40};
 				if( humans[playerID].avalSpells[i] == humans[playerID].eqpSpell )
 				{
-					SDL_RenderCopy( renderer, textures[ selectTextureID ].texture, NULL, &pos );
+					SDL_RenderCopy( renderer, select.texture, NULL, &pos );
 				}
 				SDL_RenderCopy( renderer, textures[ avalSpells[ humans[playerID].avalSpells[i] ].textureID ].texture, &frame, &pos );
 			}
