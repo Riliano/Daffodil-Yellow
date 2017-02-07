@@ -98,9 +98,7 @@ int main( int argc, char **argv )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
 ///UI textures
-	std::cout<<std::endl<<SDL_GetError()<<std::endl;
 	texture_t numbers( "numbers" );//, ++nextAvalTextureID );
-	std::cout<<std::endl<<SDL_GetError()<<std::endl;
 //	textures.push_back( numbers );
 	texture_t select( "select" );//, ++nextAvalTextureID );
 //	textures.push_back( select );
@@ -217,7 +215,6 @@ int main( int argc, char **argv )
 						if( (char)info[i] == '\0' )
 						{
 							texture_t newTexture( newTextureName, ++nextAvalTextureID );
-							newTexture.texture = IMG_LoadTexture( renderer, newTexture.fullFileName );
 							textureIDTable[numTexture] = nextAvalTextureID;
 							if( newTexture.texture == NULL )
 							{							
@@ -436,13 +433,15 @@ int main( int argc, char **argv )
 
 				if( meta[0] == 20 )
 				{
-					for( int i=0;i<meta[1];i+=3 )
+					for( int i=0;i<meta[1];i+=5 )
 					{
 						int deadGuy = netIDTable[info[i]];
 						if( deadGuy == playerID )
 						{
 							std::cout<<"You have died"<<std::endl;
 							backgroundPos = defBackgroundPos;
+							humans[deadGuy].pos.x = info[i+3];
+							humans[deadGuy].pos.y = info[i+4];
 						}
 						humans[ deadGuy ].x = info[i+1];
 						humans[ deadGuy ].y = info[i+2];

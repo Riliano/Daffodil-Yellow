@@ -373,12 +373,14 @@ int main()
 						msgH[msgHLen] = humans[ destroyedHumans[j] ].id;
 						msgH[msgHLen+1] = humanTemplate.x;
 						msgH[msgHLen+2] = humanTemplate.y;
+						msgH[msgHLen+3] = humanTemplate.pos.x;
+						msgH[msgHLen+4] = humanTemplate.pos.y;
 
 						humans[ destroyedHumans[j] ].x = humanTemplate.x;
 						humans[ destroyedHumans[j] ].y = humanTemplate.x;
 						humans[ destroyedHumans[j] ].curHealth = humans[ destroyedHumans[j] ].maxHealth;
 
-						msgHLen+=3;
+						msgHLen+=5;
 					}
 					if( msgHLen > 0 )
 					{
