@@ -1,3 +1,25 @@
+struct point_t
+{
+	double x;
+	double y;
+
+	void Set( double mx, double my )
+	{
+		x = mx;
+		y = my;
+	}
+	void Update( point_t update )
+	{
+		x += update.x;
+		y += update.y;
+	}
+	point_t( double mx, double my )
+	{
+		Set( mx, my );
+	}
+	point_t()
+	{}
+}
 struct node_t
 {
 	int x;
@@ -261,6 +283,55 @@ struct aoe_t
 		frames = info[14];
 	}
 };
+
+struct pathSegment_t
+{
+	char type;
+	int speed;
+	int time;
+	int angle;
+};
+struct path_t
+{
+	std::vector< pathSegment_t > segments;
+	int pathIter = 0;
+	pathSegment_t *curPath = nullptr;
+	void NextPath()
+	{
+		pathIter++;
+		if( pathIter >= segments.size() )
+			pathIter = 0;
+		curPath = &( segments[pathIter] );
+		//circle?
+	}
+	void PushSegment( pathSegment_t toPush )
+	{
+		segments.push_back( toPush );
+	}
+	
+};
+struct bullet_t
+{
+	point_t pos;
+	
+	int remainingTime;
+	int changePathTime;
+	path_t path
+	void UpdatePos( point_t update )
+	{
+		pos.Update( update );
+	}
+
+	int textureID;
+	int castByID;
+	int dmg;
+
+};
+struct spawner_t
+{
+	
+}
+
 struct texture_t
 {
 	int id;
