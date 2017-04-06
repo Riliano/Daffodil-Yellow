@@ -8,10 +8,10 @@ struct point_t
 		x = mx;
 		y = my;
 	}
-	void Update( point_t update )
+	void Update( double ux, double uy )
 	{
-		x += update.x;
-		y += update.y;
+		x += ux;
+		y += uy;
 	}
 	point_t( double mx, double my )
 	{
@@ -19,7 +19,7 @@ struct point_t
 	}
 	point_t()
 	{}
-}
+};
 struct node_t
 {
 	int x;
@@ -308,29 +308,88 @@ struct path_t
 	{
 		segments.push_back( toPush );
 	}
+	void Rotate( int angle )
+	{
+		if( angle != 0 )
+			for( int i=0;i<segments.size();i++ )
+				segments[i].angle += angle;
+	}
+	bool Empty()
+	{
+		return segments.empty();
+	}
 	
 };
 struct bullet_t
 {
-	point_t pos;
-	
+	point_t location;
+	int w;
+	int h;
+
 	int remainingTime;
 	int changePathTime;
-	path_t path
+	path_t path;
 	void UpdatePos( point_t update )
 	{
-		pos.Update( update );
+		location.Update( update.x, update.y );
+	}
+	void SetPos( point_t myPos )
+	{
+		location.Set( myPos.x, myPos.y );
+	}		
+	void Rotate( int angle )
+	{
+		path.Rotate( angle );
+	}
+	SDL_Rect MakeRect()
+	{
+		SDL_Rect myRect;
+		myRect.x = location.x;
+		myRect.y = location.y;
+		myRect.w = w;
+		myRect.h = h;
 	}
 
 	int textureID;
 	int castByID;
 	int dmg;
+	double angle;
+	SDL_Rect pos;
+	SDL_Rect frame;
+
+
 
 };
 struct spawner_t
 {
+	point_t pos;
+	bullet_t blueprint;
+	int angleOffset = 0;
 	
-}
+	int changePathTime;
+	int timeToSpawn;
+	int interval;
+	int numBulletsToSpawn;
+	int spawnedBullets = 0;
+
+	path_t path;
+
+	bullet_t CreateBullet()
+	{
+		bullet_t bullet = blueprint;
+		bullet.SetPos( pos );
+		bullet.Rotate( angleOffset );
+		return bullet;
+	}
+
+	spawner_t( int mx, int my, int myAngle, int myInterval, int numBullets )
+	{
+		pos.Set( mx, my );
+		angleOffset = myAngle;
+		numBulletsToSpawn = numBullets;
+		interval = myInterval;
+	}
+};
 
 struct texture_t
 {

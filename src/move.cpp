@@ -58,6 +58,71 @@ void Spell( aoe_t &magic, std::vector<human_t> &humans, std::vector<obsticle_t> 
 		}
 	}
 }
+void MoveOnPath( point_t &pos, pathSegment_t pth )
+{
+	double sin = std::sin( (double)pth.angle*M_PI/180 );
+	double cos = std::cos( (double)pth.angle*M_PI/180 );
+
+	if( pth.type == 'l' )
+	{
+		double updateX = pth.speed * cos;
+		double updateY = pth.speed * sin;
+		pos.Update( updateX, updateY );
+	}
+	//circle?
+}
+void MoveBullets( bullet_t &bullet, std::vector<human_t> humans, std::vector<obsticle_t> roadblock, std::vector<int> &destroyedHumans, std::vector<int> &destroyedRoadblocks )
+{
+	if( bullet.path.Empty() )
+		return;
+
+	MoveOnPath( bullet.location, *bullet.path.curPath );
+	
+	SDL_Rect bulletRect = bullet.MakeRect();
+	SDL_Rect possibleHit;
+
+	for( int i=0;i<roadblock.size();i++ )
+	{
+		possibleHit.x = roadblock[i].x;
+		possibleHit.y = roadblock[i].y;
+		possibleHit.w = roadblock[i].w;
+		possibleHit.h = roadblock[i].h;
+		if( RectCollision( bulletRect, possibleHit ) and roadblock[i].stopsSpells )
+		{
+			bullet.remainingTime = 0;
+			if( roadblock[i].destroyable )
+			{
+				roadblock[i].curHealth -= bullet.dmg;
+				if( roadblock[i].curHealth <= 0 )
+					destroyedRoadblocks.push_back( i );
+			}
+		}
+	}
+
+	for( int i=0;i<humans.size();i++ )
+	{
+		if( bullet.castByID != humans[i].id )
+		{
+			possibleHit.x = humans[i].x;
+			possibleHit.y = humans[i].y;
+			possibleHit.w = humans[i].w;
+			possibleHit.h = humans[i].h;
+			if( RectCollision( bulletRect, possibleHit ) )
+			{
+				bullet.remainingTime = 0;
+				humans[i].curHealth -= bullet.dmg;
+				if( humans[i].curHealth <= 0 )
+					destroyedHumans.push_back( i );
+			}
+		}
+	}
+}
+void MoveSpawner( spawner_t spawner )
+{
+	if( spawner.path.Empty() )
+		return;
+	MoveOnPath( spawner.pos, *spawner.path.curPath );
+}
 void Move( human_t &someone, std::vector<human_t> humans, std::vector<obsticle_t> roadblock,  bool moveBackground = false )
 {
 	SDL_Rect oldPos = {someone.x, someone.y, someone.w, someone.h};
