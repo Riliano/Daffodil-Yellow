@@ -117,10 +117,12 @@ void MoveBullets( bullet_t &bullet, std::vector<human_t> humans, std::vector<obs
 		}
 	}
 }
-void MoveSpawner( spawner_t spawner )
+void MoveSpawner( spawner_t &spawner )
 {
 	if( spawner.path.Empty() )
 		return;
+	if( spawner.path.curPath->type == 'r' )
+		spawner.angleOffset += spawner.path.curPath->angle;
 	MoveOnPath( spawner.pos, *spawner.path.curPath );
 }
 void Move( human_t &someone, std::vector<human_t> humans, std::vector<obsticle_t> roadblock,  bool moveBackground = false )

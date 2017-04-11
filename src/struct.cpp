@@ -73,6 +73,7 @@ struct worker_t
 
 struct human_t
 {
+	std::string name;
 	int id;
 	int textureID;
 	int netID = -1;
@@ -115,6 +116,16 @@ struct human_t
 	TCPsocket socket;
 	bool active = false;
 
+	void Set( int mX, int mY )
+	{
+		x = mX;
+		y = mY;
+	}
+	void SetPos( int mX, int mY )
+	{
+		pos.x = mX;
+		pos.y = mY;
+	}
 	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale = 1 )
 	{
 		for( int i=0;i<5;i++ )
@@ -191,10 +202,28 @@ struct human_t
 		prevDrawDirection = drawDirection;
 		drawDirection = 0;
 	}
+
+	human_t( std::string myName, int *info, int myTextureID = -1 )
+	{
+		name = myName;
+		textureID = myTextureID;
+
+		w = info[0];
+		h = info[1];
+		maxHealth = info[2];
+		curHealth = maxHealth;
+		normSpeed = info[3];
+		speed = normSpeed;
+		pos = { 0, 0, info[4], info[5] };
+		frame = { info[6], info[7], info[8], info[9] };
+	}
+	human_t()
+	{}
 };
 
 struct obsticle_t
 {
+	std::string name;
 	int textureID;
 	int id;
 	SDL_Rect pos;
@@ -224,6 +253,30 @@ struct obsticle_t
 		pos = {info[8], info[9], (int) (info[10]*scale), (int) (info[11]*scale)};
 		frame = {info[12], info[13], info[14], info[15]};
 	}
+	void Set( int mX, int mY )
+	{
+		x = mX;
+		y = mY;
+	}
+
+	obsticle_t( std::string myName, int *info, int myTextureID )
+	{
+		name = myName;
+		textureID = myTextureID;
+		
+		w = info[0];
+		h = info[1];
+		
+		curHealth = info[2];
+		destroyable = info[3];
+		stopsHumans = info[4];
+		stopsSpells = info[5];
+
+		pos = { 0, 0, info[6], info[7] };
+		frame = { info[8], info[9], info[10], info[11] };
+	}
+	obsticle_t()
+	{}
 };
 struct aoe_t
 {
@@ -390,39 +443,33 @@ struct spawner_t
 		interval = myInterval;
 	}
 };
+struct attack_t
+{
+	std::vector< spawner_t > spawners;
+};
 
 struct texture_t
 {
 	int id;
-	char name[200];
-	int nameLen;
-	char fullFileName[250] = "Textures/"; //9 symbols
+	char filename[200];
 	char *binaryTexture;
 	SDL_Texture *texture = NULL;
 	int fileSize;
-	texture_t( const char myName[], int myId = 0 )
+	texture_t( const char *myName, int myId = 0 )
 	{
 		id = myId;
 		int i;
-		for( nameLen=0;myName[nameLen]!='\0';nameLen++ )
-		{
-			name[nameLen] = myName[nameLen];
-			fullFileName[nameLen+9] = myName[nameLen];
-		}
-		name[nameLen] = '\0';
-		fullFileName[nameLen+9] = '.';
-		fullFileName[nameLen+9+1] = 'p';
-		fullFileName[nameLen+9+2] = 'n';
-		fullFileName[nameLen+9+3] = 'g';	
-		fullFileName[nameLen+9+4] = '\0';
+		for( i=0;myName[i]!='\0';i++ )
+			filename[i] = myName[i];
+		filename[i] = '\0';
 
 #ifdef RENDER
 		if( renderer != NULL )
-			texture = IMG_LoadTexture( renderer, fullFileName );
+			texture = IMG_LoadTexture( renderer, filename );
 #endif
 #ifdef SERVER
 		std::ifstream file;
-		file.open( fullFileName, std::ifstream::binary );
+		file.open( filename, std::ifstream::binary );
 		if( file.is_open() )
 		{
 			file.seekg( 0, file.end );
@@ -434,4 +481,6 @@ struct texture_t
 		}
 #endif
 	}
+	texture_t()
+	{}
 };

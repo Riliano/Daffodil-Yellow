@@ -1,3 +1,150 @@
+void LoadObjects( const char *filename, char type )
+{
+	std::ifstream file( filename );
+	if( !file.is_open() )
+	{
+		std::cout<<"Error opening object file"<<std::endl;
+		return;
+	}
+
+	while( !file.eof() )
+	{
+		std::string line;
+		do
+			std::getline( file, line );
+		while( ( line[0] == '#' or line.length() < 2 ) and !file.eof() );
+
+		std::stringstream ss( line );
+
+		std::string name;
+		std::string textureFileName;
+		int textureID;
+		ss>>name>>textureFileName;
+
+		bool foundTexture = false;
+		for( int i=0;i<textures.size();i++ )
+		{
+			if( textures[i].filename == textureFileName )
+			{
+				textureID = textures[i].id;
+				foundTexture = true;
+				break;
+			}
+		}
+		if( !foundTexture )
+		{
+			texture_t newTexture( textureFileName.data(), ++nextAvalTextureID );
+			textureID = newTexture.id;
+			textures.push_back( newTexture );
+		}
+		
+		int info[20];
+		int i = 0;
+		while( ss )
+		{
+			ss>>info[i];
+			i++;
+		}
+		
+		if( type == 'o' )
+		{
+			obsticle_t newRoadblock( name, info, textureID );
+			roadblockTemplates.push_back( newRoadblock );
+		}
+		if( type == 'h' )
+		{
+			human_t newHuman( name, info, textureID );
+			humanTemplates.push_back( newHuman );
+		}
+	}
+}
+void LoadLevel( const char *fileName, float scale = 1 )
+{
+	std::ifstream file( fileName );
+	if( !file.is_open() )
+	{
+		std::cout<<"Error oppening level"<<std::endl;
+		return;
+	}
+
+	while( !file.eof() )
+	{
+		std::string line;
+		do
+			std::getline( file, line );
+		while( ( line[0] == '#' or line.length() < 2 ) and !file.eof() );
+		if( file.eof() )
+			break;
+
+		std::stringstream ss( line );
+		char action, type;
+
+		ss>>action>>type;
+		if( action == 'i' )
+		{
+			std::string fileName;
+			ss>>fileName;
+			if( type == 'o' or type == 'h' )
+				LoadObjects( fileName.data(), type );
+		}
+		if( action == 'd' )
+		{
+			std::string name;
+			ss>>name;
+			if( type == 'o' )
+			{
+				int x, y;
+				ss>>x>>y;
+				for( int i=0;i<roadblockTemplates.size();i++ )
+				{
+					if( roadblockTemplates[i].name == name )
+					{
+						obsticle_t toDeploy = roadblockTemplates[i];
+						toDeploy.Set( x, y );
+						roadblock.push_back( toDeploy );
+						break;
+					}
+				}
+			}
+			if( type == 'h' )
+			{
+				int x, y;
+				ss>>x>>y;
+				human_t toDeploy;
+				for( int i=0;i<humanTemplates.size();i++ )
+				{
+					if( humanTemplates[i].name == name )
+					{
+						toDeploy = humanTemplates[i];
+						break;
+					}
+				}
+				toDeploy.Set( x, y );
+				char player;
+				ss>>player;
+				if( player == 'p' )
+				{
+					int posx, posy;
+					ss>>posx>>posy;
+					toDeploy.SetPos( posx, posy );
+				}
+				humans.push_back( toDeploy );
+				if( player == 'p' )
+					std::swap( humans[0], humans[ humans.size()-1 ] );
+
+			}
+			if( type == 'b' )
+			{
+				ss>>backgroundPos.x>>backgroundPos.y>>backgroundPos.w>>backgroundPos.h;
+				texture_t background( name.data(), ++nextAvalTextureID );
+				backgroundTextureID = background.id;
+				textures.push_back( background );
+			}
+		}
+	}
+}
+
+/*
 void LoadLevel( char levelFileName[], float scale = 1 )
 {
 	humans.clear();
@@ -139,4 +286,4 @@ void LoadLevel( char levelFileName[], float scale = 1 )
 	std::cout<<"End"<<std::endl;
 #endif
 }
-
+*/

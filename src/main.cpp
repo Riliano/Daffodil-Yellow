@@ -10,6 +10,8 @@
 #include<algorithm>
 #include<fstream>
 #include<time.h>
+#include<string>
+#include<sstream>
 
 SDL_Renderer* renderer;
 
@@ -29,8 +31,10 @@ std::vector<flag_t> tempMesh[MAX_THREAD];
 
 //TTF_Font* gothic;
 
+std::vector<human_t> humanTemplates;
 std::vector<human_t> humans;
-std::vector <obsticle_t> roadblock;
+std::vector<obsticle_t> roadblockTemplates;
+std::vector<obsticle_t> roadblock;
 
 SDL_Rect backgroundPos;
 SDL_Rect defBackgroundPos;
@@ -98,11 +102,11 @@ int main( int argc, char **argv )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
 ///UI textures
-	texture_t numbers( "numbers" );//, ++nextAvalTextureID );
+	texture_t numbers( "Textures/numbers.png" );//, ++nextAvalTextureID );
 //	textures.push_back( numbers );
-	texture_t select( "select" );//, ++nextAvalTextureID );
+	texture_t select( "Textures/select.png" );//, ++nextAvalTextureID );
 //	textures.push_back( select );
-	texture_t loading( "loading" );
+	texture_t loading( "Textures/loading.png" );
 
 //	numbers.CreateFromInfo( "numbers", ++nextAvalTextureID );
 //	texture_t select;
@@ -149,6 +153,8 @@ int main( int argc, char **argv )
 			if( ignoreNet )	
 				LoadLevel( level, scale );
 			
+			std::cout<<roadblock.size()<<" "<<roadblockTemplates.size()<<" "<<humans.size()<<" "<<humanTemplates.size()<<std::endl;
+			std::cout<<textures.size()<<std::endl;
 			levelLoaded = true;
 			SDL_RenderClear( renderer );
 		}
@@ -306,9 +312,9 @@ int main( int argc, char **argv )
 					{
 						if( textures[i].texture == NULL )
 						{
-							std::cout<<"Getting: "<<textures[i].name;
+							std::cout<<"Getting: "<<textures[i].filename;
 							std::ofstream file;
-							file.open( textures[i].fullFileName, std::ofstream::binary );
+							file.open( textures[i].filename, std::ofstream::binary );
 							int textureSize = info[0];
 							char binTexture[textureSize];
 							int fetched = 0;
@@ -325,7 +331,7 @@ int main( int argc, char **argv )
 							}
 							std::cout<<"Done"<<std::endl;
 							file.close();
-							textures[i].texture = IMG_LoadTexture( renderer, textures[i].fullFileName );
+							textures[i].texture = IMG_LoadTexture( renderer, textures[i].filename );
 							break;
 						}
 					}
@@ -637,7 +643,9 @@ int main( int argc, char **argv )
 		}
 		if( SDL_GetTicks() - infoT >= 800 )
 		{
-		//	std::cout<<SDL_GetError()<<std::endl;
+#ifdef SDL_GETERROR 
+			std::cout<<SDL_GetError()<<std::endl;
+#endif
 		//	std::cout<<SDLNet_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
