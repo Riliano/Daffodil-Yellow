@@ -44,9 +44,8 @@ void ReadConfig()
 	}
 }
 
-void Init( SDL_Renderer* renderer )
+void InitWindow()
 {
-
 	ReadConfig();
 	
 	for( int i = 0;i<CFG_LINE;i++ )

@@ -19,6 +19,7 @@ SDL_Renderer* renderer;
 #include"struct.cpp"
 #include"init.h"
 #include"input.h"
+#include"netcode.cpp"
 #include"ai.cpp"
 
 SDL_Event e;
@@ -57,6 +58,28 @@ int textureIDTable[2000];
 #include"move.cpp"
 #include"load.cpp"
 
+void InitAll()
+{
+	SDL_Init( 0 );
+	SDLNet_Init();
+	InitInput();
+	InitWindow();
+	if( ShouldITurnVSync() )
+		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
+	else
+		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+}
+
+int main( int argc, char **argv )
+{
+	///TODO Add arguments for starting a server
+	InitAll();
+	StartServer( 1 );
+	ConnectToServer();
+}
+
+///OLD MAIN
+/*
 int main( int argc, char **argv )
 {
 	SDL_Init(0);
@@ -728,3 +751,4 @@ int main( int argc, char **argv )
 		SDL_RenderClear( renderer );
 	}
 }
+*/

@@ -1,5 +1,5 @@
-i h Levels/humans.lvl
-i o Levels/objects.lvl
+#i h Levels/humans.lvl
+#i o Levels/objects.lvl
 
 d b Textures/background.png -400 -40 2800 1100
 
