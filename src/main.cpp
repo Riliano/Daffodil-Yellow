@@ -13,15 +13,18 @@
 #include<string>
 #include<sstream>
 
-SDL_Renderer* renderer;
-
+//SDL_Renderer* renderer;
+/*
 #include"simpleGeometry.h"
 #include"struct.cpp"
 #include"init.h"
 #include"input.h"
-#include"netcode.cpp"
 #include"ai.cpp"
+*/
+#include "client.cpp"
+#include"netcode.cpp"
 
+/*
 SDL_Event e;
 std::vector<texture_t> textures;
 
@@ -54,9 +57,9 @@ int netIDTable[2000];
 int roadblockIDTable[2000];
 int humanIDTable[2000];
 int textureIDTable[2000];
-
-#include"move.cpp"
-#include"load.cpp"
+*/
+//#include"move.cpp"
+//#include"load.cpp"
 
 void InitAll()
 {
@@ -73,9 +76,10 @@ void InitAll()
 int main( int argc, char **argv )
 {
 	///TODO Add arguments for starting a server
-	InitAll();
+	//InitAll();
 	StartServer( 1 );
-	ConnectToServer();
+	ClientMain();
+	//ConnectToServer();
 }
 
 ///OLD MAIN
