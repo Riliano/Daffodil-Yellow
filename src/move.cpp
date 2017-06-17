@@ -1,3 +1,4 @@
+/*
 void Spell( aoe_t &magic, std::vector<human_t> &humans, std::vector<obsticle_t> &roadblock, std::vector<int> &destroyedHumans, std::vector<int> &destroyedRoadblocks )
 {
 	switch( magic.dir )
@@ -125,6 +126,7 @@ void MoveSpawner( spawner_t &spawner )
 		spawner.angleOffset += spawner.path.curPath->angle;
 	MoveOnPath( spawner.pos, *spawner.path.curPath );
 }
+*/
 void Move( human_t &someone, std::vector<human_t> humans, std::vector<obsticle_t> roadblock,  bool moveBackground = false )
 {
 	SDL_Rect oldPos = {someone.x, someone.y, someone.w, someone.h};
@@ -208,6 +210,7 @@ void Move( human_t &someone, std::vector<human_t> humans, std::vector<obsticle_t
 	someone.movDirection[1] = 0;
 	someone.speed = someone.normSpeed;
 }
+/*
 void Attack(human_t &someone)
 {
 	if(someone.attDirection == 0)
@@ -245,4 +248,4 @@ void Attack(human_t &someone)
 	someone.drawDirection = someone.attDirection;
 	someone.attDirection = 0;
 }
-
+*/

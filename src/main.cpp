@@ -21,8 +21,18 @@
 #include"input.h"
 #include"ai.cpp"
 */
+#include "simpleGeometry.h"
+#include "struct.cpp"
+
+std::vector<human_t> humanTemplates;
+std::vector<human_t> humans;
+std::vector<obsticle_t> roadblockTemplates;
+std::vector<obsticle_t> roadblock;
+
+const int DEFAULT_PORT=1234;
+
 #include "client.cpp"
-#include"netcode.cpp"
+#include "server.cpp"
 
 /*
 SDL_Event e;
@@ -61,24 +71,12 @@ int textureIDTable[2000];
 //#include"move.cpp"
 //#include"load.cpp"
 
-void InitAll()
-{
-	SDL_Init( 0 );
-	SDLNet_Init();
-	InitInput();
-	InitWindow();
-	if( ShouldITurnVSync() )
-		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
-	else
-		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
-}
-
 int main( int argc, char **argv )
 {
 	///TODO Add arguments for starting a server
 	//InitAll();
-	StartServer( 1 );
-	ClientMain();
+	std::thread client( ClientMain );
+	ServerMain();
 	//ConnectToServer();
 }
 

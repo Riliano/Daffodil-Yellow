@@ -3,15 +3,14 @@
 #include<SDL2/SDL_image.h>
 #include<SDL2/SDL_net.h>
 
-SDL_Event e;
 SDL_Renderer* renderer;
+SDL_Event e;
 
-const int DEFAULT_PORT = 1234;
-IPaddress ip;
 TCPsocket client;
 SDLNet_SocketSet chkClient = SDLNet_AllocSocketSet( 1 );
 void ConnectToServer( std::string address = "localhost", Uint16 port = DEFAULT_PORT )
 {
+	IPaddress ip;
     std::cout<<"Connecting to: "<<address<<" on port "<<port<<std::endl;
     SDLNet_ResolveHost( &ip, address.data(), port );	
     client = SDLNet_TCP_Open( &ip );
@@ -21,18 +20,16 @@ void ConnectToServer( std::string address = "localhost", Uint16 port = DEFAULT_P
         SDLNet_TCP_AddSocket( chkClient, client );
 }
 
-#include "simpleGeometry.h"
-#include "struct.cpp"
 #include "init.h"
 #include "input.h"
 
 std::vector<texture_t> textures;
-
+/*
 std::vector<human_t> humanTemplates;
 std::vector<human_t> humans;
 std::vector<obsticle_t> roadblockTemplates;
 std::vector<obsticle_t> roadblock;
-
+*/
 SDL_Rect backgroundPos;
 SDL_Rect defBackgroundPos;
 texture_t background;
@@ -46,6 +43,7 @@ int textureIDTable[2000];
 int playerID;
 void ClientMain()
 {
+	SDL_Delay( 1000 );
     SDL_Init( 0 );
     InitInput();
     InitWindow();
@@ -69,6 +67,7 @@ void ClientMain()
     std::vector<int> sframes;
 	sframes.push_back(0);
 
+	std::cout<<"Client sucessfully started"<<std::endl;
     while( true )
     {
         while( SDL_PollEvent( &e ) )
@@ -76,6 +75,8 @@ void ClientMain()
             if( e.type == SDL_QUIT )
             {
                 SDL_Quit();
+				SDL_DestroyWindow( window );
+				std::cout<<"Closing Client"<<std::endl;
                 return;
             }
         }

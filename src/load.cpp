@@ -20,7 +20,7 @@ void LoadObjects( const char *filename, char type )
 		std::string textureFileName;
 		int textureID;
 		ss>>name>>textureFileName;
-
+/*
 		bool foundTexture = false;
 		for( int i=0;i<textures.size();i++ )
 		{
@@ -37,6 +37,7 @@ void LoadObjects( const char *filename, char type )
 			textureID = newTexture.id;
 			textures.push_back( newTexture );
 		}
+		*/
 		
 		int info[20];
 		int i = 0;
@@ -135,10 +136,10 @@ void LoadLevel( const char *fileName, float scale = 1 )
 			}
 			if( type == 'b' )
 			{
-				ss>>backgroundPos.x>>backgroundPos.y>>backgroundPos.w>>backgroundPos.h;
-				texture_t background( name.data(), ++nextAvalTextureID );
-				backgroundTextureID = background.id;
-				textures.push_back( background );
+				//ss>>backgroundPos.x>>backgroundPos.y>>backgroundPos.w>>backgroundPos.h;
+				//texture_t background( name.data(), ++nextAvalTextureID );
+				//backgroundTextureID = background.id;
+				//textures.push_back( background );
 			}
 		}
 	}

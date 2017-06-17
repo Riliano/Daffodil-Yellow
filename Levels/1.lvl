@@ -1,9 +1,0 @@
-#i h Levels/humans.lvl
-#i o Levels/objects.lvl
-
-d b Textures/background.png -400 -40 2800 1100
-
-d o tree 50 50
-d o tree 150 50
-
-d h RedMage 0 0 p 200 200
