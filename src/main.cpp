@@ -11,6 +11,7 @@
 #include<fstream>
 #include<time.h>
 #include<string>
+#include<cstring>
 #include<sstream>
 
 //SDL_Renderer* renderer;
@@ -23,6 +24,9 @@
 */
 #include "simpleGeometry.h"
 #include "struct.cpp"
+
+bool serverIsOn = false;
+bool clientIsOn = false;
 
 std::vector<human_t> humanTemplates;
 std::vector<human_t> humans;
@@ -73,11 +77,14 @@ int textureIDTable[2000];
 
 int main( int argc, char **argv )
 {
-	///TODO Add arguments for starting a server
-	//InitAll();
-	std::thread client( ClientMain );
-	ServerMain();
-	//ConnectToServer();
+	std::thread client;
+	if( std::strcmp( argv[1], "--client" ) == 0 )
+		client = std::thread( ClientMain, "127.0.0.1", DEFAULT_PORT );
+	if( std::strcmp( argv[2], "--server" ) == 0 )
+		ServerMain();
+	while( clientIsOn )
+	{}
+	client.join();
 }
 
 ///OLD MAIN

@@ -41,9 +41,9 @@ int humanIDTable[2000];
 int textureIDTable[2000];
 
 int playerID;
-void ClientMain()
+void ClientMain( std::string address = "localhost", Uint16 port = DEFAULT_PORT )
 {
-	SDL_Delay( 1000 );
+	clientIsOn = true;
     SDL_Init( 0 );
     InitInput();
     InitWindow();
@@ -52,9 +52,12 @@ void ClientMain()
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
-    ConnectToServer();
+	if( address == "localhost" )
+		while( !serverIsOn ){}
+    ConnectToServer( address, port );
 
 	texture_t numbers( "Textures/numbers.png" );
+	numbers.texture = IMG_LoadTexture( renderer, numbers.filename );
 
 	long long inputT = SDL_GetTicks();
 	long long infoT = SDL_GetTicks();
@@ -67,7 +70,7 @@ void ClientMain()
     std::vector<int> sframes;
 	sframes.push_back(0);
 
-	std::cout<<"Client sucessfully started"<<std::endl;
+	std::cout<<"Client: Entering main loop"<<std::endl;
     while( true )
     {
         while( SDL_PollEvent( &e ) )
@@ -77,6 +80,7 @@ void ClientMain()
                 SDL_Quit();
 				SDL_DestroyWindow( window );
 				std::cout<<"Closing Client"<<std::endl;
+				clientIsOn = false;
                 return;
             }
         }
@@ -126,8 +130,14 @@ void ClientMain()
 			frames = 0;
 			fpsT = SDL_GetTicks();
 		}
+		if( SDL_GetTicks() - infoT >= 1000 )
+		{
+			//std::cout<<SDL_GetError()<<std::endl;
+			infoT = SDL_GetTicks();
+		}
 
-    	SDL_RenderCopy( renderer, background.texture, NULL, &backgroundPos );
+		if( background.texture != NULL )
+	    	SDL_RenderCopy( renderer, background.texture, NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
 		{
 			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x;// + (roadblock[i].pos.w - roadblock[i].w)/2;
