@@ -8,22 +8,32 @@ SDL_Event e;
 
 TCPsocket client;
 SDLNet_SocketSet chkClient = SDLNet_AllocSocketSet( 1 );
-void ConnectToServer( std::string address = "localhost", Uint16 port = DEFAULT_PORT )
+bool ConnectToServer( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 {
 	IPaddress ip;
     std::cout<<"Connecting to: "<<address<<" on port "<<port<<std::endl;
-    SDLNet_ResolveHost( &ip, address.data(), port );	
+    SDLNet_ResolveHost( &ip, address, port );	
     client = SDLNet_TCP_Open( &ip );
     if( !client )
+	{
         std::cout<<"Failed to connect"<<std::endl;
+		return false;
+	}
     else
+	{
         SDLNet_TCP_AddSocket( chkClient, client );
+		return true;
+	}
 }
 
 #include "init.h"
 #include "input.h"
 
 std::vector<texture_t> textures;
+void LoadTextures( texture_t &txtr )
+{
+	txtr.texture = IMG_LoadTexture( renderer, txtr.filename );
+}
 /*
 std::vector<human_t> humanTemplates;
 std::vector<human_t> humans;
@@ -41,7 +51,7 @@ int humanIDTable[2000];
 int textureIDTable[2000];
 
 int playerID;
-void ClientMain( std::string address = "localhost", Uint16 port = DEFAULT_PORT )
+void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 {
 	clientIsOn = true;
     SDL_Init( 0 );
@@ -54,10 +64,17 @@ void ClientMain( std::string address = "localhost", Uint16 port = DEFAULT_PORT )
 
 	if( address == "localhost" )
 		while( !serverIsOn ){}
-    ConnectToServer( address, port );
+    bool connection = ConnectToServer( address, port );
+	if( !connection )
+	{
+		clientIsOn = false;
+		SDL_Quit();
+		SDL_DestroyWindow( window );
+		return;
+	}
 
 	texture_t numbers( "Textures/numbers.png" );
-	numbers.texture = IMG_LoadTexture( renderer, numbers.filename );
+	LoadTextures( numbers );
 
 	long long inputT = SDL_GetTicks();
 	long long infoT = SDL_GetTicks();
