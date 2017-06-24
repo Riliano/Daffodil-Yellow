@@ -453,6 +453,7 @@ struct texture_t
 	int id;
 	char filename[200];
 	char *binaryTexture;
+	unsigned char hash[ SHA256_DIGEST_LENGTH ];
 	SDL_Texture *texture = NULL;
 	int fileSize;
 	texture_t( const char *myName, int myId = 0 )
@@ -463,11 +464,6 @@ struct texture_t
 			filename[i] = myName[i];
 		filename[i] = '\0';
 
-#ifdef RENDER
-		if( renderer != NULL )
-			texture = IMG_LoadTexture( renderer, filename );
-#endif
-#ifdef SERVER
 		std::ifstream file;
 		file.open( filename, std::ifstream::binary );
 		if( file.is_open() )
@@ -479,7 +475,11 @@ struct texture_t
 			file.read( binaryTexture, fileSize );
 			file.close();
 		}
-#endif
+
+		SHA256_CTX sha256ctx;
+		SHA256_Init( &sha256ctx );
+		SHA256_Update( &sha256ctx, binaryTexture, fileSize );
+		SHA256_Final( hash, &sha256ctx );
 	}
 	texture_t()
 	{}

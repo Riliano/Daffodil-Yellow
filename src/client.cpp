@@ -33,6 +33,7 @@ std::vector<texture_t> textures;
 void LoadTextures( texture_t &txtr )
 {
 	txtr.texture = IMG_LoadTexture( renderer, txtr.filename );
+	free( txtr.binaryTexture);
 }
 /*
 std::vector<human_t> humanTemplates;
@@ -75,6 +76,8 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 
 	texture_t numbers( "Textures/numbers.png" );
 	LoadTextures( numbers );
+	for( int i=0;i<textures.size();i++ )
+		LoadTextures( textures[i] );
 
 	long long inputT = SDL_GetTicks();
 	long long infoT = SDL_GetTicks();
