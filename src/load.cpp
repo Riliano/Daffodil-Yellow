@@ -20,7 +20,7 @@ void LoadObjects( const char *filename, char type )
 		std::string textureFileName;
 		int textureID;
 		ss>>name>>textureFileName;
-/*
+
 		bool foundTexture = false;
 		for( int i=0;i<textures.size();i++ )
 		{
@@ -33,11 +33,10 @@ void LoadObjects( const char *filename, char type )
 		}
 		if( !foundTexture )
 		{
-			texture_t newTexture( textureFileName.data(), ++nextAvalTextureID );
+			texture_t newTexture( textureFileName.data(), textures.size() );//++nextAvalTextureID );
 			textureID = newTexture.id;
 			textures.push_back( newTexture );
 		}
-		*/
 		
 		int info[20];
 		int i = 0;

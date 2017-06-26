@@ -34,6 +34,7 @@ std::vector<human_t> humanTemplates;
 std::vector<human_t> humans;
 std::vector<obsticle_t> roadblockTemplates;
 std::vector<obsticle_t> roadblock;
+std::vector<texture_t> textures;
 
 const int DEFAULT_PORT = 1234;
 const int DEFAULT_SERVER_SIZE = 200;

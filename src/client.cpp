@@ -29,7 +29,7 @@ bool ConnectToServer( const char* address = "localhost", Uint16 port = DEFAULT_P
 #include "init.h"
 #include "input.h"
 
-std::vector<texture_t> textures;
+//std::vector<texture_t> textures;
 void LoadTextures( texture_t &txtr )
 {
 	txtr.texture = IMG_LoadTexture( renderer, txtr.filename );
@@ -51,7 +51,10 @@ int roadblockIDTable[2000];
 int humanIDTable[2000];
 int textureIDTable[2000];
 
-int playerID;
+int playerID = -1;
+
+void GetMessage();
+
 void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 {
 	clientIsOn = true;
@@ -72,6 +75,17 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		SDL_Quit();
 		SDL_DestroyWindow( window );
 		return;
+	}
+
+	std::cout<<"Getting info from server"<<std::endl;
+	while( playerID == -1 )
+	{
+		int active = SDLNet_CheckSockets( chkClient, 0 );
+		while( active > 0 )
+		{
+			GetMessage();
+			active = SDLNet_CheckSockets( chkClient, 0 );
+		}
 	}
 
 	texture_t numbers( "Textures/numbers.png" );
@@ -119,7 +133,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			{
 				if( humans[playerID].active )
 				{
-					Uint8 meta[2] = {1, 4};
+					Uint8 meta[2] = {20, 4};
 					SDLNet_TCP_Send( client, meta, 2 );
 					char info[4] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection, (char)humans[playerID].eqpSpell};
 					SDLNet_TCP_Send( client, info, 4 );
@@ -188,4 +202,53 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
         SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
     }
+}
+
+void GetMessage()
+{
+	Uint8 meta[2];
+	SDLNet_TCP_Recv( client, meta, 2 );
+	//It will recieve either chars or ints
+//	bool intMessage = true;
+//	if( meta[0] == 1 or meta[0] == 10 )// texture hash or a texture
+//		intMessage = false;
+
+	int message[ meta[1] ];
+
+	int recieved = 0;
+	while( recieve < meta[1] )
+		recived = SDLNet_TCP_Recv( client, message+recived, meta[1]-recived );
+	
+	// Recieved ID
+	if( meta[1] == 0 )
+	{
+		playerID = message[0];
+	}
+	// Recived list of textures
+	if( meta[1] == 1 )
+	{
+
+	}
+	// Recived player templates
+	if( meta[1] == 2 )
+	{
+
+	}
+	// Revived rest of human templates
+	if( meta[1] == 3 )
+	{
+
+	}
+	// Recived info on currently connected players
+	if( meta[1] == 4 )
+	{
+
+	}
+	// Recived info on loaded roadblocks
+	if( meta[1] == 5 )
+	{
+
+	}
+	// More to come
+
 }
