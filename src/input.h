@@ -57,8 +57,8 @@ void AnalyzeInput( human_t &someone )
 		someone.attDirection = 'w';
 	if( input[7].active )
 		someone.attDirection = 'e';
-	if( input[8].active)
-		someone.speed = someone.normSpeed*1.8;
+//	if( input[8].active)
+//		someone.speed = someone.normSpeed*1.8;
 	if( input[9].active and spellchngTimeout == 0 )
 	{
 		someone.curSpellNum++;

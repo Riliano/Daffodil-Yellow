@@ -41,9 +41,6 @@ std::vector<human_t> humans;
 std::vector<obsticle_t> roadblockTemplates;
 std::vector<obsticle_t> roadblock;
 */
-int humanIDTable[2000];
-int roadblockIDTable[4000];
-int textureIDTable[1000];
 
 SDL_Rect backgroundPos;
 SDL_Rect defBackgroundPos;
@@ -173,7 +170,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			//std::cout<<SDL_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
-
+/*
 		if( background.texture != NULL )
 	    	SDL_RenderCopy( renderer, background.texture, NULL, &backgroundPos );
 		for( int i = 0;i<roadblock.size();i++ )
@@ -202,7 +199,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			}
 			frames++;
 		}
-
+*/
         SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
     }
@@ -220,8 +217,8 @@ void GetMessage()
 	int message[ meta[1] ];
 
 	int recieved = 0;
-	while( recieve < meta[1] )
-		recived = SDLNet_TCP_Recv( client, message+recived, meta[1]-recived );
+	while( recieved < meta[1] )
+		recieved = SDLNet_TCP_Recv( client, message+recieved, meta[1]-recieved );
 	
 	// Recieved ID
 	if( meta[0] == 0 )
@@ -270,8 +267,7 @@ void GetMessage()
 	{
 		for( int i=0;i<meta[1];i+=3 )
 		{
-			humans[ humanIDTable[ message[i] ] ].x = message[i+1];
-			humans[ humanIDTable[ message[i] ] ].y = message[i+2];
+			humans[ humanIDTable[ message[i] ] ].pos.Set( message[i+1], message[i+2] );
 		}
 	}
 	// Remove human

@@ -112,7 +112,7 @@ struct human_t
 	int textureID;
 	int netID = -1;
 
-	SDL_Rect screnPos;
+	SDL_Rect screenPos;
 	SDL_Rect frame;
 
 	char movDirection[2] = {0, 0};
@@ -222,22 +222,24 @@ struct human_t
 		prevDrawDirection = drawDirection;
 		drawDirection = 0;
 	}
-/*
+
 	human_t( std::string myName, int *info, int myTextureID = -1 )
 	{
 		name = myName;
 		textureID = myTextureID;
 
-		w = info[0];
-		h = info[1];
-		maxHealth = info[2];
-		curHealth = maxHealth;
+		size.Set( info[0], info[1] );
+		maxHp = info[2];
+		curHp = maxHp;
 		normSpeed = info[3];
-		speed = normSpeed;
-		pos = { 0, 0, info[4], info[5] };
+		curSpeed = normSpeed;
+		screenPos = { 0, 0, info[4], info[5] };
 		frame = { info[6], info[7], info[8], info[9] };
 	}
-	*/
+	human_t ( TCPsocket sck )
+	{
+		socket = sck;
+	}
 	human_t()
 	{}
 };
