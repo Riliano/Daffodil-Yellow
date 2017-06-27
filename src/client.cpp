@@ -41,6 +41,10 @@ std::vector<human_t> humans;
 std::vector<obsticle_t> roadblockTemplates;
 std::vector<obsticle_t> roadblock;
 */
+int humanIDTable[2000];
+int roadblockIDTable[4000];
+int textureIDTable[1000];
+
 SDL_Rect backgroundPos;
 SDL_Rect defBackgroundPos;
 texture_t background;
@@ -220,35 +224,70 @@ void GetMessage()
 		recived = SDLNet_TCP_Recv( client, message+recived, meta[1]-recived );
 	
 	// Recieved ID
-	if( meta[1] == 0 )
+	if( meta[0] == 0 )
 	{
 		playerID = message[0];
 	}
 	// Recived list of textures
-	if( meta[1] == 1 )
+	if( meta[0] == 1 )
 	{
 
 	}
-	// Recived player templates
-	if( meta[1] == 2 )
+	// Recived human templates
+	if( meta[0] == 2 )
 	{
 
 	}
-	// Revived rest of human templates
-	if( meta[1] == 3 )
+	/*
+	// Recived rest of human templates
+	if( meta[0] == 3 )
 	{
 
 	}
+	*/
 	// Recived info on currently connected players
-	if( meta[1] == 4 )
+	if( meta[0] == 4 )
 	{
 
 	}
-	// Recived info on loaded roadblocks
-	if( meta[1] == 5 )
+	// Recived roadblock templates
+	if( meta[0] == 5 )
 	{
 
 	}
-	// More to come
+	// Recieve loaded roadblocks
+	if( meta[0] == 6 )
+	{
+
+	}
+	// Recieve texture
+	if( meta[0] == 10 )
+	{
+
+	}
+	// Update position of humans
+	if( meta[0] == 20 )
+	{
+		for( int i=0;i<meta[1];i+=3 )
+		{
+			humans[ humanIDTable[ message[i] ] ].x = message[i+1];
+			humans[ humanIDTable[ message[i] ] ].y = message[i+2];
+		}
+	}
+	// Remove human
+	if( meta[0] == 21 )
+	{
+
+	}
+	// New human
+	if( meta[0] == 22 )
+	{
+
+	}
+	// Remove roadblock
+	if( meta[0] == 30 )
+	{
+
+	}
 
 }

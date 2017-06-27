@@ -20,6 +20,28 @@ struct point_t
 	point_t()
 	{}
 };
+struct objSize_t
+{
+	int w;
+	int h;
+
+	void Set( int mw, int mh )
+	{
+		w = mw;
+		h = mh;
+	}
+	void Update( int uw, int uh )
+	{
+		w += uw;
+		h += uh;
+	}
+	objSize_t( int mw, int mh )
+	{
+		Set( mw, mh );
+	}
+	objSize_t()
+	{}
+};
 struct node_t
 {
 	int x;
@@ -73,25 +95,32 @@ struct worker_t
 
 struct human_t
 {
+	point_t pos;
+	objSize_t size;
+	
+	float curSpeed;
+	float normSpeed;
+
+	int curHp;
+	int maxHp;
+
 	std::string name;
+	std::string playerName;
+	int type = -1;
+
 	int id;
 	int textureID;
 	int netID = -1;
-	SDL_Rect pos;
+
+	SDL_Rect screnPos;
 	SDL_Rect frame;
+
 	char movDirection[2] = {0, 0};
 	char drawDirection = 0;
 	char attDirection = 0;
 	char prevDrawDirection = 's';
 	int frameDirection = 1;
-	int curHealth;
-	int maxHealth;
-	int speed;
-	int normSpeed;
-	int x;
-	int y;
-	int w;
-	int h;
+
 	std::vector<int> avalSpells;
 	int eqpSpell = -1;
 	int curSpellNum = 0;
@@ -115,17 +144,7 @@ struct human_t
 
 	TCPsocket socket;
 	bool active = false;
-
-	void Set( int mX, int mY )
-	{
-		x = mX;
-		y = mY;
-	}
-	void SetPos( int mX, int mY )
-	{
-		pos.x = mX;
-		pos.y = mY;
-	}
+	/*
 	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale = 1 )
 	{
 		for( int i=0;i<5;i++ )
@@ -170,6 +189,7 @@ struct human_t
 		patrolPoint.push_back(start);
 
 	}
+	*/
 	void DrawDir()
 	{
 		switch(drawDirection)
@@ -202,7 +222,7 @@ struct human_t
 		prevDrawDirection = drawDirection;
 		drawDirection = 0;
 	}
-
+/*
 	human_t( std::string myName, int *info, int myTextureID = -1 )
 	{
 		name = myName;
@@ -217,63 +237,46 @@ struct human_t
 		pos = { 0, 0, info[4], info[5] };
 		frame = { info[6], info[7], info[8], info[9] };
 	}
+	*/
 	human_t()
 	{}
 };
 
 struct obsticle_t
 {
+	point_t pos;
+	objSize_t size;
+
 	std::string name;
+
 	int textureID;
 	int id;
-	SDL_Rect pos;
+
+	SDL_Rect screnPos;
 	SDL_Rect frame;
+
 	int curHealth;
+
 	bool destroyable;
 	bool stopsSpells;
 	bool stopsHumans;
-	int x;
-	int y;
-	int w;
-	int h;
 
-	void CreateFromInfo( std::vector<int> info, int giveMeTextureID, float scale = 1 )
+	obsticle_t( std::string myName, int *info, int myID, int myTextureID )
 	{
-		textureID = giveMeTextureID;
-		x = info[0];
-		y = info[1];
-		w = info[2]*scale;
-		h = info[3]*scale;
+		name = myName;
+		id = myID;
+		textureID = myTextureID;
+
+		pos.Set( info[0], info[1] );
+		size.Set( info[2], info[3] );
 
 		curHealth = info[4];
 		destroyable = info[5];
-		stopsSpells = info[6];
-		stopsHumans = info[7];
-		
-		pos = {info[8], info[9], (int) (info[10]*scale), (int) (info[11]*scale)};
-		frame = {info[12], info[13], info[14], info[15]};
-	}
-	void Set( int mX, int mY )
-	{
-		x = mX;
-		y = mY;
-	}
+		stopsHumans = info[6];
+		stopsSpells = info[7];
 
-	obsticle_t( std::string myName, int *info, int myTextureID )
-	{
-		name = myName;
-		textureID = myTextureID;
-		
-		w = info[0];
-		h = info[1];
-		
-		curHealth = info[2];
-		destroyable = info[3];
-		stopsHumans = info[4];
-		stopsSpells = info[5];
-
-		pos = { 0, 0, info[6], info[7] };
-		frame = { info[8], info[9], info[10], info[11] };
+		screnPos = {0, 0, info[8], info[9]};
+		frame = {info[10], info[11], info[12], info[13]};
 	}
 	obsticle_t()
 	{}
