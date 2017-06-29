@@ -144,52 +144,7 @@ struct human_t
 
 	TCPsocket socket;
 	bool active = false;
-	/*
-	void CreateFromInfo( std::vector<int> info, int giveMeID, int giveMeTextureID, int giveMeThreadID, float scale = 1 )
-	{
-		for( int i=0;i<5;i++ )
-			spellWaitTime[i]=0;
-		id = giveMeID;
-		textureID = giveMeTextureID;
-		threadID = giveMeThreadID;
-		state = info[0];
-		x = info[1];
-		y = info[2];
-		w = info[3]*scale;
-		h = info[4]*scale;
-
-		maxHealth = info[5];
-		curHealth = maxHealth;
-		normSpeed = info[6];
-		pos = {info[7], info[8], (int) (info[9]*scale), (int) (info[10]*scale)};
-		frame = {info[11], info[12], info[13], info[14]};
-		
-		if( frame.y == frame.h*0 )
-			prevDrawDirection = 's';
-		if( frame.y == frame.h*1 )
-			prevDrawDirection = 'w';
-		if( frame.y == frame.h*2 )
-			prevDrawDirection = 'e';
-		if( frame.y == frame.h*3 )
-			prevDrawDirection = 'n';
-
-		for( int i=15;i<info.size();i++ )
-			avalSpells.push_back( info[i] );
-		if( !avalSpells.empty() )
-		{
-			curSpellNum = 0;
-			eqpSpell = avalSpells[0];
-		}
-		for( int i=0;i<200;i++ )
-			spellWaitTime[i] = 0;
-
-		flag_t start;
-		start.x = x;
-		start.y = y;
-		patrolPoint.push_back(start);
-
-	}
-	*/
+	
 	void DrawDir()
 	{
 		switch(drawDirection)
@@ -283,65 +238,6 @@ struct obsticle_t
 	obsticle_t()
 	{}
 };
-struct aoe_t
-{
-	int id;
-	SDL_Rect pos;
-	SDL_Rect frame;
-	int frames;
-	int textureID;
-	double angle;
-	SDL_Point* point = NULL;
-	SDL_RendererFlip flip = SDL_FLIP_NONE;
-	char dir;
-	int castByID;
-	int dmg;
-	int waitTime;
-	int usrSlowDown;
-	int usrSlowDownDur;
-	int speed;
-	int duration;
-	int x;
-	int y;
-	int w;
-	int h;
-	void Draw()
-	{
-        if(duration<=-1)
-	    {
-        	        duration--;
-                	return;
-		}
-		frame.x += frame.w;
-		
-		if( frame.x >= frames*frame.w )
-		{
-			frame.x = 0;
-			if( duration == 0 )
-			{
-				frame.x = frames*frame.w;
-				duration = -1;
-			}
-		}
-	}
-	void CreateFromInfo( std::vector<int> info, int getTextureID, float scale = 1 )
-	{
-		textureID = getTextureID;
-		dmg = info[0];
-		speed = info[1];
-		w = info[2];
-		h = info[3];
-		duration = info[4];
-		usrSlowDown = info[5];
-		usrSlowDownDur = info[6];
-		waitTime = info[7];
-		pos.w = (float) info[8]*scale;
-		pos.h = (float) info[9]*scale;
-		frame = { info[10], info[11], info[12], info[13] };
-		frames = info[14];
-	}
-};
-
 struct pathSegment_t
 {
 	char type;
@@ -377,80 +273,6 @@ struct path_t
 		return segments.empty();
 	}
 	
-};
-struct bullet_t
-{
-	point_t location;
-	int w;
-	int h;
-
-	int remainingTime;
-	int changePathTime;
-	path_t path;
-	void UpdatePos( point_t update )
-	{
-		location.Update( update.x, update.y );
-	}
-	void SetPos( point_t myPos )
-	{
-		location.Set( myPos.x, myPos.y );
-	}		
-	void Rotate( int angle )
-	{
-		path.Rotate( angle );
-	}
-	SDL_Rect MakeRect()
-	{
-		SDL_Rect myRect;
-		myRect.x = location.x;
-		myRect.y = location.y;
-		myRect.w = w;
-		myRect.h = h;
-	}
-
-	int textureID;
-	int castByID;
-	int dmg;
-	double angle;
-	SDL_Rect pos;
-	SDL_Rect frame;
-
-
-
-};
-struct spawner_t
-{
-	point_t pos;
-	bullet_t blueprint;
-	int angleOffset = 0;
-	
-	int changePathTime;
-	int timeToSpawn;
-	int interval;
-	int numBulletsToSpawn;
-	int spawnedBullets = 0;
-
-	path_t path;
-
-	bullet_t CreateBullet()
-	{
-		bullet_t bullet = blueprint;
-		bullet.SetPos( pos );
-		bullet.Rotate( angleOffset );
-		return bullet;
-	}
-
-	spawner_t( int mx, int my, int myAngle, int myInterval, int numBullets )
-	{
-		pos.Set( mx, my );
-		angleOffset = myAngle;
-		numBulletsToSpawn = numBullets;
-		interval = myInterval;
-	}
-};
-struct attack_t
-{
-	std::vector< spawner_t > spawners;
 };
 
 struct texture_t

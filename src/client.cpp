@@ -29,18 +29,11 @@ bool ConnectToServer( const char* address = "localhost", Uint16 port = DEFAULT_P
 #include "init.h"
 #include "input.h"
 
-//std::vector<texture_t> textures;
 void LoadTextures( texture_t &txtr )
 {
 	txtr.texture = IMG_LoadTexture( renderer, txtr.filename );
 	free( txtr.binaryTexture);
 }
-/*
-std::vector<human_t> humanTemplates;
-std::vector<human_t> humans;
-std::vector<obsticle_t> roadblockTemplates;
-std::vector<obsticle_t> roadblock;
-*/
 
 SDL_Rect backgroundPos;
 SDL_Rect defBackgroundPos;

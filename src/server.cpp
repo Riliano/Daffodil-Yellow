@@ -18,12 +18,8 @@ void StartServer( Uint16 port, int serverSize )
 
 //#include "load.cpp"
 #include "move.cpp"
-/*
-std::vector<human_t> humanTemplates;
-std::vector<human_t> humans;
-std::vector<obsticle_t> roadblockTemplates;
-std::vector<obsticle_t> roadblock;
-*/
+//#incluide "ai.cpp"
+
 void NetRecieve( human_t &sender );
 void NetSend();
 void NewClient( TCPsocket socket );
