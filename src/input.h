@@ -38,9 +38,9 @@ void ScanKeyboard()
 int spellchngTimeout = 0;
 void AnalyzeInput( human_t &someone )
 {
-	for( int i=0;i<input.size();i++ )
-		if( input[i].active )
-			someone.active = true;
+//	for( int i=0;i<input.size();i++ )
+//		if( input[i].active )
+//			someone.active = true;
 	if( input[0].active )
 		someone.movDirection[0] = 'n';
 	if( input[1].active )
@@ -59,6 +59,7 @@ void AnalyzeInput( human_t &someone )
 		someone.attDirection = 'e';
 //	if( input[8].active)
 //		someone.speed = someone.normSpeed*1.8;
+/*
 	if( input[9].active and spellchngTimeout == 0 )
 	{
 		someone.curSpellNum++;
@@ -77,6 +78,7 @@ void AnalyzeInput( human_t &someone )
 		spellchngTimeout--;
 	if( !someone.avalSpells.empty() )
 		someone.eqpSpell = someone.avalSpells[someone.curSpellNum];
+		*/
 
 }
 void ResetKeyboard()

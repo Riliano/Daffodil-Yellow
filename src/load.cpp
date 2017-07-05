@@ -1,3 +1,83 @@
+int LoadTexture( std::string filename )
+{
+	for( int i=0;i<textures.size();i++ )
+	{
+		// Check if the texture already exist and return its position in the textures vector
+		if( strcmp( textures[i].filename, filename.data() ) == 0 )
+			return i;
+	}
+	texture_t newTexture( filename.data(), textures.size() );
+	textures.push_back( newTexture );
+	return textures.size()-1;
+}
+void LoadLevel( const char *filename )
+{
+	std::ifstream file( filename );
+	if( !file.is_open() )
+	{
+		std::cout<<"Error opening level file"<<std::endl;
+		return;
+	}
+
+	while( !file.eof() )
+	{
+		std::string line;
+		do
+			std::getline( file, line );
+		while( ( line[0] == '#' or line.length() < 2 ) and !file.eof() );
+		std::stringstream ss( line );
+
+		char operation;
+		ss>>operation;
+		// Load an object
+		if( operation == 'l' )
+		{
+			char type;
+			ss>>type;
+			// Load human
+			if( type == 'h' )
+			{
+				std::string name;
+				ss>>name;
+				int info[7];
+				int textureID;
+				while( ss )
+				{
+					char parameter;
+					ss>>parameter;
+					// set the dimensions/size of the human
+					if( parameter == 's' )
+						ss>>info[0]>>info[1];
+					// set the maximum speed/velocity of the duman
+					if( parameter == 'v' )
+						ss>>info[2];
+					// set the maximum health/hitpoints of the human
+					if( parameter == 'h' )
+						ss>>info[3];
+					// set the frame of the human
+					if( parameter == 'f' )
+						ss>>info[5]>>info[6];
+					// set the texture of the human
+					if( parameter == 't' )
+					{
+						std::string textureName;
+						ss>>textureName;
+						textureID = LoadTexture( textureName );
+					}
+				}
+				humanTemplate_t newHumanTemplate( info, textureID );
+				humanTemplates.push_back( newHumanTemplate );
+			}
+
+		}
+
+
+	}
+}
+
+
+
+/*
 void LoadObjects( const char *filename, char type )
 {
 	std::ifstream file( filename );
@@ -143,7 +223,7 @@ void LoadLevel( const char *fileName, float scale = 1 )
 		}
 	}
 }
-
+*/
 /*
 void LoadLevel( char levelFileName[], float scale = 1 )
 {

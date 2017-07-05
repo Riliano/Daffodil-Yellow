@@ -35,6 +35,13 @@ void LoadTextures( texture_t &txtr )
 	free( txtr.binaryTexture);
 }
 
+void Quit()
+{
+	clientIsOn = false;
+	SDL_Quit();
+	SDL_DestroyWindow( window );
+}
+
 SDL_Rect backgroundPos;
 SDL_Rect defBackgroundPos;
 texture_t background;
@@ -48,6 +55,7 @@ int textureIDTable[2000];
 int playerID = -1;
 
 void GetMessage();
+bool recievedInitalInfo = false;
 
 void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 {
@@ -60,27 +68,33 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
 
-	if( address == "localhost" )
-		while( !serverIsOn ){}
+//	if( address == "localhost" )
+//		while( !serverIsOn ){}
     bool connection = ConnectToServer( address, port );
 	if( !connection )
 	{
-		clientIsOn = false;
-		SDL_Quit();
-		SDL_DestroyWindow( window );
+		Quit();
 		return;
 	}
 
 	std::cout<<"Getting info from server"<<std::endl;
-	while( playerID == -1 )
+	
+	int active = SDLNet_CheckSockets( chkClient, 10000 );
+	if( active <= 0 )
 	{
-		int active = SDLNet_CheckSockets( chkClient, 0 );
-		while( active > 0 )
-		{
-			GetMessage();
-			active = SDLNet_CheckSockets( chkClient, 0 );
-		}
+		std::cout<<"Server didn't respond"<<std::endl;
+		Quit();
+		return;
 	}
+	while( active > 0 )
+	{
+		GetMessage();
+		active = SDLNet_CheckSockets( chkClient, 0 );
+		if( recievedInitalInfo )
+			break;
+	}
+	if( !recievedInitalInfo )
+		std::cout<<"Didn't recieved flag for end from server, proceeding anyway"<<std::endl;
 
 	texture_t numbers( "Textures/numbers.png" );
 	LoadTextures( numbers );
@@ -105,24 +119,25 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
         {
             if( e.type == SDL_QUIT )
             {
-                SDL_Quit();
-				SDL_DestroyWindow( window );
 				std::cout<<"Closing Client"<<std::endl;
-				clientIsOn = false;
+                Quit();
                 return;
             }
         }
+		/*
         if( SDL_GetTicks() - inputT >= 10 and humans.size() > 0 )
 		{
 			ScanKeyboard();
-			AnalyzeInput( humans[playerID] );
+			//AnalyzeInput( humans[playerID] );
 			ResetKeyboard();
 
 			inputT = SDL_GetTicks();
 		}
+		*/
 
         if( SDL_GetTicks() - sendNetT >= 10 )
 		{
+			/*
 			if( humans.size() > 0 )
 			{
 				if( humans[playerID].active )
@@ -137,6 +152,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 					humans[playerID].active = false;
 				}
 			}
+			*/
 			sendNetT = SDL_GetTicks();
 		}
 
@@ -163,25 +179,31 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			//std::cout<<SDL_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
-/*
+
 		if( background.texture != NULL )
 	    	SDL_RenderCopy( renderer, background.texture, NULL, &backgroundPos );
+		/*
 		for( int i = 0;i<roadblock.size();i++ )
 		{
-			roadblock[i].pos.x = humans[playerID].pos.x - humans[playerID].x + roadblock[i].x;// + (roadblock[i].pos.w - roadblock[i].w)/2;
-			roadblock[i].pos.y = humans[playerID].pos.y - humans[playerID].y + roadblock[i].y;// + (roadblock[i].pos.h - roadblock[i].h)/2;
-			SDL_RenderCopy( renderer, textures[roadblock[i].textureID].texture, &roadblock[i].frame, &roadblock[i].pos );
+			roadblock[i].screenPos.x = humans[playerID].screenPos.x - humans[playerID].pos.x + roadblock[i].pos.x;// + (roadblock[i]. .w - roadblock[i].w)/2;
+			roadblock[i].screenPos.y = humans[playerID].screenPos.y - humans[playerID].pos.y + roadblock[i].pos.y;// + (roadblock[i].pos.h - roadblock[i].h)/2;
+			SDL_RenderCopy( renderer, textures[roadblock[i].textureID].texture, &roadblock[i].frame, &roadblock[i].screenPos );
 		}
+		
         for( int i = 0;i<humans.size();i++ )
 		{
 			if( i!=playerID )
 			{
-				humans[i].pos.x = humans[playerID].pos.x - humans[playerID].x + humans[i].x;// + (humans[i].pos.w - humans[i].w)/2;
-				humans[i].pos.y = humans[playerID].pos.y - humans[playerID].y + humans[i].y;// + (humans[i].pos.h - humans[i].h)/2;
+				humans[i].screenPos.x = humans[playerID].screenPos.x - humans[playerID].pos.x + humans[i].pos.x;// + (humans[i].pos.w - humans[i].w)/2;
+				humans[i].screenPos.y = humans[playerID].screenPos.y - humans[playerID].pos.y + humans[i].pos.y;// + (humans[i].pos.h - humans[i].h)/2;
 			}
-			SDL_RenderCopy( renderer, textures[humans[i].textureID].texture, &humans[i].frame, &humans[i].pos );
+			SDL_RenderCopy( renderer, textures[humans[i].textureID].texture, &humans[i].frame, &humans[i].screenPos );
 		}
-		
+		*/
+		for( int i=0;i<textures.size();i++ )
+		{
+			SDL_RenderCopy( renderer, textures[i].texture, NULL, NULL );
+		}
 		if( ShouldIDisplayFPS() )
 		{
 			for( int i=0;i<sframes.size();i++ )
@@ -192,7 +214,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			}
 			frames++;
 		}
-*/
+
         SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
     }
@@ -221,7 +243,7 @@ void GetMessage()
 	// Recived list of textures
 	if( meta[0] == 1 )
 	{
-
+		//texture_t newTexture;
 	}
 	// Recived human templates
 	if( meta[0] == 2 )
@@ -250,6 +272,10 @@ void GetMessage()
 	{
 
 	}
+	if( meta[0] == 7 )
+	{
+		recievedInitalInfo = message[0];
+	}
 	// Recieve texture
 	if( meta[0] == 10 )
 	{
@@ -258,10 +284,12 @@ void GetMessage()
 	// Update position of humans
 	if( meta[0] == 20 )
 	{
+		/*
 		for( int i=0;i<meta[1];i+=3 )
 		{
 			humans[ humanIDTable[ message[i] ] ].pos.Set( message[i+1], message[i+2] );
 		}
+		*/
 	}
 	// Remove human
 	if( meta[0] == 21 )

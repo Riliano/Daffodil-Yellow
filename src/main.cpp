@@ -22,10 +22,10 @@
 bool serverIsOn = false;
 bool clientIsOn = false;
 
-std::vector<human_t> humanTemplates;
-std::vector<human_t> humans;
-std::vector<obsticle_t> roadblockTemplates;
-std::vector<obsticle_t> roadblock;
+std::vector<humanTemplate_t> humanTemplates;
+//std::vector<human_t> humans;
+std::vector<obsticle_t> objectTemplates;
+//std::vector<obsticle_t> roadblock;
 std::vector<texture_t> textures;
 
 const int DEFAULT_PORT = 1234;

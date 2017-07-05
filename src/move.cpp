@@ -1,5 +1,6 @@
 bool MoveHuman( human_t &someone )
 {
+	/*
 	SDL_Rect oldPos = {(int)someone.pos.x, (int)someone.pos.y, someone.size.w, someone.size.h};
 //	if( someone.movDirection[0] != 0 and someone.movDirection[1] != 0 )
 //		someone.curSpeed  = std::sqrt( someone.;
@@ -40,6 +41,7 @@ bool MoveHuman( human_t &someone )
 			return false;
 		}
 	}
+	/*
 	for( int i = 0;i<humans.size();i++ )
 	{
 		if( humans[i].id != someone.id )
@@ -55,8 +57,9 @@ bool MoveHuman( human_t &someone )
 			}
 		}
 	}
+	*/
 	someone.movDirection[0] = 0;
 	someone.movDirection[1] = 0;
-	someone.curSpeed = someone.normSpeed;
+	//someone.curSpeed = someone.normSpeed;
 	return true;
 }

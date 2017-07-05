@@ -5,6 +5,16 @@
 TCPsocket server;
 SDLNet_SocketSet allConnectedSockets;
 
+struct client_t
+{
+	human_t human;
+	TCPsocket socket;
+	bool active;
+};
+
+std::vector< client_t > clients;
+std::vector< obsticle_t > objects;
+
 void StartServer( Uint16 port, int serverSize )
 {
 	IPaddress ip;
@@ -16,18 +26,20 @@ void StartServer( Uint16 port, int serverSize )
 	SDLNet_TCP_AddSocket( allConnectedSockets, server );
 }
 
-//#include "load.cpp"
+#include "load.cpp"
 #include "move.cpp"
 //#incluide "ai.cpp"
 
-void NetRecieve( human_t &sender );
+void NetRecieve( client_t &sender );
 void NetSend();
 void NewClient( TCPsocket socket );
 
 void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZE )
 {
+
 	std::string level = "Levels/1.lvl";
-//	LoadLevel( level.data() );
+	LoadLevel( level.data() );
+	std::cout<<"Server: Done with loading"<<std::endl;
 	StartServer( port, serverSize );
 
 	long long movT = SDL_GetTicks();
@@ -51,12 +63,12 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 					NewClient( SDLNet_TCP_Accept( server ) );
 				}
 			}
-			for( int i=0;i<humans.size() and numActive > 0;i++ )
+			for( int i=0;i<clients.size() and numActive > 0;i++ )
 			{
-				if( SDLNet_SocketReady( humans[i].socket ) )
+				if( SDLNet_SocketReady( clients[i].socket ) )
 				{
 					numActive--;
-					NetRecieve( humans[i] );
+					NetRecieve( clients[i] );
 				}
 			}
 			chkNetT = SDL_GetTicks();
@@ -71,13 +83,10 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 		// Update movement
 		if( SDL_GetTicks() - movT >= 1000/60 )
 		{
-			for( int i=0;i<humans.size();i++ )
+			for( int i=0;i<clients.size();i++ )
 			{
-				if( humans[i].state != 0 )
-				{
-					humans[i].DrawDir();
-					MoveHuman( humans[i] );
-				}
+				//humans[i].DrawDir();
+				MoveHuman( clients[i].human );
 			}
 			movT = SDL_GetTicks();
 		}
@@ -96,14 +105,20 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
-	human_t newPlayer( socket );
-	humans.push_back( newPlayer );
-}
-void RemoveClient( human_t &someone )
-{
 
+//	human_t newPlayer( socket );
+	//	humans.push_back( newPlayer );
+	///REMOVE
+	Uint8 meta[2] = {7, 1};
+	int message[] = {true};
+	SDLNet_TCP_Send( socket, meta, 2 );
+	SDLNet_TCP_Send( socket, message, meta[1] );
 }
-void NetRecieve( human_t &sender )
+void RemoveClient( client_t &someone )
+{
+	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
+}
+void NetRecieve( client_t &sender )
 {
 	Uint8 meta[2];
 	int recv = SDLNet_TCP_Recv( sender.socket, meta, 2 );
@@ -121,8 +136,8 @@ void NetRecieve( human_t &sender )
 	if( meta[0] == 0 )
 	{
 		//User has send his username
-		for( int i=0;i<meta[1];i++ )
-			sender.name[i]=msg[i];
+		//for( int i=0;i<meta[1];i++ )
+		//	sender.name[i]=msg[i];
 	}
 	if( meta[0] == 1 )
 	{
@@ -135,14 +150,16 @@ void NetRecieve( human_t &sender )
 	if( meta[0] == 10 )
 	{
 		//User has send his input
-		sender.movDirection[0] = msg[0];
-		sender.movDirection[1] = msg[1];
-		sender.attDirection = msg[2];
-		sender.active = true;
+		sender.human.movDirection[0] = msg[0];
+		sender.human.movDirection[1] = msg[1];
+		sender.human.attDirection = msg[2];
+		//sender.active = true;
+		//std::cout<<"Hi "<<msg<<std::endl;
 	}
 }
 void NetSend()
 {
+	/*
 	int humanPosMsg[ 800 ];
 	Uint8 humanPosMsgLen=0;
 	for( int i=0;i<humans.size();i++ )
@@ -166,4 +183,5 @@ void NetSend()
 			SDLNet_TCP_Send( humans[i].socket, humanPosMsg, humanPosMsgLen*4 );
 		}
 	}
+	*/
 }

@@ -92,7 +92,7 @@ struct worker_t
 	bool done = true;
 	bool quit = false;
 };
-
+/*
 struct human_t
 {
 	point_t pos;
@@ -142,8 +142,8 @@ struct human_t
 	int switchToNextPoint = 1;
 	bool cycle = true;
 
-	TCPsocket socket;
-	bool active = false;
+	//TCPsocket socket;
+	//bool active = false;
 	
 	void DrawDir()
 	{
@@ -191,12 +191,60 @@ struct human_t
 		screenPos = { 0, 0, info[4], info[5] };
 		frame = { info[6], info[7], info[8], info[9] };
 	}
-	human_t ( TCPsocket sck )
-	{
-		socket = sck;
-	}
 	human_t()
 	{}
+};
+*/
+struct humanTemplate_t
+{
+	objSize_t size;
+	int textureID;
+	char drawDirection;
+	float maxSpeed;
+	int maxHp;
+	SDL_Rect frame;
+	bool playerTemplate = false;
+
+	void CreateFromInfo( int *info, int myTextureID )
+	{
+		textureID = myTextureID;
+		size.Set( info[0], info[1] );
+		maxSpeed = info[2];
+		maxHp = info[3];
+		playerTemplate = info[4];
+		frame.w = info[5];
+		frame.h = info[6];
+	}
+
+	humanTemplate_t( int *info, int myTextureID )
+	{
+		CreateFromInfo( info, myTextureID );
+	}
+	humanTemplate_t()
+	{}
+};
+struct human_t
+{
+	std::string name;
+	humanTemplate_t *humanTemplate;
+	point_t pos;
+	objSize_t *size;
+	int curHp;
+	float curSpeed;
+
+	char movDirection[2];
+	char attDirection;
+
+	void Deploy( humanTemplate_t *myTemplate, int x, int y, int w = -1, int h = -1 )
+	{
+		pos.Set( x, y );
+		humanTemplate = myTemplate;
+		size = &(humanTemplate->size);
+		if( w != -1 )
+			size->w = w;
+		if( h != -1 )
+			size->h = h;
+	}
 };
 
 struct obsticle_t
@@ -209,7 +257,7 @@ struct obsticle_t
 	int textureID;
 	int id;
 
-	SDL_Rect screnPos;
+	SDL_Rect screenPos;
 	SDL_Rect frame;
 
 	int curHealth;
@@ -232,7 +280,7 @@ struct obsticle_t
 		stopsHumans = info[6];
 		stopsSpells = info[7];
 
-		screnPos = {0, 0, info[8], info[9]};
+		screenPos = {0, 0, info[8], info[9]};
 		frame = {info[10], info[11], info[12], info[13]};
 	}
 	obsticle_t()
