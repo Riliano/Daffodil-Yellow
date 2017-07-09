@@ -32,7 +32,7 @@ bool ConnectToServer( const char* address = "localhost", Uint16 port = DEFAULT_P
 void LoadTextures( texture_t &txtr )
 {
 	txtr.texture = IMG_LoadTexture( renderer, txtr.filename );
-	free( txtr.binaryTexture);
+//	delete txtr.binaryTexture;
 }
 
 void Quit()
@@ -40,6 +40,7 @@ void Quit()
 	clientIsOn = false;
 	SDL_Quit();
 	SDL_DestroyWindow( window );
+	std::exit( 0 );
 }
 
 SDL_Rect backgroundPos;
@@ -67,7 +68,6 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
-
 //	if( address == "localhost" )
 //		while( !serverIsOn ){}
     bool connection = ConnectToServer( address, port );
@@ -78,13 +78,11 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 	}
 
 	std::cout<<"Getting info from server"<<std::endl;
-	
 	int active = SDLNet_CheckSockets( chkClient, 10000 );
 	if( active <= 0 )
 	{
 		std::cout<<"Server didn't respond"<<std::endl;
 		Quit();
-		return;
 	}
 	while( active > 0 )
 	{
@@ -96,11 +94,13 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 	if( !recievedInitalInfo )
 		std::cout<<"Didn't recieved flag for end from server, proceeding anyway"<<std::endl;
 
-	texture_t numbers( "Textures/numbers.png" );
+	texture_t numbers( "Textures/numbers.png", false );
 	LoadTextures( numbers );
+
 	for( int i=0;i<textures.size();i++ )
 		LoadTextures( textures[i] );
 
+	
 	long long inputT = SDL_GetTicks();
 	long long infoT = SDL_GetTicks();
 	long long fpsT = SDL_GetTicks();
@@ -111,7 +111,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
     int frames;
     std::vector<int> sframes;
 	sframes.push_back(0);
-
+	
 	std::cout<<"Client: Entering main loop"<<std::endl;
     while( true )
     {
@@ -121,7 +121,6 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
             {
 				std::cout<<"Closing Client"<<std::endl;
                 Quit();
-                return;
             }
         }
 		/*
@@ -218,6 +217,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
         SDL_RenderPresent( renderer );
 		SDL_RenderClear( renderer );
     }
+	return;
 }
 
 void GetMessage()
@@ -230,10 +230,12 @@ void GetMessage()
 //		intMessage = false;
 
 	int message[ meta[1] ];
+	int size = meta[1]*4;
 
 	int recieved = 0;
-	while( recieved < meta[1] )
-		recieved = SDLNet_TCP_Recv( client, message+recieved, meta[1]-recieved );
+	do
+		recieved = SDLNet_TCP_Recv( client, message+recieved, size-recieved );
+	while( recieved < size and recieved > 0 );
 	
 	// Recieved ID
 	if( meta[0] == 0 )

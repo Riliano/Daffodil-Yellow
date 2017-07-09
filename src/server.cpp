@@ -112,7 +112,7 @@ void NewClient( TCPsocket socket )
 	Uint8 meta[2] = {7, 1};
 	int message[] = {true};
 	SDLNet_TCP_Send( socket, meta, 2 );
-	SDLNet_TCP_Send( socket, message, meta[1] );
+	SDLNet_TCP_Send( socket, message, meta[1]*4 );
 }
 void RemoveClient( client_t &someone )
 {

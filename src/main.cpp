@@ -82,4 +82,6 @@ int main( int argc, char **argv )
 	while( clientIsOn )
 	{}
 	client.join();
+	SDLNet_Quit();
+	return 0;
 }

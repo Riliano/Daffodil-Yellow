@@ -20,7 +20,7 @@ struct input_t
 std::vector<input_t> input;
 void InitInput()
 {
-	std::fstream keyLayout;
+	std::ifstream keyLayout;
 	keyLayout.open( "Configs/keyboard.cfg" );
 	while( !keyLayout.eof() )
 	{

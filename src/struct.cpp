@@ -197,6 +197,7 @@ struct human_t
 */
 struct humanTemplate_t
 {
+	std::string name;
 	objSize_t size;
 	int textureID;
 	char drawDirection;
@@ -327,11 +328,11 @@ struct texture_t
 {
 	int id;
 	char filename[200];
-	char *binaryTexture;
+	char *binaryTexture = nullptr;
 	unsigned char hash[ SHA256_DIGEST_LENGTH ];
 	SDL_Texture *texture = NULL;
 	int fileSize;
-	texture_t( const char *myName, int myId = 0 )
+	texture_t( const char *myName, bool makeHash = true, int myId = 0 )
 	{
 		id = myId;
 		int i;
@@ -339,22 +340,25 @@ struct texture_t
 			filename[i] = myName[i];
 		filename[i] = '\0';
 
-		std::ifstream file;
-		file.open( filename, std::ifstream::binary );
-		if( file.is_open() )
+		if( makeHash )
 		{
-			file.seekg( 0, file.end );
-			fileSize = (int)file.tellg();
-			file.seekg( 0, file.beg );
-			binaryTexture = new char[fileSize];
-			file.read( binaryTexture, fileSize );
-			file.close();
-		}
+			std::ifstream file;
+			file.open( filename, std::ifstream::binary );
+			if( file.is_open() )
+			{
+				file.seekg( 0, file.end );
+				fileSize = (int)file.tellg();
+				file.seekg( 0, file.beg );
+				binaryTexture = new char[fileSize];
+				file.read( binaryTexture, fileSize );
+				file.close();
+			}
 
-		SHA256_CTX sha256ctx;
-		SHA256_Init( &sha256ctx );
-		SHA256_Update( &sha256ctx, binaryTexture, fileSize );
-		SHA256_Final( hash, &sha256ctx );
+			SHA256_CTX sha256ctx;
+			SHA256_Init( &sha256ctx );
+			SHA256_Update( &sha256ctx, binaryTexture, fileSize );
+			SHA256_Final( hash, &sha256ctx );
+		}
 	}
 	texture_t()
 	{}

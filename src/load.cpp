@@ -34,39 +34,56 @@ void LoadLevel( const char *filename )
 		{
 			char type;
 			ss>>type;
-			// Load human
+			// Load object
+		
+			std::string name;
+			ss>>name;
+			int info[10];
+			int textureID;
+			while( ss )
+			{
+				char parameter;
+				ss>>parameter;
+
+				// set the texture of the object
+				if( parameter == 't' )
+				{
+					std::string textureName;
+					ss>>textureName;
+					textureID = LoadTexture( textureName );
+				}
+				// set the dimensions/size of the object
+				if( parameter == 's' )
+					ss>>info[0]>>info[1];
+				// set the maximum health/hitpoints of the object
+				if( parameter == 'h' )
+					ss>>info[2];
+				// set the frame of the object
+				if( parameter == 'f' )
+					ss>>info[3]>>info[4];
+				// set the maximum speed/velocity of the object
+				if( parameter == 'v' )
+					ss>>info[5];
+				// set if object is destroyable
+				if( parameter == 'D' )
+					ss>>info[5];
+				// set if object is passable through humans
+				if( parameter == 'H' )
+					ss>>info[6];
+				// set if object is passable through bullets
+				if( parameter == 'B' )
+					ss>>info[7];
+				
+			}
 			if( type == 'h' )
 			{
-				std::string name;
-				ss>>name;
-				int info[7];
-				int textureID;
-				while( ss )
-				{
-					char parameter;
-					ss>>parameter;
-					// set the dimensions/size of the human
-					if( parameter == 's' )
-						ss>>info[0]>>info[1];
-					// set the maximum speed/velocity of the duman
-					if( parameter == 'v' )
-						ss>>info[2];
-					// set the maximum health/hitpoints of the human
-					if( parameter == 'h' )
-						ss>>info[3];
-					// set the frame of the human
-					if( parameter == 'f' )
-						ss>>info[5]>>info[6];
-					// set the texture of the human
-					if( parameter == 't' )
-					{
-						std::string textureName;
-						ss>>textureName;
-						textureID = LoadTexture( textureName );
-					}
-				}
 				humanTemplate_t newHumanTemplate( info, textureID );
+				newHumanTemplate.name = name;
 				humanTemplates.push_back( newHumanTemplate );
+			}
+			if( type == 'r')
+			{
+				//obsticle_t
 			}
 
 		}
