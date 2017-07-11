@@ -10,6 +10,14 @@ struct client_t
 	human_t human;
 	TCPsocket socket;
 	bool active;
+
+	client_t( TCPsocket sck )//, humanTemplate_t templt )
+	{
+		socket = sck;
+//		human = MakeHuman( templt );
+	}
+	client_t()
+	{}
 };
 
 std::vector< client_t > clients;
@@ -60,6 +68,7 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 				if( SDLNet_SocketReady( server ) )
 				{
 					numActive--;
+					std::cout<<"server: New client"<<std::endl;
 					NewClient( SDLNet_TCP_Accept( server ) );
 				}
 			}
@@ -105,6 +114,8 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
+	client_t newClient( socket );//, humanTemplates[0] );
+	clients.push_back( newClient );
 
 //	human_t newPlayer( socket );
 	//	humans.push_back( newPlayer );
@@ -132,29 +143,28 @@ void NetRecieve( client_t &sender )
 	char msg[meta[1]];
 	int fetched = 0;
 	while( fetched < meta[1] )
-		SDLNet_TCP_Recv( sender.socket, msg+fetched, meta[1]-fetched );
+		fetched = SDLNet_TCP_Recv( sender.socket, msg+fetched, meta[1]-fetched );
 	if( meta[0] == 0 )
 	{
-		//User has send his username
+		// User has send his username
 		//for( int i=0;i<meta[1];i++ )
 		//	sender.name[i]=msg[i];
 	}
 	if( meta[0] == 1 )
 	{
-		//User has requested textures
+		// User has requested textures
 	}
 	if( meta[0] == 2 )
 	{
-		//User had choosen a charakter
+		// User had choosen a charackter
 	}
 	if( meta[0] == 10 )
 	{
-		//User has send his input
-		sender.human.movDirection[0] = msg[0];
-		sender.human.movDirection[1] = msg[1];
-		sender.human.attDirection = msg[2];
+		// User has send his input
+		//sender.human.movDirection[0] = msg[0];
+		//sender.human.movDirection[1] = msg[1];
+		//sender.human.attDirection = msg[2];
 		//sender.active = true;
-		//std::cout<<"Hi "<<msg<<std::endl;
 	}
 }
 void NetSend()

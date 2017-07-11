@@ -36,27 +36,27 @@ void ScanKeyboard()
 		input[i].check();
 }
 int spellchngTimeout = 0;
-void AnalyzeInput( human_t &someone )
+void AnalyzeInput( char *result, bool &keyPressed )
 {
-//	for( int i=0;i<input.size();i++ )
-//		if( input[i].active )
-//			someone.active = true;
+	for( int i=0;i<input.size();i++ )
+		if( input[i].active )
+			keyPressed = true;
 	if( input[0].active )
-		someone.movDirection[0] = 'n';
+		result[0] = 'n';
 	if( input[1].active )
-		someone.movDirection[0] = 's';
+		result[0] = 's';
 	if( input[2].active )
-		someone.movDirection[1] = 'w';
+		result[1] = 'w';
 	if( input[3].active )
-		someone.movDirection[1] = 'e';
+		result[1] = 'e';
 	if( input[4].active )
-		someone.attDirection = 'n';
+		result[2] = 'n';
 	if( input[5].active )
-		someone.attDirection = 's';
+		result[2] = 's';
 	if( input[6].active )
-		someone.attDirection = 'w';
+		result[2] = 'w';
 	if( input[7].active )
-		someone.attDirection = 'e';
+		result[2] = 'e';
 //	if( input[8].active)
 //		someone.speed = someone.normSpeed*1.8;
 /*

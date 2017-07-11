@@ -54,6 +54,8 @@ int humanIDTable[2000];
 int textureIDTable[2000];
 
 int playerID = -1;
+char myMessage[5];
+bool activeClient = false;
 
 void GetMessage();
 bool recievedInitalInfo = false;
@@ -123,35 +125,26 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
                 Quit();
             }
         }
-		/*
-        if( SDL_GetTicks() - inputT >= 10 and humans.size() > 0 )
+        if( SDL_GetTicks() - inputT >= 10 )
 		{
 			ScanKeyboard();
-			//AnalyzeInput( humans[playerID] );
+			AnalyzeInput( myMessage, activeClient );
 			ResetKeyboard();
 
 			inputT = SDL_GetTicks();
 		}
-		*/
 
         if( SDL_GetTicks() - sendNetT >= 10 )
 		{
-			/*
-			if( humans.size() > 0 )
+			if( activeClient )
 			{
-				if( humans[playerID].active )
-				{
-					Uint8 meta[2] = {20, 4};
-					SDLNet_TCP_Send( client, meta, 2 );
-					char info[4] = {humans[playerID].movDirection[0], humans[playerID].movDirection[1], humans[playerID].attDirection, (char)humans[playerID].eqpSpell};
-					SDLNet_TCP_Send( client, info, 4 );
-					humans[playerID].movDirection[0] = 0;
-					humans[playerID].movDirection[1] = 0;
-					humans[playerID].attDirection = 0;
-					humans[playerID].active = false;
-				}
+				Uint8 meta[2] = {10, 3};
+				SDLNet_TCP_Send( client, meta, 2 );
+				SDLNet_TCP_Send( client, myMessage, 3 );
+				for( int i=0;i<3;i++ )
+					myMessage[i] = 0;
+				activeClient = false;
 			}
-			*/
 			sendNetT = SDL_GetTicks();
 		}
 
