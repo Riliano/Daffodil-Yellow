@@ -16,8 +16,8 @@
 #include<cstring>
 #include<sstream>
 
-#include "simpleGeometry.h"
 #include "struct.cpp"
+#include "simpleGeometry.h"
 
 bool serverIsOn = false;
 bool clientIsOn = false;

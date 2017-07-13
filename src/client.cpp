@@ -147,6 +147,15 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			}
 			sendNetT = SDL_GetTicks();
 		}
+		if( SDL_GetTicks() - checkNetT >= 0 )
+		{
+			bool serverSend = SDLNet_CheckSockets( chkClient, 0 );
+			while( serverSend )
+			{
+				GetMessage();
+				serverSend = SDLNet_CheckSockets( chkClient, 0 );
+			}
+		}
 
         if( SDL_GetTicks() - fpsT >= 1000 and ShouldIDisplayFPS() )
 		{
