@@ -39,7 +39,6 @@ void LoadLevel( const char *filename )
 			std::string name;
 			ss>>name;
 			int info[10];
-			int textureID;
 			while( ss )
 			{
 				char parameter;
@@ -50,34 +49,34 @@ void LoadLevel( const char *filename )
 				{
 					std::string textureName;
 					ss>>textureName;
-					textureID = LoadTexture( textureName );
+					*(info+POS_MSG_TEXTUREID) = LoadTexture( textureName );
 				}
 				// set the dimensions/size of the object
 				if( parameter == 's' )
-					ss>>info[0]>>info[1];
+					ss>>*(info+POS_MSG_SIZE_W)>>*(info+POS_MSG_SIZE_H);
 				// set the maximum health/hitpoints of the object
 				if( parameter == 'h' )
-					ss>>info[2];
+					ss>>*(info+POS_MSG_HP);
 				// set the frame of the object
 				if( parameter == 'f' )
-					ss>>info[3]>>info[4];
+					ss>>*(info+POS_MSG_FRAME_W)>>*(info+POS_MSG_FRAME_H);
 				// set the maximum speed/velocity of the object
 				if( parameter == 'v' )
-					ss>>info[5];
+					ss>>*(info+POS_MSG_SPEED);
 				// set if object is destroyable
 				if( parameter == 'D' )
-					ss>>info[5];
+					ss>>info[6];
 				// set if object is passable through humans
 				if( parameter == 'H' )
-					ss>>info[6];
+					ss>>info[7];
 				// set if object is passable through bullets
 				if( parameter == 'B' )
-					ss>>info[7];
+					ss>>info[8];
 				
 			}
 			if( type == 'h' )
 			{
-				humanTemplate_t newHumanTemplate( info, textureID );
+				humanTemplate_t newHumanTemplate( info );
 				newHumanTemplate.name = name;
 				humanTemplates.push_back( newHumanTemplate );
 			}

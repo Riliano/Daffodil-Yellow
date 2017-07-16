@@ -115,6 +115,7 @@ void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
 	client_t newClient( socket );//, humanTemplates[0] );
+	//newClient
 	clients.push_back( newClient );
 
 //	human_t newPlayer( socket );

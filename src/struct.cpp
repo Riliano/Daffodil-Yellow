@@ -1,3 +1,12 @@
+const int POS_MSG_TEXTUREID = 0;
+const int POS_MSG_SIZE_W = 1;
+const int POS_MSG_SIZE_H = 2;
+const int POS_MSG_SPEED = 3;
+const int POS_MSG_HP = 4;
+const int POS_MSG_PTEMPLATE = 5;
+const int POS_MSG_FRAME_W = 6;
+const int POS_MSG_FRAME_H = 7;
+
 struct point_t
 {
 	double x;
@@ -206,20 +215,34 @@ struct humanTemplate_t
 	SDL_Rect frame;
 	bool playerTemplate = false;
 
-	void CreateFromInfo( int *info, int myTextureID )
+	// Copies info from int array to make a template
+	void CreateFromInfo( int *info )
 	{
-		textureID = myTextureID;
-		size.Set( info[0], info[1] );
-		maxSpeed = info[2];
-		maxHp = info[3];
-		playerTemplate = info[4];
-		frame.w = info[5];
-		frame.h = info[6];
+		textureID = *(info+POS_MSG_TEXTUREID );
+		size.Set( *(info+POS_MSG_FRAME_W), *(info+POS_MSG_FRAME_H) );
+		maxSpeed = *(info+POS_MSG_SPEED);
+		maxHp = *(info+POS_MSG_HP);
+		playerTemplate = *(info+POS_MSG_PTEMPLATE);
+		frame.w = *(info+POS_MSG_FRAME_W);
+		frame.h = *(info+POS_MSG_FRAME_H);
 	}
 
-	humanTemplate_t( int *info, int myTextureID )
+	// Copies info from the template to make an int array
+	void MakeMessage( int *msg )
 	{
-		CreateFromInfo( info, myTextureID );
+		*(msg+POS_MSG_TEXTUREID) = textureID;
+		*(msg+POS_MSG_SIZE_W) = size.w;
+		*(msg+POS_MSG_SIZE_H) = size.h;
+		*(msg+POS_MSG_SPEED) = maxSpeed;
+		*(msg+POS_MSG_HP) = maxHp;
+		*(msg+POS_MSG_PTEMPLATE) = playerTemplate;
+		*(msg+POS_MSG_FRAME_W) = frame.w;
+		*(msg+POS_MSG_FRAME_H) = frame.h;
+	}
+
+	humanTemplate_t( int *info )
+	{
+		CreateFromInfo( info );
 	}
 	humanTemplate_t()
 	{}
