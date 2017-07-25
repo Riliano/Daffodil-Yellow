@@ -239,18 +239,15 @@ void GetMessage()
 		recieved = SDLNet_TCP_Recv( client, message+recieved, size-recieved );
 	while( recieved < size and recieved > 0 );
 	
-	// Recieved ID
-	if( meta[0] == 0 )
+	if( meta[0] == MSG_META_ID )
 	{
 		playerID = message[0];
 	}
-	// Recived list of textures
-	if( meta[0] == 1 )
+	if( meta[0] == MSG_META_LIST_TEXTURES )
 	{
 		//texture_t newTexture;
 	}
-	// Recived human templates
-	if( meta[0] == 2 )
+	if( meta[0] == MSG_META_LIST_HUMAN_TEMPLATES )
 	{
 
 	}
@@ -261,32 +258,27 @@ void GetMessage()
 
 	}
 	*/
-	// Recived info on currently connected players
-	if( meta[0] == 4 )
+	if( meta[0] == MSG_META_LIST_PLAYERS )
 	{
 
 	}
-	// Recived roadblock templates
-	if( meta[0] == 5 )
+	if( meta[0] == MSG_META_LIST_ROADBLOCK_TEMPLATES )
 	{
 
 	}
-	// Recieve loaded roadblocks
-	if( meta[0] == 6 )
+	if( meta[0] == MSG_META_LIST_ROADBLOCKS )
 	{
 
 	}
-	if( meta[0] == 7 )
+	if( meta[0] == MSG_META_END_ASSET_DATA )
 	{
 		recievedInitalInfo = message[0];
 	}
-	// Recieve texture
-	if( meta[0] == 10 )
+	if( meta[0] == MSG_META_TEXTURE )
 	{
 
 	}
-	// Update position of humans
-	if( meta[0] == 20 )
+	if( meta[0] == MSG_META_POSITION_HUMANS )
 	{
 		/*
 		for( int i=0;i<meta[1];i+=3 )
@@ -295,18 +287,15 @@ void GetMessage()
 		}
 		*/
 	}
-	// Remove human
-	if( meta[0] == 21 )
+	if( meta[0] == MSG_META_REMOVE_HUMAN )
 	{
 
 	}
-	// New human
-	if( meta[0] == 22 )
+	if( meta[0] == MSG_META_NEW_HUMAN )
 	{
 
 	}
-	// Remove roadblock
-	if( meta[0] == 30 )
+	if( meta[0] == MSG_META_REMOVE_ROADBLOCK )
 	{
 
 	}

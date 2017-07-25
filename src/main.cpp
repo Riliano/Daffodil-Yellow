@@ -17,6 +17,7 @@
 #include<sstream>
 
 #include "struct.cpp"
+#include "msgMeta.cpp"
 #include "simpleGeometry.h"
 
 bool serverIsOn = false;
