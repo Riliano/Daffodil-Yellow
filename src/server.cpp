@@ -11,6 +11,21 @@ struct client_t
 	TCPsocket socket;
 	bool active;
 
+	bool wantsHumanTemplates = false;
+	bool wantsRoadblockTemplates = false;
+	std::queue<int> wantsTextureID;
+
+	void Update( int *input )
+	{
+		//TODO
+		// User has send his input
+		//sender.human.movDirection[0] = msg[0];
+		//sender.human.movDirection[1] = msg[1];
+		//sender.human.attDirection = msg[2];
+		//sender.active = true;
+
+	}
+
 	client_t( TCPsocket sck )//, humanTemplate_t templt )
 	{
 		socket = sck;
@@ -47,6 +62,17 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 
 	std::string level = "Levels/1.lvl";
 	LoadLevel( level.data() );
+
+	int *msgptr = nullptr;
+
+	int msgListHumanTemplates[ humanTemplates.size()*8 ];//human template has 8 necessary values
+	msgptr = msgListHumanTemplates;
+	for( int i=0;i<humanTemplates.size();i++ )
+	{
+		humanTemplates[i].MakeMesage( msgptr );
+		msgptr += 8;
+	}
+
 	std::cout<<"Server: Done with loading"<<std::endl;
 	StartServer( port, serverSize );
 
@@ -145,28 +171,33 @@ void NetRecieve( client_t &sender )
 	int fetched = 0;
 	while( fetched < meta[1] )
 		fetched = SDLNet_TCP_Recv( sender.socket, msg+fetched, meta[1]-fetched );
-	if( meta[0] == 0 )
+
+	st int MSG_META_NAME = 0;
+const int MSG_META_REQ_TEXTURE = 1;
+const int MSG_META_REQ_HUMAN_TEMPLATES = 2;
+const int MSG_META_REQ_ROADBLOCK_TEMPLATES = 3;
+const int MSG_META_CHOSEN_CHARACKTER = 4;
+const int MSG_META_INPUT = 10;
+
+	if( meta[0] == MSG_META_NAME )
 	{
 		// User has send his username
 		//for( int i=0;i<meta[1];i++ )
 		//	sender.name[i]=msg[i];
 	}
-	if( meta[0] == 1 )
+	if( meta[0] == MSG_META_REQ_TEXTURE )
+		for( int i=0;i<meta[1];i++ )
+			sender.wantsTextureID.push( msg[i] );
+	if( meta[0] == MSG_META_REQ_HUMAN_TEMPLATES )
+		sender.wantsHumanTemplates = true;
+	if( meta[0] == MSG_META_REQ_ROADBLOCK_TEMPLATES )
+		sender.wantsRoadblockTemplates = true;
+	if( meta[0] == MSG_META_CHOSEN_CHARACKTER )
 	{
-		// User has requested textures
+
 	}
-	if( meta[0] == 2 )
-	{
-		// User had choosen a charackter
-	}
-	if( meta[0] == 10 )
-	{
-		// User has send his input
-		//sender.human.movDirection[0] = msg[0];
-		//sender.human.movDirection[1] = msg[1];
-		//sender.human.attDirection = msg[2];
-		//sender.active = true;
-	}
+	if( meta[0] == MSG_META_INPUT )
+		sender.Update( message );
 }
 void NetSend()
 {

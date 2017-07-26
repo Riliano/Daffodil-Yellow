@@ -228,7 +228,7 @@ struct humanTemplate_t
 	}
 
 	// Copies info from the template to make an int array
-	void MakeMessage( int *msg )
+	void MakeMesage( int *msg )
 	{
 		*(msg+POS_MSG_TEXTUREID) = textureID;
 		*(msg+POS_MSG_SIZE_W) = size.w;
