@@ -209,7 +209,6 @@ struct humanTemplate_t
 	std::string name;
 	objSize_t size;
 	int textureID;
-	char drawDirection;
 	float maxSpeed;
 	int maxHp;
 	SDL_Rect frame;
@@ -251,9 +250,9 @@ struct human_t
 {
 	std::string name;
 	humanTemplate_t *humanTemplate;
+	char drawDirection;
 	point_t pos;
 	objSize_t *size;
-	char *drawDirection;
 	int curHp;
 	float curSpeed;
 
@@ -265,7 +264,6 @@ struct human_t
 		pos.Set( x, y );
 		humanTemplate = myTemplate;
 		size = &(humanTemplate->size);
-		drawDirection = &(humanTemplate->drawDirection);
 		if( w != -1 )
 			size->w = w;
 		if( h != -1 )

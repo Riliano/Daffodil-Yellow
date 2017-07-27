@@ -3,6 +3,16 @@
 #include<SDL2/SDL_image.h>
 #include<SDL2/SDL_net.h>
 
+struct player_t
+{
+	point_t pos;
+	SDL_Rect screenPos;
+	humanTemplate_t body;
+	char drawDirection;
+};
+
+std::vector< player_t > players;
+
 SDL_Renderer* renderer;
 SDL_Event e;
 
@@ -94,7 +104,10 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			break;
 	}
 	if( !recievedInitalInfo )
-		std::cout<<"Didn't recieved flag for end from server, proceeding anyway"<<std::endl;
+	{
+		std::cout<<"Didn't recieved flag for end from server, exiting..."<<std::endl;
+		Quit();
+	}
 
 	texture_t numbers( "Textures/numbers.png", false );
 	LoadTextures( numbers );
@@ -277,12 +290,10 @@ void GetMessage()
 	}
 	if( meta[0] == MSG_META_POSITION_HUMANS )
 	{
-		/*
 		for( int i=0;i<meta[1];i+=3 )
 		{
-			humans[ humanIDTable[ message[i] ] ].pos.Set( message[i+1], message[i+2] );
+			players[ humanIDTable[ message[i] ] ].pos.Set( message[i+1], message[i+2] );
 		}
-		*/
 	}
 	if( meta[0] == MSG_META_REMOVE_HUMAN )
 	{

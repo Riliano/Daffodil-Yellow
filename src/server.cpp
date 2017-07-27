@@ -197,7 +197,7 @@ void NetSend()
 {
 	
 	int humanPosMsg[ 800 ];
-	Uint8 humanPosMsgLen=0;
+	Uint8 humanPosMsgLen = 0;
 	for( int i=0;i<clients.size();i++ )
 	{
 		if( clients[i].active )
@@ -205,18 +205,18 @@ void NetSend()
 			humanPosMsg[ humanPosMsgLen ] = i;
 			humanPosMsg[ humanPosMsgLen+1 ] = clients[i].human.pos.x;
 			humanPosMsg[ humanPosMsgLen+2 ] = clients[i].human.pos.y;
-			humanPosMsg[ humanPosMsgLen+3 ] = (int)*(clients[i].human.drawDirection);
+			humanPosMsg[ humanPosMsgLen+3 ] = (int)(clients[i].human.drawDirection);
 			clients[i].active = false;
 			humanPosMsgLen += 4;
 		}
 	}
-	if( humanPosMsg > 0 )
+	if( humanPosMsgLen > 0 )
 	{
-		Uint8 posMeta[2] = {10, humanPosMsgLen};
+		Uint8 posMeta[2] = {MSG_META_POSITION_HUMANS, humanPosMsgLen};
 		for( int i=0;i<clients.size();i++ )
 		{
-		//	SDLNet_TCP_Send( clients[i].socket, posMeta, 2 );
-		//	SDLNet_TCP_Send( clients[i].socket, humanPosMsg, humanPosMsgLen*4 );
+			SDLNet_TCP_Send( clients[i].socket, posMeta, 2 );
+			SDLNet_TCP_Send( clients[i].socket, humanPosMsg, humanPosMsgLen*4 );
 		}
 	}
 	
