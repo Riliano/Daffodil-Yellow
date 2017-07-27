@@ -36,7 +36,7 @@ void ScanKeyboard()
 		input[i].check();
 }
 int spellchngTimeout = 0;
-void AnalyzeInput( char *result, bool &keyPressed )
+void AnalyzeInput( int *result, bool &keyPressed )
 {
 	for( int i=0;i<input.size();i++ )
 		if( input[i].active )

@@ -10,13 +10,13 @@ int LoadTexture( std::string filename )
 	textures.push_back( newTexture );
 	return textures.size()-1;
 }
-void LoadLevel( const char *filename )
+bool LoadLevel( const char *filename )
 {
 	std::ifstream file( filename );
 	if( !file.is_open() )
 	{
 		std::cout<<"Error opening level file"<<std::endl;
-		return;
+		return false;
 	}
 
 	while( !file.eof() )
@@ -86,9 +86,8 @@ void LoadLevel( const char *filename )
 			}
 
 		}
-
-
 	}
+	return true;
 }
 
 

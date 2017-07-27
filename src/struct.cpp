@@ -253,6 +253,7 @@ struct human_t
 	humanTemplate_t *humanTemplate;
 	point_t pos;
 	objSize_t *size;
+	char *drawDirection;
 	int curHp;
 	float curSpeed;
 
@@ -264,6 +265,7 @@ struct human_t
 		pos.Set( x, y );
 		humanTemplate = myTemplate;
 		size = &(humanTemplate->size);
+		drawDirection = &(humanTemplate->drawDirection);
 		if( w != -1 )
 			size->w = w;
 		if( h != -1 )

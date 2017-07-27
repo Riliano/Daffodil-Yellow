@@ -54,7 +54,7 @@ int humanIDTable[2000];
 int textureIDTable[2000];
 
 int playerID = -1;
-char myMessage[5];
+int myMessage[5];
 bool activeClient = false;
 
 void GetMessage();
@@ -138,9 +138,9 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		{
 			if( activeClient )
 			{
-				Uint8 meta[2] = {10, 3};
+				Uint8 meta[2] = {MSG_META_INPUT, 3};
 				SDLNet_TCP_Send( client, meta, 2 );
-				SDLNet_TCP_Send( client, myMessage, 3 );
+				SDLNet_TCP_Send( client, myMessage, meta[1]*4 );
 				for( int i=0;i<3;i++ )
 					myMessage[i] = 0;
 				activeClient = false;
@@ -201,10 +201,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			SDL_RenderCopy( renderer, textures[humans[i].textureID].texture, &humans[i].frame, &humans[i].screenPos );
 		}
 		*/
-		for( int i=0;i<textures.size();i++ )
-		{
-			SDL_RenderCopy( renderer, textures[i].texture, NULL, NULL );
-		}
+
 		if( ShouldIDisplayFPS() )
 		{
 			for( int i=0;i<sframes.size();i++ )

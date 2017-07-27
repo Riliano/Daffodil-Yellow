@@ -9,7 +9,7 @@ struct client_t
 {
 	human_t human;
 	TCPsocket socket;
-	bool active;
+	bool active = false;
 
 	bool wantsHumanTemplates = false;
 	bool wantsRoadblockTemplates = false;
@@ -23,12 +23,12 @@ struct client_t
 		//sender.human.movDirection[1] = msg[1];
 		//sender.human.attDirection = msg[2];
 		//sender.active = true;
-
 	}
 
 	client_t( TCPsocket sck )//, humanTemplate_t templt )
 	{
 		socket = sck;
+		human.Deploy( &humanTemplates[0], 0, 0 );
 //		human = MakeHuman( templt );
 	}
 	client_t()
@@ -61,7 +61,10 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 {
 
 	std::string level = "Levels/1.lvl";
-	LoadLevel( level.data() );
+	bool succesfulLoad = LoadLevel( level.data() );
+
+	if( !succesfulLoad )
+		return;
 
 	int *msgptr = nullptr;
 
@@ -141,11 +144,8 @@ void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
 	client_t newClient( socket );//, humanTemplates[0] );
-	//newClient
 	clients.push_back( newClient );
 
-//	human_t newPlayer( socket );
-	//	humans.push_back( newPlayer );
 	///REMOVE
 	Uint8 meta[2] = {7, 1};
 	int message[] = {true};
@@ -167,17 +167,11 @@ void NetRecieve( client_t &sender )
 		return;
 	}
 	
-	char msg[meta[1]];
+	int msg[meta[1]];
+	int size = meta[1]*4;
 	int fetched = 0;
-	while( fetched < meta[1] )
-		fetched = SDLNet_TCP_Recv( sender.socket, msg+fetched, meta[1]-fetched );
-
-	st int MSG_META_NAME = 0;
-const int MSG_META_REQ_TEXTURE = 1;
-const int MSG_META_REQ_HUMAN_TEMPLATES = 2;
-const int MSG_META_REQ_ROADBLOCK_TEMPLATES = 3;
-const int MSG_META_CHOSEN_CHARACKTER = 4;
-const int MSG_META_INPUT = 10;
+	while( fetched < size )
+		fetched = SDLNet_TCP_Recv( sender.socket, msg+fetched, size-fetched );
 
 	if( meta[0] == MSG_META_NAME )
 	{
@@ -197,33 +191,33 @@ const int MSG_META_INPUT = 10;
 
 	}
 	if( meta[0] == MSG_META_INPUT )
-		sender.Update( message );
+		sender.Update( msg );
 }
 void NetSend()
 {
-	/*
+	
 	int humanPosMsg[ 800 ];
 	Uint8 humanPosMsgLen=0;
-	for( int i=0;i<humans.size();i++ )
+	for( int i=0;i<clients.size();i++ )
 	{
-		if( humans[i].active )
+		if( clients[i].active )
 		{
-			humanPosMsg[ humanPosMsgLen ] = humans[i].id;
-			humanPosMsg[ humanPosMsgLen+1 ] = humans[i].pos.x;
-			humanPosMsg[ humanPosMsgLen+2 ] = humans[i].pos.y;
-			humanPosMsg[ humanPosMsgLen+3 ] = humans[i].drawDirection;
-			humans[i].active = false;
+			humanPosMsg[ humanPosMsgLen ] = i;
+			humanPosMsg[ humanPosMsgLen+1 ] = clients[i].human.pos.x;
+			humanPosMsg[ humanPosMsgLen+2 ] = clients[i].human.pos.y;
+			humanPosMsg[ humanPosMsgLen+3 ] = (int)*(clients[i].human.drawDirection);
+			clients[i].active = false;
 			humanPosMsgLen += 4;
 		}
 	}
 	if( humanPosMsg > 0 )
 	{
 		Uint8 posMeta[2] = {10, humanPosMsgLen};
-		for( int i=0;i<humans.size();i++ )
+		for( int i=0;i<clients.size();i++ )
 		{
-			SDLNet_TCP_Send( humans[i].socket, posMeta, 2 );
-			SDLNet_TCP_Send( humans[i].socket, humanPosMsg, humanPosMsgLen*4 );
+		//	SDLNet_TCP_Send( clients[i].socket, posMeta, 2 );
+		//	SDLNet_TCP_Send( clients[i].socket, humanPosMsg, humanPosMsgLen*4 );
 		}
 	}
-	*/
+	
 }
