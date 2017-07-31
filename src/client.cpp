@@ -16,22 +16,22 @@ std::vector< player_t > players;
 SDL_Renderer* renderer;
 SDL_Event e;
 
-TCPsocket client;
+TCPsocket serverSocket;
 SDLNet_SocketSet chkClient = SDLNet_AllocSocketSet( 1 );
 bool ConnectToServer( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 {
 	IPaddress ip;
     std::cout<<"Connecting to: "<<address<<" on port "<<port<<std::endl;
     SDLNet_ResolveHost( &ip, address, port );	
-    client = SDLNet_TCP_Open( &ip );
-    if( !client )
+    serverSocket = SDLNet_TCP_Open( &ip );
+    if( !serverSocket )
 	{
         std::cout<<"Failed to connect"<<std::endl;
 		return false;
 	}
     else
 	{
-        SDLNet_TCP_AddSocket( chkClient, client );
+        SDLNet_TCP_AddSocket( chkClient, serverSocket );
 		return true;
 	}
 }
@@ -96,6 +96,18 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		std::cout<<"Server didn't respond"<<std::endl;
 		Quit();
 	}
+// Determine what info we need from server
+// If there are loaded templates then we don't need that info from server
+	Uint8 reqHumanTpltMeta[2] = {MSG_META_REQ_HUMAN_TEMPLATES, 1};
+	int reqHumanTpltMessage[ reqHumanTpltMeta[1] ];
+	if( humanTemplates.size() > 0 )
+		reqHumanTpltMessage[0] = false;
+	else
+		reqHumanTpltMessage[0] = true;
+
+	SDLNet_TCP_Send( serverSocket, reqHumanTpltMeta, 2 ); 
+	SDLNet_TCP_Send( serverSocket, reqHumanTpltMessage, reqHumanTpltMeta[1]*4 ); 
+
 	while( active > 0 )
 	{
 		GetMessage();
@@ -108,7 +120,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		std::cout<<"Didn't recieved flag for end from server, exiting..."<<std::endl;
 		Quit();
 	}
-
+// Load textures from the UI
 	texture_t numbers( "Textures/numbers.png", false );
 	LoadTextures( numbers );
 
@@ -152,8 +164,8 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			if( activeClient )
 			{
 				Uint8 meta[2] = {MSG_META_INPUT, 3};
-				SDLNet_TCP_Send( client, meta, 2 );
-				SDLNet_TCP_Send( client, myMessage, meta[1]*4 );
+				SDLNet_TCP_Send( serverSocket, meta, 2 );
+				SDLNet_TCP_Send( serverSocket, myMessage, meta[1]*4 );
 				for( int i=0;i<3;i++ )
 					myMessage[i] = 0;
 				activeClient = false;
@@ -235,7 +247,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 void GetMessage()
 {
 	Uint8 meta[2];
-	SDLNet_TCP_Recv( client, meta, 2 );
+	SDLNet_TCP_Recv( serverSocket, meta, 2 );
 	//It will recieve either chars or ints
 //	bool intMessage = true;
 //	if( meta[0] == 1 or meta[0] == 10 )// texture hash or a texture
@@ -246,7 +258,7 @@ void GetMessage()
 
 	int recieved = 0;
 	do
-		recieved = SDLNet_TCP_Recv( client, message+recieved, size-recieved );
+		recieved = SDLNet_TCP_Recv( serverSocket, message+recieved, size-recieved );
 	while( recieved < size and recieved > 0 );
 	
 	if( meta[0] == MSG_META_ID )

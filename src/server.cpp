@@ -183,9 +183,12 @@ void NetRecieve( client_t &sender )
 		for( int i=0;i<meta[1];i++ )
 			sender.wantsTextureID.push( msg[i] );
 	if( meta[0] == MSG_META_REQ_HUMAN_TEMPLATES )
-		sender.wantsHumanTemplates = true;
+	{
+		sender.wantsHumanTemplates = msg[0];
+		std::cout<<"Hi "<<msg[0]<<std::endl;
+	}
 	if( meta[0] == MSG_META_REQ_ROADBLOCK_TEMPLATES )
-		sender.wantsRoadblockTemplates = true;
+		sender.wantsRoadblockTemplates = msg[0];
 	if( meta[0] == MSG_META_CHOSEN_CHARACKTER )
 	{
 
