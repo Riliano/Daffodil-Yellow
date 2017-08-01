@@ -22,6 +22,11 @@ struct point_t
 		x += ux;
 		y += uy;
 	}
+	void Ceil()
+	{
+		x = ceil( x );
+		y = ceil( y );
+	}
 	point_t( double mx, double my )
 	{
 		Set( mx, my );
@@ -264,6 +269,8 @@ struct human_t
 		pos.Set( x, y );
 		humanTemplate = myTemplate;
 		size = &(humanTemplate->size);
+		curHp = myTemplate->maxHp;
+		curSpeed = myTemplate->maxSpeed;
 		if( w != -1 )
 			size->w = w;
 		if( h != -1 )

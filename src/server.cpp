@@ -17,12 +17,11 @@ struct client_t
 
 	void Update( int *input )
 	{
-		//TODO
 		// User has send his input
-		//sender.human.movDirection[0] = msg[0];
-		//sender.human.movDirection[1] = msg[1];
-		//sender.human.attDirection = msg[2];
-		//sender.active = true;
+		human.movDirection[0] = input[0];
+		human.movDirection[1] = input[1];
+		human.attDirection = input[2];
+		active = true;
 	}
 
 	client_t( TCPsocket sck )//, humanTemplate_t templt )
@@ -33,6 +32,7 @@ struct client_t
 	{
 		socket = sck;
 		human.Deploy( chosenTempalte, 0, 0 ); //Needs updating
+		std::cout<<"Hello"<<std::endl;
 	}
 	client_t()
 	{}
@@ -128,6 +128,7 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 			{
 				//humans[i].DrawDir();
 				MoveHuman( clients[i].human );
+				clients[i].active = false;
 			}
 			movT = SDL_GetTicks();
 		}

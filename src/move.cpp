@@ -58,8 +58,24 @@ bool MoveHuman( human_t &someone )
 		}
 	}
 	*/
+	if( someone.movDirection[0] == 0 and someone.movDirection[1] == 0 )
+		return false;
+	int horVelocity = 0;
+	int verVelocity = 0;
+	if( someone.movDirection[1] == 'w' )
+		horVelocity = -someone.curSpeed;
+	if( someone.movDirection[1] == 'e' )
+		horVelocity = +someone.curSpeed;
+	if( someone.movDirection[0] == 'n' )
+		verVelocity = -someone.curSpeed;
+	if( someone.movDirection[0] == 's' )
+		verVelocity = +someone.curSpeed;
+
+	someone.pos.Update( horVelocity, verVelocity );
+	//someone.pos.Ceil();
 	someone.movDirection[0] = 0;
 	someone.movDirection[1] = 0;
-	//someone.curSpeed = someone.normSpeed;
 	return true;
+
+	//someone.curSpeed = someone.normSpeed;
 }

@@ -166,7 +166,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 				Uint8 meta[2] = {MSG_META_INPUT, 3};
 				SDLNet_TCP_Send( serverSocket, meta, 2 );
 				SDLNet_TCP_Send( serverSocket, myMessage, meta[1]*4 );
-				for( int i=0;i<3;i++ )
+				for( int i=0;i<2;i++ )
 					myMessage[i] = 0;
 				activeClient = false;
 			}
@@ -180,6 +180,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 				GetMessage();
 				serverSend = SDLNet_CheckSockets( chkClient, 0 );
 			}
+			checkNetT = SDL_GetTicks();
 		}
 
         if( SDL_GetTicks() - fpsT >= 1000 and ShouldIDisplayFPS() )
@@ -258,7 +259,10 @@ void GetMessage()
 
 	int recieved = 0;
 	do
+	{
+		//std::cout<<recieved<<"/"<<size<<std::endl;
 		recieved = SDLNet_TCP_Recv( serverSocket, message+recieved, size-recieved );
+	}
 	while( recieved < size and recieved > 0 );
 	
 	if( meta[0] == MSG_META_ID )
@@ -302,10 +306,12 @@ void GetMessage()
 	}
 	if( meta[0] == MSG_META_POSITION_HUMANS )
 	{
+		/*
 		for( int i=0;i<meta[1];i+=3 )
 		{
 			players[ humanIDTable[ message[i] ] ].pos.Set( message[i+1], message[i+2] );
 		}
+		*/
 	}
 	if( meta[0] == MSG_META_REMOVE_HUMAN )
 	{

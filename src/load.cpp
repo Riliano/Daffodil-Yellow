@@ -86,6 +86,7 @@ bool LoadLevel( const char *filename )
 			{
 				//obsticle_t
 			}
+			type = 0;
 
 		}
 	}
