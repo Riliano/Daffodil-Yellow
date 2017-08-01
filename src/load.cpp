@@ -79,6 +79,8 @@ bool LoadLevel( const char *filename )
 				humanTemplate_t newHumanTemplate( info );
 				newHumanTemplate.name = name;
 				humanTemplates.push_back( newHumanTemplate );
+				if( newHumanTemplate.playerTemplate )
+					playableTemplates.push_back( humanTemplates.size()-1 );
 			}
 			if( type == 'r')
 			{

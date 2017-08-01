@@ -28,8 +28,11 @@ struct client_t
 	client_t( TCPsocket sck )//, humanTemplate_t templt )
 	{
 		socket = sck;
-		human.Deploy( &humanTemplates[0], 0, 0 );
-//		human = MakeHuman( templt );
+	}
+	client_t( TCPsocket sck, humanTemplate_t *chosenTempalte )
+	{
+		socket = sck;
+		human.Deploy( chosenTempalte, 0, 0 ); //Needs updating
 	}
 	client_t()
 	{}
@@ -54,7 +57,7 @@ void StartServer( Uint16 port, int serverSize )
 //#incluide "ai.cpp"
 
 void NetRecieve( client_t &sender );
-void NetSend();
+void NetSendPos();
 void NewClient( TCPsocket socket );
 
 void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZE )
@@ -81,7 +84,7 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 
 	long long movT = SDL_GetTicks();
 	long long chkNetT = SDL_GetTicks();
-	long long sendNetT = SDL_GetTicks();
+	long long sendNetPosT = SDL_GetTicks();
 	long long infoT = SDL_GetTicks();
 	int cycles = 0;
 	std::cout<<"Server: Entering main loop"<<std::endl;
@@ -111,11 +114,11 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 			}
 			chkNetT = SDL_GetTicks();
 		}
-		// Send messeges from server
-		if( SDL_GetTicks() - sendNetT >= 10 )
+		// Send position messeges from server
+		if( SDL_GetTicks() - sendNetPosT >= 10 )
 		{
-			NetSend();
-			sendNetT = SDL_GetTicks();
+			NetSendPos();
+			sendNetPosT = SDL_GetTicks();
 		}
 
 		// Update movement
@@ -143,8 +146,16 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
-	client_t newClient( socket );//, humanTemplates[0] );
-	clients.push_back( newClient );
+	if( playableTemplates.size() == 1 )
+	{
+		client_t newClient( socket, &humanTemplates[ playableTemplates[0] ] );
+		clients.push_back( newClient );
+	}
+	else
+	{
+		client_t newClient( socket );//, humanTemplates[0] );
+		clients.push_back( newClient );
+	}
 
 	///REMOVE
 	Uint8 meta[2] = {7, 1};
@@ -183,10 +194,7 @@ void NetRecieve( client_t &sender )
 		for( int i=0;i<meta[1];i++ )
 			sender.wantsTextureID.push( msg[i] );
 	if( meta[0] == MSG_META_REQ_HUMAN_TEMPLATES )
-	{
 		sender.wantsHumanTemplates = msg[0];
-		std::cout<<"Hi "<<msg[0]<<std::endl;
-	}
 	if( meta[0] == MSG_META_REQ_ROADBLOCK_TEMPLATES )
 		sender.wantsRoadblockTemplates = msg[0];
 	if( meta[0] == MSG_META_CHOSEN_CHARACKTER )
@@ -196,7 +204,7 @@ void NetRecieve( client_t &sender )
 	if( meta[0] == MSG_META_INPUT )
 		sender.Update( msg );
 }
-void NetSend()
+void NetSendPos()
 {
 	
 	int humanPosMsg[ 800 ];
