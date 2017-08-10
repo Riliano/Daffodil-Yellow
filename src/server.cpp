@@ -8,6 +8,7 @@ SDLNet_SocketSet allConnectedSockets;
 struct client_t
 {
 	human_t human;
+	int templateID;
 	TCPsocket socket;
 	bool active = false;
 
@@ -24,6 +25,32 @@ struct client_t
 		active = true;
 	}
 
+	void SetSocket( TCPsocket sck )
+	{
+		socket = sck;
+	}
+	void MakeHumanWithTemplate( humanTemplate_t *chosenTemplate )
+	{
+		human.Deploy( chosenTemplate, 0, 0 ); // Still needs updating
+		// Spawn zone?
+	}
+	void MakeHumanWithTemplateID( int myTemplateID )
+	{
+		templateID = myTemplateID;
+		MakeHumanWithTemplate( &humanTemplates[ myTemplateID ] );
+	}
+	void FindTemplateID()
+	{
+		for( int i=0;i<humanTemplates.size();i++ )
+		{
+			if( &humanTemplates[i] == human.humanTemplate )
+			{
+				templateID = i;
+				break;
+			}
+		}
+	}
+
 	client_t( TCPsocket sck )//, humanTemplate_t templt )
 	{
 		socket = sck;
@@ -32,7 +59,6 @@ struct client_t
 	{
 		socket = sck;
 		human.Deploy( chosenTempalte, 0, 0 ); //Needs updating
-		std::cout<<"Hello"<<std::endl;
 	}
 	client_t()
 	{}
@@ -158,6 +184,11 @@ void NewClient( TCPsocket socket )
 		clients.push_back( newClient );
 	}
 
+	for( int i=0; i<clients.size()-1 ;i++ ) // Tell everyone but the last client
+	{
+	
+	}
+
 	///REMOVE
 	Uint8 meta[2] = {7, 1};
 	int message[] = {true};
@@ -207,6 +238,7 @@ void NetRecieve( client_t &sender )
 }
 void NetSendPos()
 {
+	return;
 	
 	int humanPosMsg[ 800 ];
 	Uint8 humanPosMsgLen = 0;

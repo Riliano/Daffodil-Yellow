@@ -255,13 +255,13 @@ struct human_t
 {
 	std::string name;
 	humanTemplate_t *humanTemplate;
-	char drawDirection;
+	char drawDirection = 0;
 	point_t pos;
 	objSize_t *size;
 	int curHp;
 	float curSpeed;
 
-	char movDirection[2];
+	char movDirection[2] = {0, 0};
 	char attDirection;
 
 	void Deploy( humanTemplate_t *myTemplate, int x, int y, int w = -1, int h = -1 )
