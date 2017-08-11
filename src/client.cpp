@@ -7,8 +7,16 @@ struct player_t
 {
 	point_t pos;
 	SDL_Rect screenPos;
-	humanTemplate_t body;
-	char drawDirection;
+	humanTemplate_t *body;
+	char drawDirection = 0;
+
+	player_t( int templateID, int x, int y )
+	{
+		body = &humanTemplates[ templateID ];
+		pos.Set( x, y );	
+	}
+	player_t()
+	{}
 };
 
 std::vector< player_t > players;
@@ -319,7 +327,9 @@ void GetMessage()
 	}
 	if( meta[0] == MSG_META_NEW_HUMAN )
 	{
-
+		humanIDTable[ players.size() ] = message[0];
+		player_t newPlayer( message[1], message[2], message[3] );
+		players.push_back( newPlayer );
 	}
 	if( meta[0] == MSG_META_REMOVE_ROADBLOCK )
 	{

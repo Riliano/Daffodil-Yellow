@@ -90,15 +90,12 @@ void NewClient( TCPsocket socket );
 
 void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZE )
 {
-
 	std::string level = "Levels/1.lvl";
 	bool succesfulLoad = LoadLevel( level.data() );
-
 	if( !succesfulLoad )
 		return;
 
 	int *msgptr = nullptr;
-
 	int msgListHumanTemplates[ humanTemplates.size()*8 ];//human template has 8 necessary values
 	msgptr = msgListHumanTemplates;
 	for( int i=0;i<humanTemplates.size();i++ )
@@ -180,6 +177,11 @@ void NewClient( TCPsocket socket )
 	newClient.SetSocket( socket );
 	if( playableTemplates.size() == 1 )
 		newClient.MakeHumanWithTemplateID( playableTemplates[0] );
+	
+	Uint8 meta[2] = {MSG_META_ID, 1};
+	int message[] = {clients.size()};
+	SDLNet_TCP_Send( socket, meta, 2 );
+	SDLNet_TCP_Send( socket, message, meta[1]*4 );
 }
 void RemoveClient( client_t &someone )
 {
@@ -264,19 +266,19 @@ void NetSendPlayerList( TCPsocket socket )
 	{
 		message[msgSize] = id;
 		message[msgSize+1] = clients[id].templateID;
-		message[msgSize+2] = clients[id].pos.x;
-		message[msgSize+3] = clients[id].pos.y;
+		message[msgSize+2] = clients[id].human.pos.x;
+		message[msgSize+3] = clients[id].human.pos.y;
 		msgSize+=4;
 	}
-	Uint8 meta[2] = {MSG_META_LIST_PLAYERS, msgSize};
+	Uint8 meta[2] = {MSG_META_LIST_PLAYERS, (Uint8)msgSize};
 
 	SDLNet_TCP_Send( socket, meta, 2 );
 	SDLNet_TCP_Send( socket, message, meta[1]*4 );
 }
-void NetSendNewPlayer( client_t clientToSend )
+void NetSendNewPlayer( client_t clientToSend, int id )
 {
 	Uint8 meta[2] = {MSG_META_NEW_HUMAN, 4};
-	int message[] = {clientToSend.id, clientToSend.templateID, clientToSend.pos.x, clientToSend.pos.y};
+	int message[] = {id, clientToSend.templateID, (int)clientToSend.human.pos.x, (int)clientToSend.human.pos.y};
 	
 	for( int i=0;i<clients.size();i++ )
 	{
