@@ -63,6 +63,9 @@ bool LoadLevel( const char *filename )
 				// set the maximum speed/velocity of the object
 				if( parameter == 'v' )
 					ss>>*(info+POS_MSG_SPEED);
+				// set playable flag
+				if( parameter == 'p' )
+					ss>>*(info+POS_MSG_PTEMPLATE);
 				// set if object is destroyable
 				if( parameter == 'D' )
 					ss>>info[6];
