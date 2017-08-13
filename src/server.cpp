@@ -165,6 +165,8 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 		// Debug or general info goes here
 		if( SDL_GetTicks() - infoT >= 1000 )
 		{
+			for( int i=0;i<clients.size();i++ )
+				std::cout<<i<<" pos "<<clients[i].human.pos.x<<" "<<clients[i].human.pos.y<<std::endl;
 			//std::cout<<"Cycles per second: "<<cycles<<std::endl;
 			cycles = 0;
 			infoT = SDL_GetTicks();

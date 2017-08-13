@@ -222,7 +222,11 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		if( SDL_GetTicks() - infoT >= 1000 )
 		{
 			//std::cout<<SDL_GetError()<<std::endl;
-			std::cout<<players.size()<<std::endl;
+			std::cout<<"Hi "<<players.size()<<std::endl;
+			for( int i=0;i<players.size();i++ )
+			{
+				std::cout<<humanIDTable[i]<<" pos "<<players[i].pos.x<<" "<<players[i].pos.y<<std::endl;
+			}
 			infoT = SDL_GetTicks();
 		}
 
@@ -328,12 +332,10 @@ void GetMessage()
 	}
 	if( meta[0] == MSG_META_POSITION_HUMANS )
 	{
-		/*
-		for( int i=0;i<meta[1];i+=3 )
+		for( int i=0;i<meta[1];i+=4 )
 		{
 			players[ humanIDTable[ message[i] ] ].pos.Set( message[i+1], message[i+2] );
 		}
-		*/
 	}
 	if( meta[0] == MSG_META_REMOVE_HUMAN )
 	{
