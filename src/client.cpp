@@ -303,7 +303,12 @@ void GetMessage()
 	*/
 	if( meta[0] == MSG_META_LIST_PLAYERS )
 	{
-
+		for( int i=0;i<meta[1];i+=4 )
+		{
+			player_t newPlayer( message[i+1], message[i+2], message[i+3] );
+			players.push_back( newPlayer );
+			humanIDTable[message[i]] = players.size()-1;
+		}
 	}
 	if( meta[0] == MSG_META_LIST_ROADBLOCK_TEMPLATES )
 	{

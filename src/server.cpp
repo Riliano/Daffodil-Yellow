@@ -89,6 +89,7 @@ void NetSendPos();
 void NewClient( TCPsocket socket );
 void NetSendNewPlayer( client_t *clientToSend, int id );
 void CheckForReady( client_t *sender, int id );
+void NetSendPlayerList( TCPsocket socket, int id );
 
 void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZE )
 {
@@ -250,6 +251,7 @@ void CheckForReady( client_t *sender, int id )
 	SDLNet_TCP_Send( sender->socket, meta, 2 );
 	SDLNet_TCP_Send( sender->socket, message, meta[1]*4 );
 	NetSendNewPlayer( sender, id );
+	NetSendPlayerList( sender->socket, id );
 }
 void NetSendPos()
 {
@@ -285,22 +287,27 @@ void NetSendPlayerTemplates()
 {
 
 }
-void NetSendPlayerList( TCPsocket socket )
+void NetSendPlayerList( TCPsocket socket, int idToNotSend )
 {
 	int message[ clients.size()*4 ];
 	int msgSize=0;
 	for( int id=0;id<clients.size();id++ )
 	{
-		message[msgSize] = id;
-		message[msgSize+1] = clients[id].templateID;
-		message[msgSize+2] = clients[id].human.pos.x;
-		message[msgSize+3] = clients[id].human.pos.y;
-		msgSize+=4;
+		if( id != idToNotSend )
+		{
+			message[msgSize] = id;
+			message[msgSize+1] = clients[id].templateID;
+			message[msgSize+2] = clients[id].human.pos.x;
+			message[msgSize+3] = clients[id].human.pos.y;
+			msgSize+=4;
+		}
 	}
-	Uint8 meta[2] = {MSG_META_LIST_PLAYERS, (Uint8)msgSize};
-
-	SDLNet_TCP_Send( socket, meta, 2 );
-	SDLNet_TCP_Send( socket, message, meta[1]*4 );
+	if( msgSize > 0 )
+	{
+		Uint8 meta[2] = {MSG_META_LIST_PLAYERS, (Uint8)msgSize};
+		SDLNet_TCP_Send( socket, meta, 2 );
+		SDLNet_TCP_Send( socket, message, meta[1]*4 );
+	}
 }
 void NetSendNewPlayer( client_t *clientToSend, int id )
 {
