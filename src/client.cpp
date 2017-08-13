@@ -114,14 +114,24 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		reqHumanTpltMessage[0] = true;
 
 	SDLNet_TCP_Send( serverSocket, reqHumanTpltMeta, 2 ); 
-	SDLNet_TCP_Send( serverSocket, reqHumanTpltMessage, reqHumanTpltMeta[1]*4 ); 
+	SDLNet_TCP_Send( serverSocket, reqHumanTpltMessage, reqHumanTpltMeta[1]*4 );
+/*
+	GetMessage();
+	active = SDLNet_CheckSockets( chkClient, 0 );
 
-	while( active > 0 )
+	if( playerID == -1 )
 	{
+		std::cout<<"ID error"<<std::endl;
+		Quit();
+	}
+	*/
+
+
+	while( !recievedInitalInfo and active > 0 )
+	{
+		std::cout<<"Client"<<std::endl;
 		GetMessage();
 		active = SDLNet_CheckSockets( chkClient, 0 );
-		if( recievedInitalInfo )
-			break;
 	}
 	if( !recievedInitalInfo )
 	{
@@ -212,6 +222,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		if( SDL_GetTicks() - infoT >= 1000 )
 		{
 			//std::cout<<SDL_GetError()<<std::endl;
+			std::cout<<players.size()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
 
@@ -268,15 +279,13 @@ void GetMessage()
 	int recieved = 0;
 	do
 	{
-		//std::cout<<recieved<<"/"<<size<<std::endl;
+//		std::cout<<recieved<<"/"<<size<<std::endl;
 		recieved = SDLNet_TCP_Recv( serverSocket, message+recieved, size-recieved );
 	}
 	while( recieved < size and recieved > 0 );
 	
 	if( meta[0] == MSG_META_ID )
-	{
 		playerID = message[0];
-	}
 	if( meta[0] == MSG_META_LIST_TEXTURES )
 	{
 		//texture_t newTexture;

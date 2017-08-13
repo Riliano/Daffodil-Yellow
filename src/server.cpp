@@ -84,9 +84,11 @@ void StartServer( Uint16 port, int serverSize )
 #include "move.cpp"
 //#incluide "ai.cpp"
 
-void NetRecieve( client_t &sender );
+void NetRecieve( client_t &sender, int id );
 void NetSendPos();
 void NewClient( TCPsocket socket );
+void NetSendNewPlayer( client_t *clientToSend, int id );
+void CheckForReady( client_t *sender, int id );
 
 void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZE )
 {
@@ -134,7 +136,7 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 				if( SDLNet_SocketReady( clients[i].socket ) )
 				{
 					numActive--;
-					NetRecieve( clients[i] );
+					NetRecieve( clients[i], i );
 				}
 			}
 			chkNetT = SDL_GetTicks();
@@ -177,17 +179,24 @@ void NewClient( TCPsocket socket )
 	newClient.SetSocket( socket );
 	if( playableTemplates.size() == 1 )
 		newClient.MakeHumanWithTemplateID( playableTemplates[0] );
-	
-	Uint8 meta[2] = {MSG_META_ID, 1};
-	int message[] = {clients.size()};
+	Uint8 meta[2] = {MSG_META_END_ASSET_DATA, 1};
+	int message[] = {true};
 	SDLNet_TCP_Send( socket, meta, 2 );
 	SDLNet_TCP_Send( socket, message, meta[1]*4 );
+	clients.push_back( newClient );
+
+	/*
+	Uint8 meta[2] = {MSG_META_ID, 1};
+	int message[] = {(int)clients.size()};
+	SDLNet_TCP_Send( socket, meta, 2 );
+	SDLNet_TCP_Send( socket, message, meta[1]*4 );
+	*/
 }
 void RemoveClient( client_t &someone )
 {
 	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
 }
-void NetRecieve( client_t &sender )
+void NetRecieve( client_t &sender, int id )
 {
 	Uint8 meta[2];
 	int recv = SDLNet_TCP_Recv( sender.socket, meta, 2 );
@@ -197,7 +206,7 @@ void NetRecieve( client_t &sender )
 		RemoveClient( sender );
 		return;
 	}
-	
+
 	int msg[meta[1]];
 	int size = meta[1]*4;
 	int fetched = 0;
@@ -214,15 +223,33 @@ void NetRecieve( client_t &sender )
 		for( int i=0;i<meta[1];i++ )
 			sender.wantsTextureID.push( msg[i] );
 	if( meta[0] == MSG_META_REQ_HUMAN_TEMPLATES )
+	{
 		sender.wantsHumanTemplates = msg[0];
+		CheckForReady( &sender, id );
+	}
 	if( meta[0] == MSG_META_REQ_ROADBLOCK_TEMPLATES )
+	{
 		sender.wantsRoadblockTemplates = msg[0];
+		CheckForReady( &sender, id );
+	}
 	if( meta[0] == MSG_META_END_ASSET_DATA )
 		sender.ready = msg[0];
 	if( meta[0] == MSG_META_CHOSEN_CHARACKTER )
+	{
 		sender.templateID = msg[0];
+		CheckForReady( &sender, id );
+	}
 	if( meta[0] == MSG_META_INPUT )
 		sender.Update( msg );
+}
+void CheckForReady( client_t *sender, int id )
+{
+	//TODO
+	Uint8 meta[2] = {MSG_META_END_ASSET_DATA, 1};
+	int message[] = {true};
+	SDLNet_TCP_Send( sender->socket, meta, 2 );
+	SDLNet_TCP_Send( sender->socket, message, meta[1]*4 );
+	NetSendNewPlayer( sender, id );
 }
 void NetSendPos()
 {
@@ -275,10 +302,10 @@ void NetSendPlayerList( TCPsocket socket )
 	SDLNet_TCP_Send( socket, meta, 2 );
 	SDLNet_TCP_Send( socket, message, meta[1]*4 );
 }
-void NetSendNewPlayer( client_t clientToSend, int id )
+void NetSendNewPlayer( client_t *clientToSend, int id )
 {
 	Uint8 meta[2] = {MSG_META_NEW_HUMAN, 4};
-	int message[] = {id, clientToSend.templateID, (int)clientToSend.human.pos.x, (int)clientToSend.human.pos.y};
+	int message[] = {id, clientToSend->templateID, (int)clientToSend->human.pos.x, (int)clientToSend->human.pos.y};
 	
 	for( int i=0;i<clients.size();i++ )
 	{
