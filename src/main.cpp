@@ -51,6 +51,7 @@ int main( int argc, char **argv )
 	Uint16 port = DEFAULT_PORT;
 	int serverSize = DEFAULT_SERVER_SIZE;
 	char address[100] = "localhost";
+	char textures[500] = "textures.list";
 	for( int i=1;i<argc;i++ )
 	{
 		if( std::strcmp( argv[i], "-p" ) == 0 )
@@ -76,7 +77,7 @@ int main( int argc, char **argv )
 
 	std::thread client;
 	if( startClient )
-		client = std::thread( ClientMain, address, port );
+		client = std::thread( ClientMain, address, port, textures );
 	if( startServer )
 		ServerMain( port, serverSize );
 	while( clientIsOn )

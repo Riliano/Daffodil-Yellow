@@ -7,12 +7,21 @@ struct player_t
 {
 	point_t pos;
 	SDL_Rect screenPos;
+	SDL_Rect frame;
 	humanTemplate_t *body;
 	char drawDirection = 0;
 
 	player_t( int templateID, int x, int y )
 	{
 		body = &humanTemplates[ templateID ];
+		frame.w = body->frame.w;
+		frame.h = body->frame.h;
+		//REMOVE
+		frame.x = 0;
+		frame.y = 0;
+		screenPos.w = frame.w;
+		screenPos.h = frame.h;
+
 		pos.Set( x, y );	
 	}
 	player_t()
@@ -52,6 +61,18 @@ void LoadTextures( texture_t &txtr )
 	txtr.texture = IMG_LoadTexture( renderer, txtr.filename );
 //	delete txtr.binaryTexture;
 }
+void LoadLocalTextures( const char *list )
+{
+	std::ifstream file( list );
+	while( !file.eof() )
+	{
+		char textureName[500];
+		file>>textureName;
+		texture_t newTexture( textureName, false );
+		LoadTextures( newTexture );
+		textures.push_back( newTexture );
+	}
+}
 
 void Quit()
 {
@@ -78,8 +99,9 @@ bool activeClient = false;
 void GetMessage();
 bool recievedInitalInfo = false;
 
-void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
+void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT, const char* textureList = "textures.list" )
 {
+
 	clientIsOn = true;
     SDL_Init( 0 );
     InitInput();
@@ -88,6 +110,18 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC );
 	else
 		renderer = SDL_CreateRenderer( window, -1, SDL_RENDERER_ACCELERATED );
+	//CHANGE
+	LoadLocalTextures( textureList );
+	for( int i=0;i<textures.size();i++ )
+	{
+		SDL_RenderCopy( renderer, textures[i].texture, NULL, NULL );
+		SDL_RenderPresent( renderer );
+		SDL_Delay( 2000 );
+		SDL_RenderClear( renderer );
+	}
+	Quit();
+	return;
+
 //	if( address == "localhost" )
 //		while( !serverIsOn ){}
     bool connection = ConnectToServer( address, port );
@@ -125,7 +159,6 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		Quit();
 	}
 	*/
-
 
 	while( !recievedInitalInfo and active > 0 )
 	{
@@ -221,12 +254,7 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 		}
 		if( SDL_GetTicks() - infoT >= 1000 )
 		{
-			//std::cout<<SDL_GetError()<<std::endl;
-			std::cout<<"Hi "<<players.size()<<std::endl;
-			for( int i=0;i<players.size();i++ )
-			{
-				std::cout<<humanIDTable[i]<<" pos "<<players[i].pos.x<<" "<<players[i].pos.y<<std::endl;
-			}
+			std::cout<<SDL_GetError()<<std::endl;
 			infoT = SDL_GetTicks();
 		}
 
@@ -240,14 +268,15 @@ void ClientMain( const char* address = "localhost", Uint16 port = DEFAULT_PORT )
 			SDL_RenderCopy( renderer, textures[roadblock[i].textureID].texture, &roadblock[i].frame, &roadblock[i].screenPos );
 		}
 		
-        for( int i = 0;i<humans.size();i++ )
+        for( int i = 0;i<players.size();i++ )
 		{
-			if( i!=playerID )
+			int id = humanIDTable[i];
+			if( id!=playerID )
 			{
-				humans[i].screenPos.x = humans[playerID].screenPos.x - humans[playerID].pos.x + humans[i].pos.x;// + (humans[i].pos.w - humans[i].w)/2;
-				humans[i].screenPos.y = humans[playerID].screenPos.y - humans[playerID].pos.y + humans[i].pos.y;// + (humans[i].pos.h - humans[i].h)/2;
+				players[id].screenPos.x = players[playerID].screenPos.x - players[playerID].pos.x + players[id].pos.x;// + (humans[i].pos.w - humans[i].w)/2;
+				players[id].screenPos.y = players[playerID].screenPos.y - players[playerID].pos.y + players[id].pos.y;// + (humans[i].pos.h - humans[i].h)/2;
 			}
-			SDL_RenderCopy( renderer, textures[humans[i].textureID].texture, &humans[i].frame, &humans[i].screenPos );
+			SDL_RenderCopy( renderer, textures[players[id].body->textureID].texture, &players[id].frame, &players[id].screenPos );
 		}
 		*/
 
@@ -310,6 +339,12 @@ void GetMessage()
 		for( int i=0;i<meta[1];i+=4 )
 		{
 			player_t newPlayer( message[i+1], message[i+2], message[i+3] );
+			if( message[i] == playerID )
+			{
+				//CHANGE
+				newPlayer.screenPos.x = 100;
+				newPlayer.screenPos.y = 100;
+			}
 			players.push_back( newPlayer );
 			humanIDTable[message[i]] = players.size()-1;
 		}

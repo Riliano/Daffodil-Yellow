@@ -216,7 +216,7 @@ struct humanTemplate_t
 	int textureID;
 	float maxSpeed;
 	int maxHp;
-	SDL_Rect frame;
+	objSize_t frame;
 	bool playerTemplate = false;
 
 	// Copies info from int array to make a template
