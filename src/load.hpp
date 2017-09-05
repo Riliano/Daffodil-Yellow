@@ -74,6 +74,7 @@ class load_t
 							humanBlueprints.push_back( info );
 							break;
 					}
+					type = 0;
 				}
 			}
 		}
