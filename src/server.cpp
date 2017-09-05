@@ -1,10 +1,17 @@
-#include<iostream>
-#include<SDL2/SDL_net.h>
-#include<thread>
+#include <iostream>
+#include <SDL2/SDL_net.h>
+#include <unordered_set>
+#include <thread>
+
+//#include "class.hpp"
+#include "load.hpp"
+
+#include "class/human.hpp"
+#include "class/texture.hpp"
 
 TCPsocket server;
 SDLNet_SocketSet allConnectedSockets;
-
+/*
 struct client_t
 {
 	human_t human;
@@ -65,9 +72,12 @@ struct client_t
 	client_t()
 	{}
 };
-
-std::vector< client_t > clients;
-std::vector< obsticle_t > objects;
+*/
+//std::vector < textureBin_t > textures;
+textureBin_t *textures;
+//std::vector < client_t > clients;
+humanBlueprint_t *humanBlueprints;
+//std::vector < obsticle_t > objects;
 
 void StartServer( Uint16 port, int serverSize )
 {
@@ -80,23 +90,38 @@ void StartServer( Uint16 port, int serverSize )
 	SDLNet_TCP_AddSocket( allConnectedSockets, server );
 }
 
-#include "load.cpp"
-#include "move.cpp"
+//#include "load.cpp"
+//#include "move.cpp"
 //#incluide "ai.cpp"
 
-void NetRecieve( client_t &sender, int id );
-void NetSendPos();
-void NewClient( TCPsocket socket );
-void NetSendNewPlayer( client_t *clientToSend, int id );
-void CheckForReady( client_t *sender, int id );
-void NetSendPlayerList( TCPsocket socket, int id );
-
+//void NetRecieve( client_t &sender, int id );
+//void NetSendPos();
+//void NewClient( TCPsocket socket );
+//void NetSendNewPlayer( client_t *clientToSend, int id );
+//void CheckForReady( client_t *sender, int id );
+//void NetSendPlayerList( TCPsocket socket, int id );
+const int DEFAULT_PORT = 1234;
+const int DEFAULT_SERVER_SIZE = 32;
 void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZE )
 {
 	std::string level = "Levels/1.lvl";
-	bool succesfulLoad = LoadLevel( level.data() );
-	if( !succesfulLoad )
-		return;
+//	bool succesfulLoad = LoadLevel( level.data() );
+//	if( !succesfulLoad )
+//		return;
+	// Loading
+	bool succesfulLoad = true;
+	load_t load( level.data() );
+	// Dismantle load
+	// human blueprints
+	humanBlueprints = new humanBlueprint_t [ load.humanBlueprints.size() ];
+	for( int i=0; i < load.humanBlueprints.size();i++ )
+		humanBlueprints[i].CreateFromArray( load.humanBlueprints[i] );
+}
+	// textures
+	// 
+	/*
+	textureBin_t = new textureBin_t
+
 
 	int *msgptr = nullptr;
 	int msgListHumanTemplates[ humanTemplates.size()*8 ];//human template has 8 necessary values
@@ -172,8 +197,9 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 			infoT = SDL_GetTicks();
 		}
 	}
-}
-
+*/
+//}
+/*
 void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
@@ -194,13 +220,14 @@ void NewClient( TCPsocket socket )
 	SDLNet_TCP_Send( socket, meta, 2 );
 	SDLNet_TCP_Send( socket, message, meta[1]*4 );
 	*/
-}
-void RemoveClient( client_t &someone )
-{
-	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
-}
-void NetRecieve( client_t &sender, int id )
-{
+//}
+//void RemoveClient( client_t &someone )
+//{
+//	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
+//}
+//void NetRecieve( client_t &sender, int id )
+//{
+	/*
 	Uint8 meta[2];
 	int recv = SDLNet_TCP_Recv( sender.socket, meta, 2 );
 	if( recv <= 0 )
@@ -322,3 +349,4 @@ void NetSendNewPlayer( client_t *clientToSend, int id )
 		SDLNet_TCP_Send( clients[i].socket, message, meta[1]*4 );
 	}
 }
+*/

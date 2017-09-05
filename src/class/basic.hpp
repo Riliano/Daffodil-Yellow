@@ -1,4 +1,5 @@
-#include "../class.hpp"
+#pragma once
+
 class point_t
 {
 	public:
@@ -30,10 +31,10 @@ class point_t
 class dimensions_t
 {
 	public:
-		float width;
-		float height;
+		int width;
+		int height;
 
-		void Set( float myW, float myH )
+		void Set( int myW, int myH )
 		{
 			width = myW;
 			height = myH;

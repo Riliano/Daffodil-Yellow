@@ -1,6 +1,7 @@
-#include "../class.hpp"
+#pragma once
+//#include "../class.hpp"
 
-struct msgMeta_t
+class msgMeta_t
 {
 	public:
 		unsigned char type;

@@ -1,4 +1,8 @@
-#include "../class.hpp"
+#pragma once
+
+#include <string>
+//#include "../class.hpp"
+#include "basic.hpp"
 
 const int POS_ID = 0;
 const int POS_TEXTUREID = 1;
@@ -9,7 +13,6 @@ const int POS_HP = 5;
 const int POS_FRAME_W = 6;
 const int POS_FRAME_H = 7;
 const int POS_PLAYABLE = 8;
-
 
 class humanBlueprint_t
 {
@@ -47,9 +50,15 @@ class humanBlueprint_t
 			arr[POS_SPEED] = maxSpeed;
 			arr[POS_HP] = maxHp;
 			arr[POS_SIZE_W] = textureFrame.width;
-			arr[POS_FRAME_H] = textureFrame.heigth;
-			= arr[POS_PLAYABLE] = playable;
+			arr[POS_FRAME_H] = textureFrame.height;
+			arr[POS_PLAYABLE] = playable;
 		}
 
+		humanBlueprint_t ( int *arr )
+		{
+			CreateFromArray( arr );
+		}
+		humanBlueprint_t()
+		{}
 
 };

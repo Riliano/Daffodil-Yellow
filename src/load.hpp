@@ -1,15 +1,88 @@
-int LoadTexture( std::string filename )
+#pragma once
+
+#include <string>
+#include <sstream>
+#include <fstream>
+#include <unordered_set>
+#include <vector>
+#include "class/human.hpp"
+//#include "class.hpp"
+
+class load_t
 {
-	for( int i=0;i<textures.size();i++ )
-	{
-		// Check if the texture already exist and return its position in the textures vector
-		if( strcmp( textures[i].filename, filename.data() ) == 0 )
-			return i;
-	}
-	texture_t newTexture( filename.data(), textures.size() );
-	textures.push_back( newTexture );
-	return textures.size()-1;
-}
+	public:
+		std::unordered_set < std::string > textureFilenames;
+		std::vector < int* > humanBlueprints;
+
+		int LoadTexture( std::string filename )
+		{
+			textureFilenames.insert( filename );
+			auto target = textureFilenames.find( filename );
+			int id = 0;
+			for( auto it = textureFilenames.begin(); it != target; it++ )
+				id++;
+			return id;
+		}
+
+		load_t( const char *filename )
+		{
+			std::ifstream file( filename );
+			while( !file.eof() )
+			{
+				std::string line;
+				do
+					std::getline( file, line );
+				while( ( line[0] == '#' or line.length() < 2 ) and !file.eof() );
+				std::stringstream ss( line );
+
+				char operation;
+				ss>>operation;
+				// Load an object
+				if( operation == 'l' )
+				{
+					char type;
+					ss >> type;
+					int info[10]; // Save information to a net message-like array
+					while ( ss )
+					{
+						char parameter;
+						ss >> parameter;
+						switch ( parameter )
+						{
+							// texture
+							case 't' : 
+							{
+								std::string textureName;
+								ss>>textureName;
+								info[ POS_TEXTUREID ] = LoadTexture( textureName );
+								break;
+							}
+							// size(dimensions)
+							case 's' : ss >> info[ POS_SIZE_W ] >> info[ POS_SIZE_H ];break;
+							// health
+							case 'h' : ss >> info[ POS_HP ];break;
+							case 'f' : ss >> info[ POS_FRAME_W ] >> info[ POS_FRAME_H ];break;
+							case 'v' : ss >> info[ POS_SPEED ];break;
+							case 'p' : ss >> info[ POS_PLAYABLE ];break;
+						}
+					}
+
+					switch ( type )
+					{
+						case 'h' : 
+							info[ POS_ID ] = humanBlueprints.size();
+							humanBlueprints.push_back( info );
+							break;
+					}
+				}
+			}
+		}
+};
+
+/*
+
+
+
 bool LoadLevel( const char *filename )
 {
 	std::ifstream file( filename );
@@ -21,12 +94,7 @@ bool LoadLevel( const char *filename )
 
 	while( !file.eof() )
 	{
-		std::string line;
-		do
-			std::getline( file, line );
-		while( ( line[0] == '#' or line.length() < 2 ) and !file.eof() );
-		std::stringstream ss( line );
-
+		
 		char operation;
 		ss>>operation;
 		// Load an object
@@ -93,6 +161,10 @@ bool LoadLevel( const char *filename )
 
 		}
 	}
+	int id = 0;
+	for( auto it = textureFilenames.begin;it!=textureFilenames.end;it++ )
+		textures.push_back
+
 	return true;
 }
 

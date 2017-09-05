@@ -1,4 +1,5 @@
-#include "../class.hpp"
+#pragma once
+//#include "../class.hpp"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <openssl/sha.h>

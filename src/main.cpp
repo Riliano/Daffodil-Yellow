@@ -16,22 +16,22 @@
 #include<cstring>
 #include<sstream>
 
-#include "struct.cpp"
-#include "msgMeta.cpp"
-#include "simpleGeometry.h"
+//#include "struct.cpp"
+//#include "msgMeta.cpp"
+//#include "simpleGeometry.h"
 
 bool serverIsOn = false;
 bool clientIsOn = false;
 
-std::vector<humanTemplate_t> humanTemplates;
-std::vector<int> playableTemplates;
-std::vector<obsticle_t> objectTemplates;
-std::vector<texture_t> textures;
+//std::vector<humanTemplate_t> humanTemplates;
+//std::vector<int> playableTemplates;
+//std::vector<obsticle_t> objectTemplates;
+//std::vector<texture_t> textures;
 
-const int DEFAULT_PORT = 1234;
-const int DEFAULT_SERVER_SIZE = 200;
+//const int DEFAULT_PORT = 1234;
+//const int DEFAULT_SERVER_SIZE = 200;
 
-#include "client.cpp"
+//#include "client.cpp"
 #include "server.cpp"
 
 int StringToInt( char* str )
@@ -75,14 +75,14 @@ int main( int argc, char **argv )
 			startClient = false;
 	}
 
-	std::thread client;
-	if( startClient )
-		client = std::thread( ClientMain, address, port, textures );
-	if( startServer )
+//	std::thread client;
+//	if( startClient )
+//		client = std::thread( ClientMain, address, port, textures );
+//	if( startServer )
 		ServerMain( port, serverSize );
 	while( clientIsOn )
 	{}
-	client.join();
+//	client.join();
 	SDLNet_Quit();
 	return 0;
 }
