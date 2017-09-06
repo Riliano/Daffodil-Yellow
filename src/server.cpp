@@ -5,6 +5,7 @@
 
 //#include "class.hpp"
 #include "load.hpp"
+#include "user.hpp"
 
 #include "class/human.hpp"
 #include "class/texture.hpp"
@@ -77,6 +78,7 @@ struct client_t
 textureBin_t *textures;
 //std::vector < client_t > clients;
 humanBlueprint_t *humanBlueprints;
+std::vector < user_t > users;
 //std::vector < obsticle_t > objects;
 
 void StartServer( Uint16 port, int serverSize )
@@ -116,6 +118,17 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 	humanBlueprints = new humanBlueprint_t [ load.humanBlueprints.size() ];
 	for( int i=0; i < load.humanBlueprints.size();i++ )
 		humanBlueprints[i].CreateFromArray( load.humanBlueprints[i] );
+	
+	{
+		textures = new textureBin_t [ load.textureFilenames.size() ];
+		int i = 0;
+		for( auto it = load.textureFilenames.begin();it != load.textureFilenames.end(); it++ )
+		{
+			textures[i].LoadBin( it->data() );
+			textures[i].Hash();
+			i++;
+		}
+	}
 }
 	// textures
 	// 
