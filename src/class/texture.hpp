@@ -11,7 +11,6 @@ class textureBin_t
 		int id;
 		char *bin;
 		unsigned int size;
-		unsigned char *hash;
 
 		void LoadBin( const char *filename )
 		{
@@ -27,7 +26,22 @@ class textureBin_t
 				file.close();
 			}
 		}
-		void Hash()
+		textureBin_t( int myID, const char *filename )
+		{
+			id = myID;
+			LoadBin( filename );
+		}
+		textureBin_t()
+		{}
+};
+
+class hash_t
+{
+	public:
+		int id;
+		unsigned char *hash;
+
+		void Hash( char *bin, unsigned int size )
 		{
 			hash = new unsigned char[ SHA256_DIGEST_LENGTH ];
 			SHA256_CTX ctx;
@@ -35,13 +49,18 @@ class textureBin_t
 			SHA256_Update( &ctx, bin, size );
 			SHA256_Final( hash, &ctx );
 		}
-		textureBin_t( int myID, const char *filename )
+
+		hash_t( int myID, const textureBin_t &texture )
 		{
 			id = myID;
-			LoadBin( filename );
-			Hash();
+			Hash( texture.bin, texture.size );
 		}
-		textureBin_t()
+		hash_t( int myID, char *bin, unsigned int size )
+		{
+			id = myID;
+			Hash( bin, size );
+		}
+		hash_t()
 		{}
 };
 

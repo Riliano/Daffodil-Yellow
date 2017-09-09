@@ -3,7 +3,6 @@
 #include <unordered_set>
 #include <thread>
 
-//#include "class.hpp"
 #include "load.hpp"
 #include "user.hpp"
 
@@ -12,71 +11,9 @@
 
 TCPsocket server;
 SDLNet_SocketSet allConnectedSockets;
-/*
-struct client_t
-{
-	human_t human;
-	int templateID;
-	TCPsocket socket;
-	bool active = false;
 
-	bool ready = false;
-
-	bool wantsHumanTemplates = false;
-	bool wantsRoadblockTemplates = false;
-	std::queue<int> wantsTextureID;
-
-	void Update( int *input )
-	{
-		// User has send his input
-		human.movDirection[0] = input[0];
-		human.movDirection[1] = input[1];
-		human.attDirection = input[2];
-		active = true;
-	}
-
-	void SetSocket( TCPsocket sck )
-	{
-		socket = sck;
-	}
-	void MakeHumanWithTemplate( humanTemplate_t *chosenTemplate )
-	{
-		human.Deploy( chosenTemplate, 0, 0 ); // Still needs updating
-		// Spawn zone?
-	}
-	void MakeHumanWithTemplateID( int myTemplateID )
-	{
-		templateID = myTemplateID;
-		MakeHumanWithTemplate( &humanTemplates[ myTemplateID ] );
-	}
-	void FindTemplateID()
-	{
-		for( int i=0;i<humanTemplates.size();i++ )
-		{
-			if( &humanTemplates[i] == human.humanTemplate )
-			{
-				templateID = i;
-				break;
-			}
-		}
-	}
-
-	client_t( TCPsocket sck )//, humanTemplate_t templt )
-	{
-		socket = sck;
-	}
-	client_t( TCPsocket sck, humanTemplate_t *chosenTempalte )
-	{
-		socket = sck;
-		human.Deploy( chosenTempalte, 0, 0 ); //Needs updating
-	}
-	client_t()
-	{}
-};
-*/
-//std::vector < textureBin_t > textures;
 textureBin_t *textures;
-//std::vector < client_t > clients;
+hash_t *texturesHash;
 humanBlueprint_t *humanBlueprints;
 std::vector < user_t > users;
 //std::vector < obsticle_t > objects;
@@ -92,13 +29,12 @@ void StartServer( Uint16 port, int serverSize )
 	SDLNet_TCP_AddSocket( allConnectedSockets, server );
 }
 
-//#include "load.cpp"
 //#include "move.cpp"
 //#incluide "ai.cpp"
 
 //void NetRecieve( client_t &sender, int id );
 //void NetSendPos();
-//void NewClient( TCPsocket socket );
+void NewClient( TCPsocket socket );
 //void NetSendNewPlayer( client_t *clientToSend, int id );
 //void CheckForReady( client_t *sender, int id );
 //void NetSendPlayerList( TCPsocket socket, int id );
@@ -121,30 +57,18 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 	
 	{
 		textures = new textureBin_t [ load.textureFilenames.size() ];
+		texturesHash = new hash_t [ load.textureFilenames.size() ];
 		int i = 0;
 		for( auto it = load.textureFilenames.begin();it != load.textureFilenames.end(); it++ )
 		{
 			textures[i].LoadBin( it->data() );
-			textures[i].Hash();
+			textures[i].id = i;
+			texturesHash[i].Hash( textures[i].bin, textures[i].size );
+			texturesHash[i].id = i;
 			i++;
 		}
 	}
-}
-	// textures
-	// 
-	/*
-	textureBin_t = new textureBin_t
-
-
-	int *msgptr = nullptr;
-	int msgListHumanTemplates[ humanTemplates.size()*8 ];//human template has 8 necessary values
-	msgptr = msgListHumanTemplates;
-	for( int i=0;i<humanTemplates.size();i++ )
-	{
-		humanTemplates[i].MakeMesage( msgptr );
-		msgptr += 8;
-	}
-
+	
 	std::cout<<"Server: Done with loading"<<std::endl;
 	StartServer( port, serverSize );
 
@@ -170,6 +94,7 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 					NewClient( SDLNet_TCP_Accept( server ) );
 				}
 			}
+			/*
 			for( int i=0;i<clients.size() and numActive > 0;i++ )
 			{
 				if( SDLNet_SocketReady( clients[i].socket ) )
@@ -178,24 +103,19 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 					NetRecieve( clients[i], i );
 				}
 			}
+			*/
 			chkNetT = SDL_GetTicks();
 		}
 		// Send position messeges from server
 		if( SDL_GetTicks() - sendNetPosT >= 10 )
 		{
-			NetSendPos();
+			//NetSendPos();
 			sendNetPosT = SDL_GetTicks();
 		}
 
 		// Update movement
 		if( SDL_GetTicks() - movT >= 1000/60 )
 		{
-			for( int i=0;i<clients.size();i++ )
-			{
-				//humans[i].DrawDir();
-				MoveHuman( clients[i].human );
-				clients[i].active = false;
-			}
 			movT = SDL_GetTicks();
 		}
 
@@ -203,29 +123,19 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 		// Debug or general info goes here
 		if( SDL_GetTicks() - infoT >= 1000 )
 		{
-			for( int i=0;i<clients.size();i++ )
-				std::cout<<i<<" pos "<<clients[i].human.pos.x<<" "<<clients[i].human.pos.y<<std::endl;
 			//std::cout<<"Cycles per second: "<<cycles<<std::endl;
 			cycles = 0;
 			infoT = SDL_GetTicks();
 		}
 	}
-*/
-//}
-/*
+}
+
 void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
 
-	client_t newClient;
-	newClient.SetSocket( socket );
-	if( playableTemplates.size() == 1 )
-		newClient.MakeHumanWithTemplateID( playableTemplates[0] );
-	Uint8 meta[2] = {MSG_META_END_ASSET_DATA, 1};
-	int message[] = {true};
-	SDLNet_TCP_Send( socket, meta, 2 );
-	SDLNet_TCP_Send( socket, message, meta[1]*4 );
-	clients.push_back( newClient );
+	user_t newUser( socket, users.size() );
+
 
 	/*
 	Uint8 meta[2] = {MSG_META_ID, 1};
@@ -233,7 +143,7 @@ void NewClient( TCPsocket socket )
 	SDLNet_TCP_Send( socket, meta, 2 );
 	SDLNet_TCP_Send( socket, message, meta[1]*4 );
 	*/
-//}
+}
 //void RemoveClient( client_t &someone )
 //{
 //	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
