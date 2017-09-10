@@ -16,18 +16,18 @@ class user_t
 		// Status
 		bool ready;
 		bool active;
+		// Controlled players
+		std::vector<int> contolledPlayers;
 
-		user_t( const TCPsocket &mySocket, int myID )
+		user_t( int myID,  const TCPsocket &mySocket )
 		{
 			socket = mySocket;
 			id = myID;
 			ready = false;
 			active = false;
-			requestHash = true;
+			requestHash = false;
 		}
-
 };
-
 class player_t
 {
 	public:

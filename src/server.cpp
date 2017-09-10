@@ -8,6 +8,7 @@
 
 #include "class/human.hpp"
 #include "class/texture.hpp"
+#include "class/message.hpp"
 
 TCPsocket server;
 SDLNet_SocketSet allConnectedSockets;
@@ -133,32 +134,25 @@ void ServerMain( Uint16 port = DEFAULT_PORT, int serverSize = DEFAULT_SERVER_SIZ
 void NewClient( TCPsocket socket )
 {
 	SDLNet_TCP_AddSocket( allConnectedSockets, socket );
-
-	user_t newUser( socket, users.size() );
-
-
-	/*
-	Uint8 meta[2] = {MSG_META_ID, 1};
-	int message[] = {(int)clients.size()};
-	SDLNet_TCP_Send( socket, meta, 2 );
-	SDLNet_TCP_Send( socket, message, meta[1]*4 );
-	*/
+	user_t newUser( users.size(), socket );
+	users.push_back( newUser );
 }
-//void RemoveClient( client_t &someone )
-//{
-//	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
-//}
-//void NetRecieve( client_t &sender, int id )
-//{
-	/*
-	Uint8 meta[2];
-	int recv = SDLNet_TCP_Recv( sender.socket, meta, 2 );
+void RemoveClient( client_t &someone )
+{
+	//TODO
+	SDLNet_TCP_DelSocket( allConnectedSockets, someone.socket );
+}
+void NetRecieve( user_t &sender )
+{
+	msgMeta_t meta;
+	int recv = SDLNet_TCP_Recv( sender.socket, &meta, 5 );
 	if( recv <= 0 )
 	{
 		std::cout<<"User has disconnected"<<std::endl;
 		RemoveClient( sender );
 		return;
 	}
+	/*
 
 	int msg[meta[1]];
 	int size = meta[1]*4;
