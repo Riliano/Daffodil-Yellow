@@ -45,7 +45,7 @@ class load_t
 		void LoadHumanBlueprints( humanBlueprint_t *loadBlueprints )
 		{
 			loadBlueprints = new humanBlueprint_t [ humanBlueprints.size() ];
-			for( int i=0;i<humanBlueprints.size();i++ )
+			for( unsigned int i=0;i<humanBlueprints.size();i++ )
 				loadBlueprints[i].CreateFromArray( humanBlueprints[i] );
 		}
 

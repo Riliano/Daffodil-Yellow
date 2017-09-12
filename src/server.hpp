@@ -15,11 +15,11 @@ class server_t
 	const Uint16 DEFAULT_PORT = 1234;
 	const unsigned int DEFAULT_SERVER_SIZE = 32;
 
-	void NetRecieve( user_t );
+	void NetRecieve( user_t& );
 //	void NetSendPos();
-//	void NewClient( TCPsocket );
+	void NewClient( TCPsocket );
 //	void NetSendNewPlayer( player_t );
-//	void NetSendTexture( user_t, textureBin_t );
+	void NetSendTexture( user_t&, int );
 //	void NetSendTextureList( user_t );
 
 	Uint16 port = DEFAULT_PORT;
@@ -61,6 +61,25 @@ class server_t
 		std::cout<<"Server: Entering main loop\n";
 		while( true )
 		{
+			/*
+			int hi = SDLNet_CheckSockets( allSockets, 0 );
+			std::cout<<"Hi "<<hi<<std::endl;
+			if( hi > 0 )
+			{
+				if( SDLNet_SocketReady( server ) )
+				{
+					NewClient( SDLNet_TCP_Accept( server ) );
+				}
+				for( unsigned int i=0;i<users.size();i++ )
+				{
+					if( SDLNet_SocketReady( users[i].socket ) )
+					{
+						NetRecieve( users[i] );
+					}
+				}
+
+			}
+			*/
 
 		}
 	}
@@ -72,18 +91,5 @@ class server_t
 		Load( "Levels/1.lvl" );// Change
 		ServerMain();
 	}
+
 };
-
-
-void NetRecieve( user_t &sender )
-{
-	msgMeta_t meta;
-	int recv = SDLNet_TCP_Recv( sender.socket, &meta, 5 );
-	if( recv <= 0 )
-	{
-		//RemoveClient( sender );
-		return;
-	}
-
-	void *message;
-}
