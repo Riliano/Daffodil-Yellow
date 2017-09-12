@@ -32,7 +32,8 @@ bool clientIsOn = false;
 //const int DEFAULT_SERVER_SIZE = 200;
 
 //#include "client.cpp"
-#include "server.cpp"
+//#include "server.cpp"
+#include "server.hpp"
 
 int StringToInt( char* str )
 {
@@ -48,8 +49,8 @@ int main( int argc, char **argv )
 {
 	bool startClient = true;
 	bool startServer = true;
-	Uint16 port = DEFAULT_PORT;
-	int serverSize = DEFAULT_SERVER_SIZE;
+	Uint16 port;
+	int serverSize;
 	char address[100] = "localhost";
 	char textures[500] = "textures.list";
 	for( int i=1;i<argc;i++ )
@@ -79,7 +80,9 @@ int main( int argc, char **argv )
 //	if( startClient )
 //		client = std::thread( ClientMain, address, port, textures );
 //	if( startServer )
-		ServerMain( port, serverSize );
+		//ServerMain( port, serverSize );
+	server_t server;
+	server.Start();
 	while( clientIsOn )
 	{}
 //	client.join();

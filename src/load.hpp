@@ -24,7 +24,7 @@ class load_t
 			return id;
 		}
 
-		void LoadTextures( textureBin_t *textures, hash_t texturesHashes = nullptr )
+		void LoadTextures( textureBin_t *textures, hash_t *texturesHashes = nullptr )
 		{
 			textures = new textureBin_t [ textureFilenames.size() ];
 			if( texturesHashes != nullptr )
@@ -54,10 +54,19 @@ class load_t
 			std::ifstream file( filename );
 			while( !file.eof() )
 			{
+				
+				if( !file.is_open() )
+				{
+					std::cout<<"Error opening load file\n";
+					break;
+				}
 				std::string line;
 				do
 					std::getline( file, line );
 				while( ( line[0] == '#' or line.length() < 2 ) and !file.eof() );
+
+				if( file.eof() )
+					break;
 				std::stringstream ss( line );
 
 				char operation;

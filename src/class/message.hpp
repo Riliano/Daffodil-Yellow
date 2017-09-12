@@ -32,4 +32,6 @@ class msgMeta_t
 			type = myType;
 			size = mySize;
 		}
+		msgMeta_t()
+		{}
 };
